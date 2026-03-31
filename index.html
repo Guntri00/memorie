@@ -9,7 +9,9 @@
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--cream:#F7F3EE;--warm:#FDFAF6;--gold:#B8935A;--gold-l:#D4AE7A;--gold-m:#E8D5B7;--dark:#1C1712;--stone:#8A8078;--charcoal:#3A3530}
 body{background:var(--cream);font-family:'Jost',sans-serif;font-weight:300;color:var(--dark);min-height:100vh}
-.wrap{max-width:660px;margin:0 auto;padding:0 20px 80px}
+.wrap{max-width:680px;margin:0 auto;padding:0 20px 80px}
+
+/* HEADER */
 header{text-align:center;padding:48px 24px 32px}
 .orn{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:18px}
 .ol{height:1px;width:56px;background:linear-gradient(90deg,transparent,var(--gold))}
@@ -20,6 +22,8 @@ h1{font-family:'Cormorant Garamond',serif;font-size:clamp(36px,9vw,64px);font-we
 h1 em{font-style:italic;color:var(--gold)}
 .date{font-size:11px;letter-spacing:.2em;color:var(--stone);text-transform:uppercase;margin-top:6px}
 .tagline{font-size:13px;color:var(--charcoal);margin-top:14px;line-height:1.7;max-width:340px;margin-left:auto;margin-right:auto}
+
+/* TABS */
 .tabs{display:flex;justify-content:center;margin:0 24px 32px}
 .tab{flex:1;max-width:160px;padding:13px 8px;background:none;border:1px solid var(--gold-m);color:var(--stone);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:all .25s;font-weight:400}
 .tab:first-child{border-radius:2px 0 0 2px;border-right:none}
@@ -28,7 +32,28 @@ h1 em{font-style:italic;color:var(--gold)}
 .tab.on{background:var(--gold);border-color:var(--gold);color:var(--warm)}
 .tab:not(.on):hover{border-color:var(--gold);color:var(--gold)}
 .panel{display:none}.panel.on{display:block}
-.zone{border:1.5px dashed var(--gold-m);border-radius:4px;padding:44px 24px;text-align:center;cursor:pointer;transition:all .3s;background:var(--warm)}
+
+/* CATEGORY CARDS */
+.cat-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;text-align:center;margin-bottom:6px;color:var(--dark)}
+.cat-sub{font-size:12px;color:var(--stone);text-align:center;margin-bottom:24px;letter-spacing:.05em}
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px}
+.cat-card{border:1.5px solid var(--gold-m);border-radius:6px;padding:20px 16px;text-align:center;cursor:pointer;transition:all .3s;background:var(--warm);position:relative;overflow:hidden}
+.cat-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(184,147,90,.05),transparent);pointer-events:none}
+.cat-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 8px 28px rgba(184,147,90,.12)}
+.cat-card.selected{border-color:var(--gold);background:linear-gradient(135deg,#FDF8F2,#FAF3E8);box-shadow:0 8px 28px rgba(184,147,90,.15)}
+.cat-card.selected::after{content:'✓';position:absolute;top:8px;right:10px;font-size:11px;color:var(--gold);font-weight:500}
+.cat-emoji{font-size:32px;margin-bottom:10px;display:block;line-height:1}
+.cat-name{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:400;color:var(--dark);margin-bottom:4px}
+.cat-desc{font-size:11px;color:var(--stone);line-height:1.5}
+
+/* UPLOAD ZONE */
+.upload-section{display:none}
+.upload-section.visible{display:block}
+.back-btn{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--stone);background:none;border:none;cursor:pointer;margin-bottom:20px;padding:0;transition:color .2s}
+.back-btn:hover{color:var(--gold)}
+.selected-cat-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;background:linear-gradient(135deg,#FDF8F2,#FAF3E8);border:1px solid var(--gold-m);border-radius:20px;font-size:12px;color:var(--charcoal);margin-bottom:20px}
+.selected-cat-badge .badge-emoji{font-size:16px}
+.zone{border:1.5px dashed var(--gold-m);border-radius:4px;padding:40px 24px;text-align:center;cursor:pointer;transition:all .3s;background:var(--warm)}
 .zone:hover,.zone.drag{border-color:var(--gold);background:#FEFCF8;transform:translateY(-2px);box-shadow:0 12px 40px rgba(184,147,90,.1)}
 .uico{width:48px;height:48px;margin:0 auto 16px;background:linear-gradient(135deg,var(--gold-m),#E8D5CC);border-radius:50%;display:flex;align-items:center;justify-content:center}
 .uico svg{width:22px;height:22px;stroke:var(--gold);fill:none;stroke-width:1.5}
@@ -52,21 +77,46 @@ h1 em{font-style:italic;color:var(--gold)}
 .sbtn:hover:not(:disabled){background:var(--gold)}.sbtn:disabled{opacity:.6;cursor:not-allowed}
 .toast{margin-top:16px;padding:14px 18px;border-radius:2px;font-size:13px;line-height:1.5;border-left:3px solid var(--gold);background:linear-gradient(135deg,#F0EBE3,#EDE5D8);color:var(--charcoal)}
 .toast.err{border-left-color:#C0392B;background:#FDF0F0;color:#7B1D1D}
-.g-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
-.g-count{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--stone)}
-.g-count span{color:var(--gold);font-weight:500}
-.live{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--stone)}
-.dot{width:6px;height:6px;background:#7DBF7A;border-radius:50%;animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.8)}}
+
+/* GALLERY */
+.g-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.g-filter-btn{padding:8px 16px;border:1px solid var(--gold-m);border-radius:20px;background:var(--warm);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--stone);cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:6px}
+.g-filter-btn:hover{border-color:var(--gold);color:var(--gold)}
+.g-filter-btn.on{background:var(--gold);border-color:var(--gold);color:var(--warm)}
+.g-filter-btn .fc{font-size:14px}
+.g-filter-btn .fcount{font-size:9px;background:rgba(255,255,255,.3);padding:1px 5px;border-radius:10px}
+.g-filter-btn:not(.on) .fcount{background:var(--gold-m);color:var(--stone)}
+
+/* CATEGORY WIDGETS */
+.cat-widgets{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px}
+@media(min-width:520px){.cat-widgets{grid-template-columns:repeat(2,1fr)}}
+.cat-widget{border:1px solid var(--gold-m);border-radius:6px;overflow:hidden;cursor:pointer;transition:all .3s;background:var(--warm)}
+.cat-widget:hover{border-color:var(--gold);box-shadow:0 8px 28px rgba(184,147,90,.12);transform:translateY(-2px)}
+.cat-widget.on{border-color:var(--gold);box-shadow:0 8px 28px rgba(184,147,90,.15)}
+.cw-header{padding:16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--gold-m)}
+.cw-emoji{font-size:24px;line-height:1}
+.cw-info{flex:1}
+.cw-name{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:400;color:var(--dark)}
+.cw-count{font-size:10px;color:var(--stone);letter-spacing:.1em;margin-top:2px}
+.cw-preview{display:grid;grid-template-columns:1fr 1fr;gap:2px;height:100px;overflow:hidden}
+.cw-preview img{width:100%;height:100%;object-fit:cover}
+.cw-preview .cw-empty{grid-column:1/-1;display:flex;align-items:center;justify-content:center;background:var(--cream);font-size:11px;color:var(--stone);letter-spacing:.1em}
+
+/* GALLERY GRID */
 .g-grid{columns:2;gap:10px}
 @media(min-width:480px){.g-grid{columns:3}}
 .gitem{break-inside:avoid;margin-bottom:10px;border-radius:3px;overflow:hidden;cursor:pointer;position:relative;transition:transform .3s,box-shadow .3s}
 .gitem:hover{transform:translateY(-3px);box-shadow:0 14px 36px rgba(28,23,18,.14)}
 .gitem img{width:100%;display:block}
-.gmeta{position:absolute;bottom:0;left:0;right:0;padding:20px 10px 9px;background:linear-gradient(transparent,rgba(28,23,18,.55));opacity:0;transition:opacity .3s;font-size:11px;color:rgba(253,250,246,.9)}
+.gmeta{position:absolute;bottom:0;left:0;right:0;padding:20px 10px 9px;background:linear-gradient(transparent,rgba(28,23,18,.6));opacity:0;transition:opacity .3s;font-size:11px;color:rgba(253,250,246,.9)}
 .gitem:hover .gmeta{opacity:1}
-.gempty{text-align:center;padding:52px 20px;color:var(--stone);font-size:13px;line-height:1.8}
+.gmeta-cat{font-size:9px;letter-spacing:.1em;text-transform:uppercase;opacity:.8;margin-bottom:2px}
+.gempty{text-align:center;padding:52px 20px;color:var(--stone);font-size:13px;line-height:1.8;grid-column:1/-1}
 .gempty .ei{font-size:32px;margin-bottom:12px;opacity:.4}
+.g-back{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--stone);background:none;border:none;cursor:pointer;margin-bottom:20px;padding:0;transition:color .2s}
+.g-back:hover{color:var(--gold)}
+
+/* QR */
 .qr-wrap{text-align:center;padding:32px 20px}
 .qr-box{display:inline-block;padding:24px;background:var(--warm);border:1px solid var(--gold-m);border-radius:4px;box-shadow:0 8px 32px rgba(184,147,90,.08)}
 .qr-box img{display:block;width:220px;height:220px;border-radius:2px;background:#fff}
@@ -78,6 +128,8 @@ h1 em{font-style:italic;color:var(--gold)}
 .qr-steps h3{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;margin-bottom:12px}
 .step{display:flex;gap:10px;margin-bottom:10px;font-size:13px;color:var(--charcoal);line-height:1.5}
 .sn{width:22px;height:22px;min-width:22px;background:var(--gold);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;margin-top:1px}
+
+/* LIGHTBOX */
 .lb{position:fixed;inset:0;background:rgba(28,23,18,.93);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
 .lb.open{display:flex}
 .lb img{max-width:100%;max-height:90vh;border-radius:3px;object-fit:contain}
@@ -86,6 +138,12 @@ footer{text-align:center;padding:24px;font-size:10px;letter-spacing:.18em;color:
 footer a{color:var(--gold);text-decoration:none}
 .spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;margin-right:7px;vertical-align:middle}
 @keyframes sp{to{transform:rotate(360deg)}}
+.dot{width:6px;height:6px;background:#7DBF7A;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.8)}}
+.live{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--stone)}
+.g-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.g-count{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--stone)}
+.g-count span{color:var(--gold);font-weight:500}
 </style>
 </head>
 <body>
@@ -106,50 +164,100 @@ footer a{color:var(--gold);text-decoration:none}
 
 <div class="wrap">
 
-  <!-- UPLOAD -->
+  <!-- ── UPLOAD ── -->
   <div id="panel-upload" class="panel on">
-    <div class="zone" id="dropzone"
-      ondragover="event.preventDefault();this.classList.add('drag')"
-      ondragleave="this.classList.remove('drag')"
-      ondrop="onDrop(event)"
-      onclick="document.getElementById('fi').click()">
-      <div class="uico">
-        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+
+    <!-- ÉTAPE 1 : Choix de catégorie -->
+    <div id="step-category">
+      <p class="cat-title">Dans quel moment êtes-vous ?</p>
+      <p class="cat-sub">Choisissez une catégorie pour mieux organiser vos souvenirs</p>
+      <div class="cat-grid">
+        <div class="cat-card" onclick="selectCategory('ceremonie','💍','Cérémonie')">
+          <span class="cat-emoji">💍</span>
+          <div class="cat-name">Cérémonie</div>
+          <div class="cat-desc">L'échange des vœux et des alliances</div>
+        </div>
+        <div class="cat-card" onclick="selectCategory('cocktail','🥂','Cocktail')">
+          <span class="cat-emoji">🥂</span>
+          <div class="cat-name">Cocktail</div>
+          <div class="cat-desc">Les bulles et les retrouvailles</div>
+        </div>
+        <div class="cat-card" onclick="selectCategory('diner','🍽️','Dîner / Soirée')">
+          <span class="cat-emoji">🍽️</span>
+          <div class="cat-name">Dîner / Soirée</div>
+          <div class="cat-desc">Le repas et les discours</div>
+        </div>
+        <div class="cat-card" onclick="selectCategory('danse','💃','Piste de danse')">
+          <span class="cat-emoji">💃</span>
+          <div class="cat-name">Piste de danse</div>
+          <div class="cat-desc">La fête jusqu'au bout de la nuit</div>
+        </div>
       </div>
-      <p class="utitle">Déposez vos photos ici</p>
-      <p class="usub">ou cliquez pour choisir depuis votre galerie<br>JPG, PNG, HEIC · Jusqu'à 20 Mo</p>
-      <button class="ubtn" onclick="event.stopPropagation();document.getElementById('fi').click()">Choisir des photos</button>
-      <input id="fi" type="file" multiple accept="image/*" style="display:none" onchange="onFileSelect(event)">
     </div>
-    <div class="previews" id="previews"></div>
-    <div class="nfield">
-      <label>Votre prénom (optionnel)</label>
-      <input id="uname" type="text" placeholder="ex : Sophie">
+
+    <!-- ÉTAPE 2 : Upload -->
+    <div id="step-upload" class="upload-section">
+      <button class="back-btn" onclick="goBack()">← Changer de catégorie</button>
+      <div id="selected-badge" class="selected-cat-badge">
+        <span class="badge-emoji" id="badge-emoji"></span>
+        <span id="badge-name"></span>
+      </div>
+      <div class="zone" id="dropzone"
+        ondragover="event.preventDefault();this.classList.add('drag')"
+        ondragleave="this.classList.remove('drag')"
+        ondrop="onDrop(event)"
+        onclick="document.getElementById('fi').click()">
+        <div class="uico">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <p class="utitle">Déposez vos photos ici</p>
+        <p class="usub">ou cliquez pour choisir depuis votre galerie<br>JPG, PNG, HEIC · Jusqu'à 20 Mo</p>
+        <button class="ubtn" onclick="event.stopPropagation();document.getElementById('fi').click()">Choisir des photos</button>
+        <input id="fi" type="file" multiple accept="image/*" style="display:none" onchange="onFileSelect(event)">
+      </div>
+      <div class="previews" id="previews"></div>
+      <div class="nfield">
+        <label>Votre prénom (optionnel)</label>
+        <input id="uname" type="text" placeholder="ex : Sophie">
+      </div>
+      <div class="prog" id="prog" style="display:none">
+        <div class="prog-row"><span id="prog-lbl">Envoi…</span><span id="prog-pct">0%</span></div>
+        <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
+      </div>
+      <button class="sbtn" id="sbtn" style="display:none" onclick="doUpload()">Partager mes photos</button>
+      <div id="toast" style="display:none" class="toast"></div>
     </div>
-    <div class="prog" id="prog" style="display:none">
-      <div class="prog-row"><span id="prog-lbl">Envoi…</span><span id="prog-pct">0%</span></div>
-      <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
-    </div>
-    <button class="sbtn" id="sbtn" style="display:none" onclick="doUpload()">Partager mes photos</button>
-    <div id="toast" style="display:none" class="toast"></div>
+
   </div>
 
-  <!-- GALLERY -->
+  <!-- ── GALERIE ── -->
   <div id="panel-gallery" class="panel">
-    <div class="g-hdr">
-      <p class="g-count"><span id="photoCount">0</span> photos partagées</p>
-      <div class="live"><div class="dot"></div>En direct</div>
+
+    <!-- Vue widgets (défaut) -->
+    <div id="gallery-widgets">
+      <div class="g-hdr">
+        <p class="g-count"><span id="totalCount">0</span> photos partagées</p>
+        <div class="live"><div class="dot"></div>En direct</div>
+      </div>
+      <div class="cat-widgets" id="catWidgets"></div>
     </div>
-    <div class="g-grid" id="gGrid">
-      <div class="gempty"><div class="ei">📷</div><p>Les photos apparaîtront ici dès que les invités commenceront à partager</p></div>
+
+    <!-- Vue catégorie détail -->
+    <div id="gallery-detail" style="display:none">
+      <button class="g-back" onclick="showWidgets()">← Toutes les catégories</button>
+      <div class="g-hdr">
+        <p class="g-count" id="detail-title"></p>
+        <div class="live"><div class="dot"></div>En direct</div>
+      </div>
+      <div class="g-grid" id="gGrid"></div>
     </div>
+
   </div>
 
-  <!-- QR CODE -->
+  <!-- ── QR CODE ── -->
   <div id="panel-qr" class="panel">
     <div class="qr-wrap">
       <div class="qr-box">
-        <!-- QR Code 100% scannable — Google Charts API -->
         <img
           src="https://chart.googleapis.com/chart?cht=qr&chs=220x220&chl=https%3A%2F%2Fmemorie-one.vercel.app&choe=UTF-8&chld=Q%7C4"
           alt="QR Code Mementos"
@@ -164,8 +272,8 @@ footer a{color:var(--gold);text-decoration:none}
         <h3>Comment utiliser le QR code ?</h3>
         <div class="step"><div class="sn">1</div><span>Imprimez ce QR code ou affichez-le sur un écran lors de l'événement</span></div>
         <div class="step"><div class="sn">2</div><span>Les invités scannent avec leur téléphone — sans application à installer</span></div>
-        <div class="step"><div class="sn">3</div><span>Ils arrivent directement sur la page et partagent leurs photos instantanément</span></div>
-        <div class="step"><div class="sn">4</div><span>Toutes les photos sont centralisées dans la galerie en temps réel</span></div>
+        <div class="step"><div class="sn">3</div><span>Ils choisissent leur catégorie puis partagent leurs photos instantanément</span></div>
+        <div class="step"><div class="sn">4</div><span>Toutes les photos sont triées par moment dans la galerie en temps réel</span></div>
       </div>
     </div>
   </div>
@@ -181,22 +289,31 @@ footer a{color:var(--gold);text-decoration:none}
 <footer><p>Propulsé par <a href="#">Mementos</a> &nbsp;·&nbsp; vos souvenirs, centralisés</p></footer>
 
 <script>
-// ══════════════════════════════════════════════
-//  CONFIG SUPABASE
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════
 const SB_URL   = 'https://hmytqbgnjpugqeslnuvk.supabase.co';
 const SB_KEY   = 'sb_publishable_59uI3S3lCP0xyVtvrR6ZZA_vXsiF27o';
 const EVENT_ID = 'mariage-melodie-thomas-2025';
 const BUCKET   = 'photos';
 
-// ══════════════════════════════════════════════
-//  STATE
-// ══════════════════════════════════════════════
-let selectedFiles = [];
+const CATEGORIES = [
+  { id: 'ceremonie', emoji: '💍', name: 'Cérémonie',      desc: "L'échange des vœux" },
+  { id: 'cocktail',  emoji: '🥂', name: 'Cocktail',       desc: 'Les bulles et retrouvailles' },
+  { id: 'diner',     emoji: '🍽️', name: 'Dîner / Soirée', desc: 'Le repas et les discours' },
+  { id: 'danse',     emoji: '💃', name: 'Piste de danse',  desc: "La fête jusqu'au bout" },
+];
 
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+let selectedFiles    = [];
+let selectedCategory = null;
+let allPhotos        = [];
+
+// ══════════════════════════════════════════
 //  TABS
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════
 function switchTab(id, btn) {
   document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
@@ -205,12 +322,41 @@ function switchTab(id, btn) {
   if (id === 'gallery') loadGallery();
 }
 
-// ══════════════════════════════════════════════
-//  GESTION FICHIERS
-// ══════════════════════════════════════════════
-function onFileSelect(e) {
-  addFiles(Array.from(e.target.files));
+// ══════════════════════════════════════════
+//  CATÉGORIE
+// ══════════════════════════════════════════
+function selectCategory(id, emoji, name) {
+  selectedCategory = { id, emoji, name };
+
+  // Highlight carte
+  document.querySelectorAll('.cat-card').forEach(c => c.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+
+  // Badge
+  document.getElementById('badge-emoji').textContent = emoji;
+  document.getElementById('badge-name').textContent  = name;
+
+  // Transition vers l'upload
+  setTimeout(() => {
+    document.getElementById('step-category').style.display = 'none';
+    document.getElementById('step-upload').classList.add('visible');
+  }, 200);
 }
+
+function goBack() {
+  selectedCategory = null;
+  selectedFiles    = [];
+  renderPreviews();
+  document.getElementById('step-upload').classList.remove('visible');
+  document.getElementById('step-category').style.display = 'block';
+  document.querySelectorAll('.cat-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('toast').style.display = 'none';
+}
+
+// ══════════════════════════════════════════
+//  FICHIERS
+// ══════════════════════════════════════════
+function onFileSelect(e) { addFiles(Array.from(e.target.files)); }
 
 function onDrop(e) {
   e.preventDefault();
@@ -238,11 +384,11 @@ function renderPreviews() {
   document.getElementById('sbtn').style.display = selectedFiles.length ? 'block' : 'none';
 }
 
-// ══════════════════════════════════════════════
-//  UPLOAD VERS SUPABASE
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════
+//  UPLOAD
+// ══════════════════════════════════════════
 async function doUpload() {
-  if (!selectedFiles.length) return;
+  if (!selectedFiles.length || !selectedCategory) return;
 
   const btn          = document.getElementById('sbtn');
   const uploaderName = document.getElementById('uname').value.trim() || 'Invité';
@@ -260,35 +406,31 @@ async function doUpload() {
     try {
       setProgress(done, total, `Photo ${done + 1} / ${total}`);
 
-      // Nom de fichier unique
       const ext      = (file.name.split('.').pop() || 'jpg').toLowerCase();
-      const filename = `${EVENT_ID}/${Date.now()}-${Math.random().toString(36).substr(2, 6)}.${ext}`;
+      const filename = `${EVENT_ID}/${selectedCategory.id}/${Date.now()}-${Math.random().toString(36).substr(2,6)}.${ext}`;
 
-      // ── 1. Upload Storage ──────────────────
-      const uploadRes = await fetch(
-        `${SB_URL}/storage/v1/object/${BUCKET}/${filename}`,
-        {
-          method: 'POST',
-          headers: {
-            'apikey':        SB_KEY,
-            'Authorization': `Bearer ${SB_KEY}`,
-            'Content-Type':  file.type || 'image/jpeg',
-            'x-upsert':      'true'
-          },
-          body: file
-        }
-      );
+      // 1. Upload Storage
+      const uploadRes = await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${filename}`, {
+        method: 'POST',
+        headers: {
+          'apikey':        SB_KEY,
+          'Authorization': `Bearer ${SB_KEY}`,
+          'Content-Type':  file.type || 'image/jpeg',
+          'x-upsert':      'true'
+        },
+        body: file
+      });
 
       if (!uploadRes.ok) {
         const txt = await uploadRes.text();
         throw new Error(`Storage ${uploadRes.status}: ${txt}`);
       }
 
-      // ── 2. URL publique ────────────────────
+      // 2. URL publique
       const publicUrl = `${SB_URL}/storage/v1/object/public/${BUCKET}/${filename}`;
 
-      // ── 3. Enregistrement en base ──────────
-      await fetch(`${SB_URL}/rest/v1/photos`, {
+      // 3. Insert DB avec catégorie + prénom
+      const dbRes = await fetch(`${SB_URL}/rest/v1/photos`, {
         method: 'POST',
         headers: {
           'apikey':        SB_KEY,
@@ -297,13 +439,19 @@ async function doUpload() {
           'Prefer':        'return=minimal'
         },
         body: JSON.stringify({
-          event_id:     EVENT_ID,
+          event_id:      EVENT_ID,
           uploader_name: uploaderName,
+          category:      selectedCategory.id,
           storage_path:  filename,
           public_url:    publicUrl,
           uploaded_at:   new Date().toISOString()
         })
       });
+
+      if (!dbRes.ok) {
+        const txt = await dbRes.text();
+        console.warn('DB warning:', txt);
+      }
 
       done++;
       setProgress(done, total);
@@ -313,7 +461,6 @@ async function doUpload() {
     }
   }
 
-  // Reset UI
   btn.disabled  = false;
   btn.innerHTML = 'Partager mes photos';
   document.getElementById('prog').style.display = 'none';
@@ -322,7 +469,7 @@ async function doUpload() {
     selectedFiles = [];
     renderPreviews();
     setProgress(0, 1);
-    showToast(`✦  ${done} photo${done > 1 ? 's' : ''} partagée${done > 1 ? 's' : ''} avec succès — merci !`, false);
+    showToast(`✦  ${done} photo${done > 1 ? 's' : ''} partagée${done > 1 ? 's' : ''} dans ${selectedCategory.emoji} ${selectedCategory.name} — merci !`, false);
   }
   if (errors.length) {
     showToast('⚠️ ' + errors.join(' | '), true);
@@ -337,54 +484,101 @@ function setProgress(done, total, label) {
 }
 
 function showToast(msg, isErr) {
-  const t       = document.getElementById('toast');
-  t.textContent = msg;
-  t.className   = 'toast' + (isErr ? ' err' : '');
+  const t = document.getElementById('toast');
+  t.textContent   = msg;
+  t.className     = 'toast' + (isErr ? ' err' : '');
   t.style.display = 'block';
 }
 
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════
 //  GALERIE
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════
 async function loadGallery() {
-  const grid = document.getElementById('gGrid');
-  grid.innerHTML = '<div class="gempty"><div class="ei">⏳</div><p>Chargement…</p></div>';
+  document.getElementById('catWidgets').innerHTML = CATEGORIES.map(c => `
+    <div class="cat-widget" onclick="openCategory('${c.id}')">
+      <div class="cw-header">
+        <span class="cw-emoji">${c.emoji}</span>
+        <div class="cw-info">
+          <div class="cw-name">${c.name}</div>
+          <div class="cw-count" id="count-${c.id}">Chargement…</div>
+        </div>
+      </div>
+      <div class="cw-preview" id="preview-${c.id}">
+        <div class="cw-empty">Aucune photo</div>
+      </div>
+    </div>`).join('');
 
   try {
     const res = await fetch(
       `${SB_URL}/rest/v1/photos?event_id=eq.${EVENT_ID}&order=uploaded_at.desc&select=*`,
-      {
-        headers: {
-          'apikey':        SB_KEY,
-          'Authorization': `Bearer ${SB_KEY}`
-        }
-      }
+      { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` } }
     );
-    if (!res.ok) throw new Error(`Erreur ${res.status}: ${await res.text()}`);
+    if (!res.ok) throw new Error(await res.text());
+    allPhotos = await res.json();
 
-    const photos = await res.json();
-    document.getElementById('photoCount').textContent = photos.length;
+    document.getElementById('totalCount').textContent = allPhotos.length;
 
-    if (!photos.length) {
-      grid.innerHTML = '<div class="gempty"><div class="ei">📷</div><p>Aucune photo pour l\'instant<br>Soyez le premier à partager !</p></div>';
-      return;
-    }
+    // Remplir chaque widget
+    CATEGORIES.forEach(cat => {
+      const photos = allPhotos.filter(p => p.category === cat.id);
+      const countEl   = document.getElementById('count-' + cat.id);
+      const previewEl = document.getElementById('preview-' + cat.id);
 
-    grid.innerHTML = photos.map(p => `
-      <div class="gitem" onclick="openLB('${p.public_url}')">
-        <img src="${p.public_url}" alt="Photo de ${p.uploader_name || 'Invité'}" loading="lazy"
-             onerror="this.parentElement.style.display='none'">
-        <div class="gmeta">par ${p.uploader_name || 'Invité'}</div>
-      </div>`).join('');
+      countEl.textContent = photos.length
+        ? `${photos.length} photo${photos.length > 1 ? 's' : ''}`
+        : 'Aucune photo encore';
+
+      if (photos.length) {
+        // Afficher les 4 premières en aperçu
+        previewEl.innerHTML = photos.slice(0, 4).map(p => `
+          <img src="${p.public_url}" alt="" loading="lazy"
+               onerror="this.parentElement.style.background='var(--cream)';this.style.display='none'">`
+        ).join('');
+      }
+    });
 
   } catch (err) {
-    grid.innerHTML = `<div class="gempty"><div class="ei">⚠️</div><p>${err.message}</p></div>`;
+    document.getElementById('catWidgets').innerHTML =
+      `<div class="gempty"><div class="ei">⚠️</div><p>${err.message}</p></div>`;
   }
 }
 
-// ══════════════════════════════════════════════
+function openCategory(catId) {
+  const cat    = CATEGORIES.find(c => c.id === catId);
+  const photos = allPhotos.filter(p => p.category === catId);
+
+  document.getElementById('gallery-widgets').style.display = 'none';
+  document.getElementById('gallery-detail').style.display  = 'block';
+
+  document.getElementById('detail-title').innerHTML =
+    `<span>${cat.emoji} ${cat.name}</span> &nbsp;—&nbsp; <span style="color:var(--gold)">${photos.length} photo${photos.length !== 1 ? 's' : ''}</span>`;
+
+  const grid = document.getElementById('gGrid');
+
+  if (!photos.length) {
+    grid.innerHTML = `<div class="gempty"><div class="ei">${cat.emoji}</div><p>Aucune photo dans cette catégorie encore<br>Soyez le premier à partager !</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = photos.map(p => `
+    <div class="gitem" onclick="openLB('${p.public_url}')">
+      <img src="${p.public_url}" alt="Photo de ${p.uploader_name || 'Invité'}" loading="lazy"
+           onerror="this.parentElement.style.display='none'">
+      <div class="gmeta">
+        <div class="gmeta-cat">${cat.emoji} ${cat.name}</div>
+        par ${p.uploader_name || 'Invité'}
+      </div>
+    </div>`).join('');
+}
+
+function showWidgets() {
+  document.getElementById('gallery-detail').style.display  = 'none';
+  document.getElementById('gallery-widgets').style.display = 'block';
+}
+
+// ══════════════════════════════════════════
 //  QR CODE
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════
 function downloadQR() {
   window.open(
     'https://chart.googleapis.com/chart?cht=qr&chs=600x600&chl=https%3A%2F%2Fmemorie-one.vercel.app&choe=UTF-8&chld=Q%7C4',
@@ -392,9 +586,9 @@ function downloadQR() {
   );
 }
 
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════
 //  LIGHTBOX
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════
 function openLB(src) {
   document.getElementById('lbImg').src = src;
   document.getElementById('lb').classList.add('open');
