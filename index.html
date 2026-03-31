@@ -1,640 +1,408 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mélodie & Thomas — Partage Photos</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
-  <!-- Supabase SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="window.supabase=null"></script>
-
-
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --cream: #F7F3EE;
-      --warm-white: #FDFAF6;
-      --gold: #B8935A;
-      --gold-light: #D4AE7A;
-      --gold-muted: #E8D5B7;
-      --dark: #1C1712;
-      --charcoal: #3A3530;
-      --stone: #8A8078;
-      --blush: #E8D5CC;
-    }
-    html { scroll-behavior: smooth; }
-    body {
-      background-color: var(--cream);
-      color: var(--dark);
-      font-family: 'Jost', sans-serif;
-      font-weight: 300;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    header {
-      position: relative;
-      text-align: center;
-      padding: 56px 24px 48px;
-      z-index: 1;
-    }
-    .header-ornament {
-      display: flex; align-items: center; justify-content: center;
-      gap: 16px; margin-bottom: 24px;
-      opacity: 0; animation: fadeUp 1s ease forwards 0.1s;
-    }
-    .ornament-line { height: 1px; width: 60px; background: linear-gradient(90deg, transparent, var(--gold)); }
-    .ornament-line.right { background: linear-gradient(90deg, var(--gold), transparent); }
-    .ornament-diamond { width: 6px; height: 6px; background: var(--gold); transform: rotate(45deg); }
-    .event-label {
-      font-size: 10px; letter-spacing: 0.35em; text-transform: uppercase;
-      color: var(--gold); font-weight: 400;
-      opacity: 0; animation: fadeUp 1s ease forwards 0.2s;
-    }
-    h1 {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: clamp(42px, 10vw, 72px);
-      font-weight: 300; color: var(--dark);
-      line-height: 1.05; letter-spacing: -0.01em;
-      margin: 12px 0 8px;
-      opacity: 0; animation: fadeUp 1s ease forwards 0.35s;
-    }
-    h1 em { font-style: italic; color: var(--gold); }
-    .event-date {
-      font-size: 12px; letter-spacing: 0.2em; color: var(--stone);
-      text-transform: uppercase; margin-top: 4px;
-      opacity: 0; animation: fadeUp 1s ease forwards 0.5s;
-    }
-    .header-tagline {
-      font-size: 14px; color: var(--charcoal); margin-top: 20px;
-      line-height: 1.7; max-width: 360px; margin-left: auto; margin-right: auto;
-      opacity: 0; animation: fadeUp 1s ease forwards 0.65s;
-    }
-
-    /* TABS */
-    .tabs {
-      display: flex; justify-content: center;
-      margin: 0 24px 40px;
-      position: relative; z-index: 1;
-      opacity: 0; animation: fadeUp 1s ease forwards 0.8s;
-      flex-wrap: wrap; gap: 0;
-    }
-    .tab-btn {
-      flex: 1; max-width: 160px;
-      padding: 14px 16px;
-      background: none; border: 1px solid var(--gold-muted);
-      color: var(--stone); font-family: 'Jost', sans-serif;
-      font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
-      cursor: pointer; transition: all 0.3s ease; font-weight: 400;
-    }
-    .tab-btn:first-child { border-radius: 2px 0 0 2px; border-right: none; }
-    .tab-btn:last-child  { border-radius: 0 2px 2px 0; }
-    .tab-btn:nth-child(2) { border-right: none; }
-    .tab-btn.active { background: var(--gold); border-color: var(--gold); color: var(--warm-white); }
-    .tab-btn:not(.active):hover { border-color: var(--gold); color: var(--gold); }
-
-    main { max-width: 680px; margin: 0 auto; padding: 0 20px 80px; position: relative; z-index: 1; }
-    .panel { display: none; }
-    .panel.active { display: block; }
-
-    /* UPLOAD */
-    .upload-zone {
-      border: 1.5px dashed var(--gold-muted); border-radius: 4px;
-      padding: 52px 32px; text-align: center; cursor: pointer;
-      transition: all 0.35s ease; background: var(--warm-white);
-      position: relative; overflow: hidden;
-    }
-    .upload-zone::before {
-      content: ''; position: absolute; inset: 0;
-      background: linear-gradient(135deg, transparent 60%, rgba(184,147,90,0.04));
-      pointer-events: none;
-    }
-    .upload-zone:hover, .upload-zone.dragover {
-      border-color: var(--gold); background: #FEFCF8;
-      transform: translateY(-2px); box-shadow: 0 12px 40px rgba(184,147,90,0.1);
-    }
-    .upload-icon {
-      width: 52px; height: 52px; margin: 0 auto 20px;
-      background: linear-gradient(135deg, var(--gold-muted), var(--blush));
-      border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    }
-    .upload-icon svg { width: 22px; height: 22px; stroke: var(--gold); fill: none; stroke-width: 1.5; }
-    .upload-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 400; color: var(--dark); margin-bottom: 8px; }
-    .upload-subtitle { font-size: 12px; color: var(--stone); letter-spacing: 0.05em; line-height: 1.6; }
-    .upload-btn {
-      display: inline-block; margin-top: 24px; padding: 13px 36px;
-      background: var(--gold); color: var(--warm-white);
-      font-family: 'Jost', sans-serif; font-size: 11px;
-      letter-spacing: 0.25em; text-transform: uppercase;
-      font-weight: 400; border: none; border-radius: 2px; cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    .upload-btn:hover { background: var(--charcoal); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(28,23,18,0.15); }
-    input[type="file"] { display: none; }
-
-    .name-field { margin-top: 24px; }
-    .name-field label { display: block; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--stone); margin-bottom: 8px; }
-    .name-field input {
-      width: 100%; padding: 13px 16px; border: 1px solid var(--gold-muted);
-      border-radius: 2px; background: var(--warm-white);
-      font-family: 'Jost', sans-serif; font-size: 14px;
-      color: var(--dark); font-weight: 300; outline: none; transition: border-color 0.3s;
-    }
-    .name-field input:focus { border-color: var(--gold); }
-    .name-field input::placeholder { color: var(--stone); }
-
-    .preview-queue { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 20px; }
-    .preview-item { aspect-ratio: 1; border-radius: 3px; overflow: hidden; position: relative; background: var(--gold-muted); }
-    .preview-item img { width: 100%; height: 100%; object-fit: cover; }
-    .preview-item .remove-btn {
-      position: absolute; top: 4px; right: 4px;
-      width: 20px; height: 20px; background: rgba(28,23,18,0.7);
-      border: none; border-radius: 50%; color: white; font-size: 11px;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      opacity: 0; transition: opacity 0.2s;
-    }
-    .preview-item:hover .remove-btn { opacity: 1; }
-
-    .upload-progress { margin-top: 20px; display: none; }
-    .progress-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--stone); margin-bottom: 8px; letter-spacing: 0.05em; }
-    .progress-bar { height: 2px; background: var(--gold-muted); border-radius: 1px; overflow: hidden; }
-    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-light)); width: 0%; transition: width 0.4s ease; border-radius: 1px; }
-
-    .submit-btn {
-      width: 100%; margin-top: 24px; padding: 16px;
-      background: var(--dark); color: var(--warm-white);
-      font-family: 'Jost', sans-serif; font-size: 11px;
-      letter-spacing: 0.3em; text-transform: uppercase;
-      font-weight: 400; border: none; border-radius: 2px; cursor: pointer;
-      transition: all 0.3s ease; display: none;
-    }
-    .submit-btn:hover { background: var(--gold); box-shadow: 0 8px 24px rgba(184,147,90,0.2); }
-    .submit-btn.visible { display: block; }
-
-    .success-toast {
-      display: none; margin-top: 20px; padding: 16px 20px;
-      background: linear-gradient(135deg, #F0EBE3, #EDE5D8);
-      border-left: 3px solid var(--gold); border-radius: 2px;
-      font-size: 13px; color: var(--charcoal); line-height: 1.5;
-    }
-    .success-toast.visible { display: block; animation: fadeUp 0.5s ease; }
-
-    .error-toast {
-      display: none; margin-top: 20px; padding: 16px 20px;
-      background: #FDF0F0; border-left: 3px solid #C0392B; border-radius: 2px;
-      font-size: 13px; color: var(--charcoal); line-height: 1.5;
-    }
-    .error-toast.visible { display: block; animation: fadeUp 0.5s ease; }
-
-    /* GALLERY */
-    .gallery-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-    .gallery-count { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--stone); }
-    .gallery-count span { color: var(--gold); font-weight: 500; }
-    .live-badge { display: flex; align-items: center; gap: 6px; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--stone); }
-    .live-dot { width: 6px; height: 6px; background: #7DBF7A; border-radius: 50%; animation: pulse 2s ease infinite; }
-    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.8); } }
-
-    .gallery-grid { columns: 2; gap: 10px; }
-    @media (min-width: 480px) { .gallery-grid { columns: 3; } }
-    .gallery-item { break-inside: avoid; margin-bottom: 10px; border-radius: 3px; overflow: hidden; cursor: pointer; position: relative; transition: transform 0.3s ease, box-shadow 0.3s ease; }
-    .gallery-item:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(28,23,18,0.15); }
-    .gallery-item img { width: 100%; display: block; }
-    .gallery-item .photo-meta {
-      position: absolute; bottom: 0; left: 0; right: 0;
-      padding: 24px 12px 10px;
-      background: linear-gradient(transparent, rgba(28,23,18,0.55));
-      opacity: 0; transition: opacity 0.3s;
-      font-size: 11px; color: rgba(253,250,246,0.9); letter-spacing: 0.05em;
-    }
-    .gallery-item:hover .photo-meta { opacity: 1; }
-    .gallery-item.new-photo { animation: newPhotoIn 0.6s cubic-bezier(0.16,1,0.3,1) forwards; }
-    @keyframes newPhotoIn { from { opacity: 0; transform: scale(0.92) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-
-    .gallery-empty { text-align: center; padding: 60px 20px; color: var(--stone); font-size: 14px; line-height: 1.8; }
-    .gallery-empty .empty-icon { font-size: 36px; margin-bottom: 16px; opacity: 0.4; }
-
-    /* LIGHTBOX */
-    .lightbox { display: none; position: fixed; inset: 0; background: rgba(28,23,18,0.92); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
-    .lightbox.open { display: flex; animation: fadeIn 0.3s ease; }
-    .lightbox img { max-width: 100%; max-height: 90vh; border-radius: 3px; object-fit: contain; }
-    .lightbox-close { position: absolute; top: 20px; right: 20px; background: none; border: 1px solid rgba(253,250,246,0.3); color: var(--warm-white); width: 40px; height: 40px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-    .lightbox-close:hover { background: rgba(255,255,255,0.1); }
-
-    /* QR PANEL */
-    .qr-container { text-align: center; padding: 40px 20px; }
-    .qr-box {
-      display: inline-block; padding: 28px; background: var(--warm-white);
-      border: 1px solid var(--gold-muted); border-radius: 4px;
-      box-shadow: 0 8px 32px rgba(184,147,90,0.08);
-    }
-    #qrcode { display: flex; justify-content: center; }
-    #qrcode canvas, #qrcode img { border-radius: 2px; }
-    .qr-label { margin-top: 20px; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--stone); }
-    .qr-url { margin-top: 8px; font-size: 12px; color: var(--gold); word-break: break-all; }
-    .qr-download-btn {
-      display: inline-block; margin-top: 24px; padding: 12px 32px;
-      background: var(--gold); color: var(--warm-white);
-      font-family: 'Jost', sans-serif; font-size: 11px;
-      letter-spacing: 0.25em; text-transform: uppercase;
-      font-weight: 400; border: none; border-radius: 2px; cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    .qr-download-btn:hover { background: var(--charcoal); }
-    .qr-instructions { margin-top: 32px; padding: 20px; background: var(--warm-white); border-radius: 4px; border: 1px solid var(--gold-muted); text-align: left; }
-    .qr-instructions h3 { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 400; margin-bottom: 12px; color: var(--dark); }
-    .qr-step { display: flex; gap: 12px; margin-bottom: 10px; font-size: 13px; color: var(--charcoal); line-height: 1.5; }
-    .qr-step-num { width: 22px; height: 22px; background: var(--gold); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; margin-top: 1px; }
-
-    footer { text-align: center; padding: 32px 24px; font-size: 10px; letter-spacing: 0.2em; color: var(--gold-muted); text-transform: uppercase; position: relative; z-index: 1; }
-    footer a { color: var(--gold); text-decoration: none; }
-
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-    .loading-spinner {
-      display: inline-block; width: 16px; height: 16px;
-      border: 2px solid rgba(255,255,255,0.3); border-top-color: white;
-      border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; vertical-align: middle;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Mélodie & Thomas — Partage Photos</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--cream:#F7F3EE;--warm:#FDFAF6;--gold:#B8935A;--gold-l:#D4AE7A;--gold-m:#E8D5B7;--dark:#1C1712;--stone:#8A8078;--charcoal:#3A3530}
+body{background:var(--cream);font-family:'Jost',sans-serif;font-weight:300;color:var(--dark);min-height:100vh}
+.wrap{max-width:660px;margin:0 auto;padding:0 20px 80px}
+header{text-align:center;padding:48px 24px 32px}
+.orn{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:18px}
+.ol{height:1px;width:56px;background:linear-gradient(90deg,transparent,var(--gold))}
+.or{background:linear-gradient(90deg,var(--gold),transparent)}
+.od{width:6px;height:6px;background:var(--gold);transform:rotate(45deg)}
+.lbl{font-size:10px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+h1{font-family:'Cormorant Garamond',serif;font-size:clamp(36px,9vw,64px);font-weight:300;line-height:1.05}
+h1 em{font-style:italic;color:var(--gold)}
+.date{font-size:11px;letter-spacing:.2em;color:var(--stone);text-transform:uppercase;margin-top:6px}
+.tagline{font-size:13px;color:var(--charcoal);margin-top:14px;line-height:1.7;max-width:340px;margin-left:auto;margin-right:auto}
+.tabs{display:flex;justify-content:center;margin:0 24px 32px}
+.tab{flex:1;max-width:160px;padding:13px 8px;background:none;border:1px solid var(--gold-m);color:var(--stone);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:all .25s;font-weight:400}
+.tab:first-child{border-radius:2px 0 0 2px;border-right:none}
+.tab:last-child{border-radius:0 2px 2px 0}
+.tab:nth-child(2){border-right:none}
+.tab.on{background:var(--gold);border-color:var(--gold);color:var(--warm)}
+.tab:not(.on):hover{border-color:var(--gold);color:var(--gold)}
+.panel{display:none}.panel.on{display:block}
+.zone{border:1.5px dashed var(--gold-m);border-radius:4px;padding:44px 24px;text-align:center;cursor:pointer;transition:all .3s;background:var(--warm)}
+.zone:hover,.zone.drag{border-color:var(--gold);background:#FEFCF8;transform:translateY(-2px);box-shadow:0 12px 40px rgba(184,147,90,.1)}
+.uico{width:48px;height:48px;margin:0 auto 16px;background:linear-gradient(135deg,var(--gold-m),#E8D5CC);border-radius:50%;display:flex;align-items:center;justify-content:center}
+.uico svg{width:22px;height:22px;stroke:var(--gold);fill:none;stroke-width:1.5}
+.utitle{font-family:'Cormorant Garamond',serif;font-size:20px;margin-bottom:6px}
+.usub{font-size:12px;color:var(--stone);line-height:1.6}
+.ubtn{display:inline-block;margin-top:20px;padding:12px 32px;background:var(--gold);color:var(--warm);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.25em;text-transform:uppercase;border:none;border-radius:2px;cursor:pointer;transition:all .25s}
+.ubtn:hover{background:var(--charcoal)}
+.nfield{margin-top:20px}
+.nfield label{display:block;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--stone);margin-bottom:7px}
+.nfield input{width:100%;padding:12px 14px;border:1px solid var(--gold-m);border-radius:2px;background:var(--warm);font-family:'Jost',sans-serif;font-size:14px;color:var(--dark);font-weight:300;outline:none;transition:border-color .25s}
+.nfield input:focus{border-color:var(--gold)}
+.previews{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px}
+.prev{aspect-ratio:1;border-radius:3px;overflow:hidden;position:relative;background:var(--gold-m)}
+.prev img{width:100%;height:100%;object-fit:cover}
+.prev .rm{position:absolute;top:4px;right:4px;width:20px;height:20px;background:rgba(28,23,18,.75);border:none;border-radius:50%;color:#fff;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.prog{margin-top:18px}
+.prog-row{display:flex;justify-content:space-between;font-size:11px;color:var(--stone);margin-bottom:7px}
+.prog-bar{height:2px;background:var(--gold-m);border-radius:1px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-l));transition:width .3s;border-radius:1px;width:0%}
+.sbtn{width:100%;margin-top:20px;padding:15px;background:var(--dark);color:var(--warm);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.28em;text-transform:uppercase;border:none;border-radius:2px;cursor:pointer;transition:all .25s}
+.sbtn:hover:not(:disabled){background:var(--gold)}.sbtn:disabled{opacity:.6;cursor:not-allowed}
+.toast{margin-top:16px;padding:14px 18px;border-radius:2px;font-size:13px;line-height:1.5;border-left:3px solid var(--gold);background:linear-gradient(135deg,#F0EBE3,#EDE5D8);color:var(--charcoal)}
+.toast.err{border-left-color:#C0392B;background:#FDF0F0;color:#7B1D1D}
+.g-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.g-count{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--stone)}
+.g-count span{color:var(--gold);font-weight:500}
+.live{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--stone)}
+.dot{width:6px;height:6px;background:#7DBF7A;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.8)}}
+.g-grid{columns:2;gap:10px}
+@media(min-width:480px){.g-grid{columns:3}}
+.gitem{break-inside:avoid;margin-bottom:10px;border-radius:3px;overflow:hidden;cursor:pointer;position:relative;transition:transform .3s,box-shadow .3s}
+.gitem:hover{transform:translateY(-3px);box-shadow:0 14px 36px rgba(28,23,18,.14)}
+.gitem img{width:100%;display:block}
+.gmeta{position:absolute;bottom:0;left:0;right:0;padding:20px 10px 9px;background:linear-gradient(transparent,rgba(28,23,18,.55));opacity:0;transition:opacity .3s;font-size:11px;color:rgba(253,250,246,.9)}
+.gitem:hover .gmeta{opacity:1}
+.gempty{text-align:center;padding:52px 20px;color:var(--stone);font-size:13px;line-height:1.8}
+.gempty .ei{font-size:32px;margin-bottom:12px;opacity:.4}
+.qr-wrap{text-align:center;padding:32px 20px}
+.qr-box{display:inline-block;padding:24px;background:var(--warm);border:1px solid var(--gold-m);border-radius:4px;box-shadow:0 8px 32px rgba(184,147,90,.08)}
+.qr-box img{display:block;width:220px;height:220px;border-radius:2px;background:#fff}
+.qr-lbl{margin-top:16px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--stone)}
+.qr-url{margin-top:6px;font-size:11px;color:var(--gold)}
+.qr-dl{display:inline-block;margin-top:20px;padding:11px 28px;background:var(--gold);color:var(--warm);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.22em;text-transform:uppercase;border:none;border-radius:2px;cursor:pointer;transition:all .25s}
+.qr-dl:hover{background:var(--charcoal)}
+.qr-steps{margin-top:24px;padding:18px;background:var(--warm);border-radius:4px;border:1px solid var(--gold-m);text-align:left}
+.qr-steps h3{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;margin-bottom:12px}
+.step{display:flex;gap:10px;margin-bottom:10px;font-size:13px;color:var(--charcoal);line-height:1.5}
+.sn{width:22px;height:22px;min-width:22px;background:var(--gold);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;margin-top:1px}
+.lb{position:fixed;inset:0;background:rgba(28,23,18,.93);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.lb.open{display:flex}
+.lb img{max-width:100%;max-height:90vh;border-radius:3px;object-fit:contain}
+.lb-x{position:absolute;top:20px;right:20px;background:none;border:1px solid rgba(253,250,246,.3);color:var(--warm);width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+footer{text-align:center;padding:24px;font-size:10px;letter-spacing:.18em;color:var(--gold-m);text-transform:uppercase}
+footer a{color:var(--gold);text-decoration:none}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;margin-right:7px;vertical-align:middle}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
 </head>
 <body>
 
-  <header>
-    <div class="header-ornament">
-      <div class="ornament-line"></div>
-      <div class="ornament-diamond"></div>
-      <div class="ornament-line right"></div>
-    </div>
-    <p class="event-label">Mariage — Galerie photos</p>
-    <h1>Mélodie <em>&</em> Thomas</h1>
-    <p class="event-date">21 Juin 2025 · Château de Valmirande</p>
-    <p class="header-tagline">Partagez vos plus beaux clichés de cette journée avec les mariés et tous les invités</p>
-  </header>
+<header>
+  <div class="orn"><div class="ol"></div><div class="od"></div><div class="ol or"></div></div>
+  <p class="lbl">Mariage — Galerie photos</p>
+  <h1>Mélodie <em>&</em> Thomas</h1>
+  <p class="date">21 Juin 2025 · Château de Valmirande</p>
+  <p class="tagline">Partagez vos plus beaux clichés de cette journée avec les mariés et tous les invités</p>
+</header>
 
-  <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('upload', this)">📤 Partager</button>
-    <button class="tab-btn" onclick="switchTab('gallery', this)">🖼️ Galerie</button>
-    <button class="tab-btn" onclick="switchTab('qr', this)">📱 QR Code</button>
+<div class="tabs">
+  <button class="tab on" onclick="switchTab('upload',this)">📤 Partager</button>
+  <button class="tab" onclick="switchTab('gallery',this)">🖼️ Galerie</button>
+  <button class="tab" onclick="switchTab('qr',this)">📱 QR Code</button>
+</div>
+
+<div class="wrap">
+
+  <!-- UPLOAD -->
+  <div id="panel-upload" class="panel on">
+    <div class="zone" id="dropzone"
+      ondragover="event.preventDefault();this.classList.add('drag')"
+      ondragleave="this.classList.remove('drag')"
+      ondrop="onDrop(event)"
+      onclick="document.getElementById('fi').click()">
+      <div class="uico">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      </div>
+      <p class="utitle">Déposez vos photos ici</p>
+      <p class="usub">ou cliquez pour choisir depuis votre galerie<br>JPG, PNG, HEIC · Jusqu'à 20 Mo</p>
+      <button class="ubtn" onclick="event.stopPropagation();document.getElementById('fi').click()">Choisir des photos</button>
+      <input id="fi" type="file" multiple accept="image/*" style="display:none" onchange="onFileSelect(event)">
+    </div>
+    <div class="previews" id="previews"></div>
+    <div class="nfield">
+      <label>Votre prénom (optionnel)</label>
+      <input id="uname" type="text" placeholder="ex : Sophie">
+    </div>
+    <div class="prog" id="prog" style="display:none">
+      <div class="prog-row"><span id="prog-lbl">Envoi…</span><span id="prog-pct">0%</span></div>
+      <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
+    </div>
+    <button class="sbtn" id="sbtn" style="display:none" onclick="doUpload()">Partager mes photos</button>
+    <div id="toast" style="display:none" class="toast"></div>
   </div>
 
-  <main>
-
-    <!-- UPLOAD PANEL -->
-    <div id="panel-upload" class="panel active">
-      <div class="upload-zone" id="dropzone"
-           ondragover="handleDragOver(event)"
-           ondragleave="handleDragLeave(event)"
-           ondrop="handleDrop(event)"
-           onclick="document.getElementById('fileInput').click()">
-        <div class="upload-icon">
-          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        </div>
-        <p class="upload-title">Déposez vos photos ici</p>
-        <p class="upload-subtitle">ou cliquez pour choisir depuis votre galerie<br>JPG, PNG, HEIC · Jusqu'à 20 Mo par photo</p>
-        <button class="upload-btn" onclick="event.stopPropagation(); document.getElementById('fileInput').click()">
-          Choisir des photos
-        </button>
-        <input type="file" id="fileInput" multiple accept="image/*" onchange="handleFileSelect(event)">
-      </div>
-
-      <div class="preview-queue" id="previewQueue"></div>
-
-      <div class="name-field">
-        <label for="uploaderName">Votre prénom (optionnel)</label>
-        <input type="text" id="uploaderName" placeholder="ex : Sophie" />
-      </div>
-
-      <div class="upload-progress" id="uploadProgress">
-        <div class="progress-label">
-          <span id="progressLabel">Envoi en cours…</span>
-          <span id="progressPct">0%</span>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" id="progressFill"></div>
-        </div>
-      </div>
-
-      <button class="submit-btn" id="submitBtn" onclick="uploadPhotos()">
-        Partager mes photos
-      </button>
-
-      <div class="success-toast" id="successToast">
-        ✦ &nbsp; Vos photos ont été partagées avec succès — merci de contribuer aux souvenirs de cette belle journée !
-      </div>
-      <div class="error-toast" id="errorToast">
-        ⚠️ &nbsp; <span id="errorMsg">Une erreur est survenue. Veuillez réessayer.</span>
-      </div>
+  <!-- GALLERY -->
+  <div id="panel-gallery" class="panel">
+    <div class="g-hdr">
+      <p class="g-count"><span id="photoCount">0</span> photos partagées</p>
+      <div class="live"><div class="dot"></div>En direct</div>
     </div>
-
-    <!-- GALLERY PANEL -->
-    <div id="panel-gallery" class="panel">
-      <div class="gallery-header">
-        <p class="gallery-count"><span id="photoCount">0</span> photos partagées</p>
-        <div class="live-badge">
-          <div class="live-dot"></div>
-          En direct
-        </div>
-      </div>
-      <div class="gallery-grid" id="galleryGrid">
-        <div class="gallery-empty">
-          <div class="empty-icon">📷</div>
-          <p>Les photos apparaîtront ici<br>dès que les invités commenceront à partager</p>
-        </div>
-      </div>
+    <div class="g-grid" id="gGrid">
+      <div class="gempty"><div class="ei">📷</div><p>Les photos apparaîtront ici dès que les invités commenceront à partager</p></div>
     </div>
-
-    <!-- QR CODE PANEL -->
-    <div id="panel-qr" class="panel">
-      <div class="qr-container">
-        <div class="qr-box">
-          <div id="qrcode"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 410 410" width="410" height="410">
-<rect width="410" height="410" fill="#FDFAF6"/>
-<rect x="40" y="40" width="10" height="10" fill="#1C1712"/><rect x="50" y="40" width="10" height="10" fill="#1C1712"/><rect x="60" y="40" width="10" height="10" fill="#1C1712"/><rect x="70" y="40" width="10" height="10" fill="#1C1712"/><rect x="80" y="40" width="10" height="10" fill="#1C1712"/><rect x="90" y="40" width="10" height="10" fill="#1C1712"/><rect x="100" y="40" width="10" height="10" fill="#1C1712"/><rect x="150" y="40" width="10" height="10" fill="#1C1712"/><rect x="170" y="40" width="10" height="10" fill="#1C1712"/><rect x="190" y="40" width="10" height="10" fill="#1C1712"/><rect x="220" y="40" width="10" height="10" fill="#1C1712"/><rect x="240" y="40" width="10" height="10" fill="#1C1712"/><rect x="260" y="40" width="10" height="10" fill="#1C1712"/><rect x="300" y="40" width="10" height="10" fill="#1C1712"/><rect x="310" y="40" width="10" height="10" fill="#1C1712"/><rect x="320" y="40" width="10" height="10" fill="#1C1712"/><rect x="330" y="40" width="10" height="10" fill="#1C1712"/><rect x="340" y="40" width="10" height="10" fill="#1C1712"/><rect x="350" y="40" width="10" height="10" fill="#1C1712"/><rect x="360" y="40" width="10" height="10" fill="#1C1712"/><rect x="40" y="50" width="10" height="10" fill="#1C1712"/><rect x="100" y="50" width="10" height="10" fill="#1C1712"/><rect x="120" y="50" width="10" height="10" fill="#1C1712"/><rect x="130" y="50" width="10" height="10" fill="#1C1712"/><rect x="140" y="50" width="10" height="10" fill="#1C1712"/><rect x="150" y="50" width="10" height="10" fill="#1C1712"/><rect x="160" y="50" width="10" height="10" fill="#1C1712"/><rect x="170" y="50" width="10" height="10" fill="#1C1712"/><rect x="180" y="50" width="10" height="10" fill="#1C1712"/><rect x="240" y="50" width="10" height="10" fill="#1C1712"/><rect x="300" y="50" width="10" height="10" fill="#1C1712"/><rect x="360" y="50" width="10" height="10" fill="#1C1712"/><rect x="40" y="60" width="10" height="10" fill="#1C1712"/><rect x="60" y="60" width="10" height="10" fill="#1C1712"/><rect x="70" y="60" width="10" height="10" fill="#1C1712"/><rect x="80" y="60" width="10" height="10" fill="#1C1712"/><rect x="100" y="60" width="10" height="10" fill="#1C1712"/><rect x="120" y="60" width="10" height="10" fill="#1C1712"/><rect x="130" y="60" width="10" height="10" fill="#1C1712"/><rect x="140" y="60" width="10" height="10" fill="#1C1712"/><rect x="160" y="60" width="10" height="10" fill="#1C1712"/><rect x="170" y="60" width="10" height="10" fill="#1C1712"/><rect x="180" y="60" width="10" height="10" fill="#1C1712"/><rect x="190" y="60" width="10" height="10" fill="#1C1712"/><rect x="200" y="60" width="10" height="10" fill="#1C1712"/><rect x="220" y="60" width="10" height="10" fill="#1C1712"/><rect x="250" y="60" width="10" height="10" fill="#1C1712"/><rect x="260" y="60" width="10" height="10" fill="#1C1712"/><rect x="300" y="60" width="10" height="10" fill="#1C1712"/><rect x="320" y="60" width="10" height="10" fill="#1C1712"/><rect x="330" y="60" width="10" height="10" fill="#1C1712"/><rect x="340" y="60" width="10" height="10" fill="#1C1712"/><rect x="360" y="60" width="10" height="10" fill="#1C1712"/><rect x="40" y="70" width="10" height="10" fill="#1C1712"/><rect x="60" y="70" width="10" height="10" fill="#1C1712"/><rect x="70" y="70" width="10" height="10" fill="#1C1712"/><rect x="80" y="70" width="10" height="10" fill="#1C1712"/><rect x="100" y="70" width="10" height="10" fill="#1C1712"/><rect x="120" y="70" width="10" height="10" fill="#1C1712"/><rect x="130" y="70" width="10" height="10" fill="#1C1712"/><rect x="140" y="70" width="10" height="10" fill="#1C1712"/><rect x="150" y="70" width="10" height="10" fill="#1C1712"/><rect x="190" y="70" width="10" height="10" fill="#1C1712"/><rect x="240" y="70" width="10" height="10" fill="#1C1712"/><rect x="260" y="70" width="10" height="10" fill="#1C1712"/><rect x="280" y="70" width="10" height="10" fill="#1C1712"/><rect x="300" y="70" width="10" height="10" fill="#1C1712"/><rect x="320" y="70" width="10" height="10" fill="#1C1712"/><rect x="330" y="70" width="10" height="10" fill="#1C1712"/><rect x="340" y="70" width="10" height="10" fill="#1C1712"/><rect x="360" y="70" width="10" height="10" fill="#1C1712"/><rect x="40" y="80" width="10" height="10" fill="#1C1712"/><rect x="60" y="80" width="10" height="10" fill="#1C1712"/><rect x="70" y="80" width="10" height="10" fill="#1C1712"/><rect x="80" y="80" width="10" height="10" fill="#1C1712"/><rect x="100" y="80" width="10" height="10" fill="#1C1712"/><rect x="120" y="80" width="10" height="10" fill="#1C1712"/><rect x="130" y="80" width="10" height="10" fill="#1C1712"/><rect x="200" y="80" width="10" height="10" fill="#1C1712"/><rect x="210" y="80" width="10" height="10" fill="#1C1712"/><rect x="230" y="80" width="10" height="10" fill="#1C1712"/><rect x="240" y="80" width="10" height="10" fill="#1C1712"/><rect x="260" y="80" width="10" height="10" fill="#1C1712"/><rect x="300" y="80" width="10" height="10" fill="#1C1712"/><rect x="320" y="80" width="10" height="10" fill="#1C1712"/><rect x="330" y="80" width="10" height="10" fill="#1C1712"/><rect x="340" y="80" width="10" height="10" fill="#1C1712"/><rect x="360" y="80" width="10" height="10" fill="#1C1712"/><rect x="40" y="90" width="10" height="10" fill="#1C1712"/><rect x="100" y="90" width="10" height="10" fill="#1C1712"/><rect x="130" y="90" width="10" height="10" fill="#1C1712"/><rect x="150" y="90" width="10" height="10" fill="#1C1712"/><rect x="160" y="90" width="10" height="10" fill="#1C1712"/><rect x="200" y="90" width="10" height="10" fill="#1C1712"/><rect x="210" y="90" width="10" height="10" fill="#1C1712"/><rect x="220" y="90" width="10" height="10" fill="#1C1712"/><rect x="230" y="90" width="10" height="10" fill="#1C1712"/><rect x="250" y="90" width="10" height="10" fill="#1C1712"/><rect x="270" y="90" width="10" height="10" fill="#1C1712"/><rect x="300" y="90" width="10" height="10" fill="#1C1712"/><rect x="360" y="90" width="10" height="10" fill="#1C1712"/><rect x="40" y="100" width="10" height="10" fill="#1C1712"/><rect x="50" y="100" width="10" height="10" fill="#1C1712"/><rect x="60" y="100" width="10" height="10" fill="#1C1712"/><rect x="70" y="100" width="10" height="10" fill="#1C1712"/><rect x="80" y="100" width="10" height="10" fill="#1C1712"/><rect x="90" y="100" width="10" height="10" fill="#1C1712"/><rect x="100" y="100" width="10" height="10" fill="#1C1712"/><rect x="120" y="100" width="10" height="10" fill="#1C1712"/><rect x="140" y="100" width="10" height="10" fill="#1C1712"/><rect x="160" y="100" width="10" height="10" fill="#1C1712"/><rect x="180" y="100" width="10" height="10" fill="#1C1712"/><rect x="200" y="100" width="10" height="10" fill="#1C1712"/><rect x="220" y="100" width="10" height="10" fill="#1C1712"/><rect x="240" y="100" width="10" height="10" fill="#1C1712"/><rect x="260" y="100" width="10" height="10" fill="#1C1712"/><rect x="280" y="100" width="10" height="10" fill="#1C1712"/><rect x="300" y="100" width="10" height="10" fill="#1C1712"/><rect x="310" y="100" width="10" height="10" fill="#1C1712"/><rect x="320" y="100" width="10" height="10" fill="#1C1712"/><rect x="330" y="100" width="10" height="10" fill="#1C1712"/><rect x="340" y="100" width="10" height="10" fill="#1C1712"/><rect x="350" y="100" width="10" height="10" fill="#1C1712"/><rect x="360" y="100" width="10" height="10" fill="#1C1712"/><rect x="120" y="110" width="10" height="10" fill="#1C1712"/><rect x="170" y="110" width="10" height="10" fill="#1C1712"/><rect x="190" y="110" width="10" height="10" fill="#1C1712"/><rect x="200" y="110" width="10" height="10" fill="#1C1712"/><rect x="220" y="110" width="10" height="10" fill="#1C1712"/><rect x="270" y="110" width="10" height="10" fill="#1C1712"/><rect x="50" y="120" width="10" height="10" fill="#1C1712"/><rect x="60" y="120" width="10" height="10" fill="#1C1712"/><rect x="100" y="120" width="10" height="10" fill="#1C1712"/><rect x="110" y="120" width="10" height="10" fill="#1C1712"/><rect x="120" y="120" width="10" height="10" fill="#1C1712"/><rect x="140" y="120" width="10" height="10" fill="#1C1712"/><rect x="170" y="120" width="10" height="10" fill="#1C1712"/><rect x="180" y="120" width="10" height="10" fill="#1C1712"/><rect x="190" y="120" width="10" height="10" fill="#1C1712"/><rect x="200" y="120" width="10" height="10" fill="#1C1712"/><rect x="220" y="120" width="10" height="10" fill="#1C1712"/><rect x="240" y="120" width="10" height="10" fill="#1C1712"/><rect x="250" y="120" width="10" height="10" fill="#1C1712"/><rect x="270" y="120" width="10" height="10" fill="#1C1712"/><rect x="290" y="120" width="10" height="10" fill="#1C1712"/><rect x="310" y="120" width="10" height="10" fill="#1C1712"/><rect x="320" y="120" width="10" height="10" fill="#1C1712"/><rect x="360" y="120" width="10" height="10" fill="#1C1712"/><rect x="130" y="130" width="10" height="10" fill="#1C1712"/><rect x="160" y="130" width="10" height="10" fill="#1C1712"/><rect x="180" y="130" width="10" height="10" fill="#1C1712"/><rect x="190" y="130" width="10" height="10" fill="#1C1712"/><rect x="210" y="130" width="10" height="10" fill="#1C1712"/><rect x="230" y="130" width="10" height="10" fill="#1C1712"/><rect x="250" y="130" width="10" height="10" fill="#1C1712"/><rect x="270" y="130" width="10" height="10" fill="#1C1712"/><rect x="280" y="130" width="10" height="10" fill="#1C1712"/><rect x="310" y="130" width="10" height="10" fill="#1C1712"/><rect x="330" y="130" width="10" height="10" fill="#1C1712"/><rect x="360" y="130" width="10" height="10" fill="#1C1712"/><rect x="100" y="140" width="10" height="10" fill="#1C1712"/><rect x="130" y="140" width="10" height="10" fill="#1C1712"/><rect x="140" y="140" width="10" height="10" fill="#1C1712"/><rect x="150" y="140" width="10" height="10" fill="#1C1712"/><rect x="180" y="140" width="10" height="10" fill="#1C1712"/><rect x="190" y="140" width="10" height="10" fill="#1C1712"/><rect x="210" y="140" width="10" height="10" fill="#1C1712"/><rect x="220" y="140" width="10" height="10" fill="#1C1712"/><rect x="230" y="140" width="10" height="10" fill="#1C1712"/><rect x="260" y="140" width="10" height="10" fill="#1C1712"/><rect x="270" y="140" width="10" height="10" fill="#1C1712"/><rect x="280" y="140" width="10" height="10" fill="#1C1712"/><rect x="310" y="140" width="10" height="10" fill="#1C1712"/><rect x="320" y="140" width="10" height="10" fill="#1C1712"/><rect x="330" y="140" width="10" height="10" fill="#1C1712"/><rect x="350" y="140" width="10" height="10" fill="#1C1712"/><rect x="360" y="140" width="10" height="10" fill="#1C1712"/><rect x="140" y="150" width="10" height="10" fill="#1C1712"/><rect x="150" y="150" width="10" height="10" fill="#1C1712"/><rect x="160" y="150" width="10" height="10" fill="#1C1712"/><rect x="210" y="150" width="10" height="10" fill="#1C1712"/><rect x="230" y="150" width="10" height="10" fill="#1C1712"/><rect x="240" y="150" width="10" height="10" fill="#1C1712"/><rect x="250" y="150" width="10" height="10" fill="#1C1712"/><rect x="290" y="150" width="10" height="10" fill="#1C1712"/><rect x="300" y="150" width="10" height="10" fill="#1C1712"/><rect x="330" y="150" width="10" height="10" fill="#1C1712"/><rect x="350" y="150" width="10" height="10" fill="#1C1712"/><rect x="100" y="160" width="10" height="10" fill="#1C1712"/><rect x="140" y="160" width="10" height="10" fill="#1C1712"/><rect x="150" y="160" width="10" height="10" fill="#1C1712"/><rect x="170" y="160" width="10" height="10" fill="#1C1712"/><rect x="180" y="160" width="10" height="10" fill="#1C1712"/><rect x="190" y="160" width="10" height="10" fill="#1C1712"/><rect x="210" y="160" width="10" height="10" fill="#1C1712"/><rect x="220" y="160" width="10" height="10" fill="#1C1712"/><rect x="230" y="160" width="10" height="10" fill="#1C1712"/><rect x="260" y="160" width="10" height="10" fill="#1C1712"/><rect x="270" y="160" width="10" height="10" fill="#1C1712"/><rect x="280" y="160" width="10" height="10" fill="#1C1712"/><rect x="290" y="160" width="10" height="10" fill="#1C1712"/><rect x="330" y="160" width="10" height="10" fill="#1C1712"/><rect x="360" y="160" width="10" height="10" fill="#1C1712"/><rect x="140" y="170" width="10" height="10" fill="#1C1712"/><rect x="150" y="170" width="10" height="10" fill="#1C1712"/><rect x="160" y="170" width="10" height="10" fill="#1C1712"/><rect x="180" y="170" width="10" height="10" fill="#1C1712"/><rect x="190" y="170" width="10" height="10" fill="#1C1712"/><rect x="220" y="170" width="10" height="10" fill="#1C1712"/><rect x="260" y="170" width="10" height="10" fill="#1C1712"/><rect x="270" y="170" width="10" height="10" fill="#1C1712"/><rect x="280" y="170" width="10" height="10" fill="#1C1712"/><rect x="330" y="170" width="10" height="10" fill="#1C1712"/><rect x="340" y="170" width="10" height="10" fill="#1C1712"/><rect x="360" y="170" width="10" height="10" fill="#1C1712"/><rect x="100" y="180" width="10" height="10" fill="#1C1712"/><rect x="140" y="180" width="10" height="10" fill="#1C1712"/><rect x="190" y="180" width="10" height="10" fill="#1C1712"/><rect x="240" y="180" width="10" height="10" fill="#1C1712"/><rect x="270" y="180" width="10" height="10" fill="#1C1712"/><rect x="280" y="180" width="10" height="10" fill="#1C1712"/><rect x="290" y="180" width="10" height="10" fill="#1C1712"/><rect x="310" y="180" width="10" height="10" fill="#1C1712"/><rect x="320" y="180" width="10" height="10" fill="#1C1712"/><rect x="350" y="180" width="10" height="10" fill="#1C1712"/><rect x="360" y="180" width="10" height="10" fill="#1C1712"/><rect x="130" y="190" width="10" height="10" fill="#1C1712"/><rect x="150" y="190" width="10" height="10" fill="#1C1712"/><rect x="160" y="190" width="10" height="10" fill="#1C1712"/><rect x="180" y="190" width="10" height="10" fill="#1C1712"/><rect x="200" y="190" width="10" height="10" fill="#1C1712"/><rect x="220" y="190" width="10" height="10" fill="#1C1712"/><rect x="260" y="190" width="10" height="10" fill="#1C1712"/><rect x="280" y="190" width="10" height="10" fill="#1C1712"/><rect x="290" y="190" width="10" height="10" fill="#1C1712"/><rect x="300" y="190" width="10" height="10" fill="#1C1712"/><rect x="310" y="190" width="10" height="10" fill="#1C1712"/><rect x="320" y="190" width="10" height="10" fill="#1C1712"/><rect x="330" y="190" width="10" height="10" fill="#1C1712"/><rect x="350" y="190" width="10" height="10" fill="#1C1712"/><rect x="100" y="200" width="10" height="10" fill="#1C1712"/><rect x="130" y="200" width="10" height="10" fill="#1C1712"/><rect x="150" y="200" width="10" height="10" fill="#1C1712"/><rect x="170" y="200" width="10" height="10" fill="#1C1712"/><rect x="190" y="200" width="10" height="10" fill="#1C1712"/><rect x="220" y="200" width="10" height="10" fill="#1C1712"/><rect x="240" y="200" width="10" height="10" fill="#1C1712"/><rect x="260" y="200" width="10" height="10" fill="#1C1712"/><rect x="280" y="200" width="10" height="10" fill="#1C1712"/><rect x="290" y="200" width="10" height="10" fill="#1C1712"/><rect x="350" y="200" width="10" height="10" fill="#1C1712"/><rect x="360" y="200" width="10" height="10" fill="#1C1712"/><rect x="130" y="210" width="10" height="10" fill="#1C1712"/><rect x="140" y="210" width="10" height="10" fill="#1C1712"/><rect x="190" y="210" width="10" height="10" fill="#1C1712"/><rect x="200" y="210" width="10" height="10" fill="#1C1712"/><rect x="210" y="210" width="10" height="10" fill="#1C1712"/><rect x="230" y="210" width="10" height="10" fill="#1C1712"/><rect x="250" y="210" width="10" height="10" fill="#1C1712"/><rect x="270" y="210" width="10" height="10" fill="#1C1712"/><rect x="280" y="210" width="10" height="10" fill="#1C1712"/><rect x="340" y="210" width="10" height="10" fill="#1C1712"/><rect x="360" y="210" width="10" height="10" fill="#1C1712"/><rect x="100" y="220" width="10" height="10" fill="#1C1712"/><rect x="150" y="220" width="10" height="10" fill="#1C1712"/><rect x="160" y="220" width="10" height="10" fill="#1C1712"/><rect x="180" y="220" width="10" height="10" fill="#1C1712"/><rect x="200" y="220" width="10" height="10" fill="#1C1712"/><rect x="210" y="220" width="10" height="10" fill="#1C1712"/><rect x="220" y="220" width="10" height="10" fill="#1C1712"/><rect x="230" y="220" width="10" height="10" fill="#1C1712"/><rect x="250" y="220" width="10" height="10" fill="#1C1712"/><rect x="260" y="220" width="10" height="10" fill="#1C1712"/><rect x="270" y="220" width="10" height="10" fill="#1C1712"/><rect x="280" y="220" width="10" height="10" fill="#1C1712"/><rect x="290" y="220" width="10" height="10" fill="#1C1712"/><rect x="330" y="220" width="10" height="10" fill="#1C1712"/><rect x="350" y="220" width="10" height="10" fill="#1C1712"/><rect x="360" y="220" width="10" height="10" fill="#1C1712"/><rect x="150" y="230" width="10" height="10" fill="#1C1712"/><rect x="170" y="230" width="10" height="10" fill="#1C1712"/><rect x="190" y="230" width="10" height="10" fill="#1C1712"/><rect x="210" y="230" width="10" height="10" fill="#1C1712"/><rect x="230" y="230" width="10" height="10" fill="#1C1712"/><rect x="240" y="230" width="10" height="10" fill="#1C1712"/><rect x="250" y="230" width="10" height="10" fill="#1C1712"/><rect x="270" y="230" width="10" height="10" fill="#1C1712"/><rect x="280" y="230" width="10" height="10" fill="#1C1712"/><rect x="290" y="230" width="10" height="10" fill="#1C1712"/><rect x="310" y="230" width="10" height="10" fill="#1C1712"/><rect x="330" y="230" width="10" height="10" fill="#1C1712"/><rect x="350" y="230" width="10" height="10" fill="#1C1712"/><rect x="100" y="240" width="10" height="10" fill="#1C1712"/><rect x="140" y="240" width="10" height="10" fill="#1C1712"/><rect x="150" y="240" width="10" height="10" fill="#1C1712"/><rect x="160" y="240" width="10" height="10" fill="#1C1712"/><rect x="170" y="240" width="10" height="10" fill="#1C1712"/><rect x="180" y="240" width="10" height="10" fill="#1C1712"/><rect x="190" y="240" width="10" height="10" fill="#1C1712"/><rect x="200" y="240" width="10" height="10" fill="#1C1712"/><rect x="210" y="240" width="10" height="10" fill="#1C1712"/><rect x="220" y="240" width="10" height="10" fill="#1C1712"/><rect x="230" y="240" width="10" height="10" fill="#1C1712"/><rect x="250" y="240" width="10" height="10" fill="#1C1712"/><rect x="260" y="240" width="10" height="10" fill="#1C1712"/><rect x="280" y="240" width="10" height="10" fill="#1C1712"/><rect x="290" y="240" width="10" height="10" fill="#1C1712"/><rect x="310" y="240" width="10" height="10" fill="#1C1712"/><rect x="350" y="240" width="10" height="10" fill="#1C1712"/><rect x="360" y="240" width="10" height="10" fill="#1C1712"/><rect x="120" y="250" width="10" height="10" fill="#1C1712"/><rect x="140" y="250" width="10" height="10" fill="#1C1712"/><rect x="160" y="250" width="10" height="10" fill="#1C1712"/><rect x="170" y="250" width="10" height="10" fill="#1C1712"/><rect x="180" y="250" width="10" height="10" fill="#1C1712"/><rect x="210" y="250" width="10" height="10" fill="#1C1712"/><rect x="260" y="250" width="10" height="10" fill="#1C1712"/><rect x="280" y="250" width="10" height="10" fill="#1C1712"/><rect x="290" y="250" width="10" height="10" fill="#1C1712"/><rect x="340" y="250" width="10" height="10" fill="#1C1712"/><rect x="360" y="250" width="10" height="10" fill="#1C1712"/><rect x="100" y="260" width="10" height="10" fill="#1C1712"/><rect x="140" y="260" width="10" height="10" fill="#1C1712"/><rect x="170" y="260" width="10" height="10" fill="#1C1712"/><rect x="190" y="260" width="10" height="10" fill="#1C1712"/><rect x="200" y="260" width="10" height="10" fill="#1C1712"/><rect x="210" y="260" width="10" height="10" fill="#1C1712"/><rect x="220" y="260" width="10" height="10" fill="#1C1712"/><rect x="240" y="260" width="10" height="10" fill="#1C1712"/><rect x="270" y="260" width="10" height="10" fill="#1C1712"/><rect x="280" y="260" width="10" height="10" fill="#1C1712"/><rect x="310" y="260" width="10" height="10" fill="#1C1712"/><rect x="330" y="260" width="10" height="10" fill="#1C1712"/><rect x="350" y="260" width="10" height="10" fill="#1C1712"/><rect x="360" y="260" width="10" height="10" fill="#1C1712"/><rect x="110" y="270" width="10" height="10" fill="#1C1712"/><rect x="120" y="270" width="10" height="10" fill="#1C1712"/><rect x="150" y="270" width="10" height="10" fill="#1C1712"/><rect x="160" y="270" width="10" height="10" fill="#1C1712"/><rect x="170" y="270" width="10" height="10" fill="#1C1712"/><rect x="180" y="270" width="10" height="10" fill="#1C1712"/><rect x="190" y="270" width="10" height="10" fill="#1C1712"/><rect x="200" y="270" width="10" height="10" fill="#1C1712"/><rect x="210" y="270" width="10" height="10" fill="#1C1712"/><rect x="220" y="270" width="10" height="10" fill="#1C1712"/><rect x="260" y="270" width="10" height="10" fill="#1C1712"/><rect x="290" y="270" width="10" height="10" fill="#1C1712"/><rect x="300" y="270" width="10" height="10" fill="#1C1712"/><rect x="320" y="270" width="10" height="10" fill="#1C1712"/><rect x="350" y="270" width="10" height="10" fill="#1C1712"/><rect x="100" y="280" width="10" height="10" fill="#1C1712"/><rect x="120" y="280" width="10" height="10" fill="#1C1712"/><rect x="140" y="280" width="10" height="10" fill="#1C1712"/><rect x="170" y="280" width="10" height="10" fill="#1C1712"/><rect x="190" y="280" width="10" height="10" fill="#1C1712"/><rect x="200" y="280" width="10" height="10" fill="#1C1712"/><rect x="210" y="280" width="10" height="10" fill="#1C1712"/><rect x="240" y="280" width="10" height="10" fill="#1C1712"/><rect x="260" y="280" width="10" height="10" fill="#1C1712"/><rect x="270" y="280" width="10" height="10" fill="#1C1712"/><rect x="280" y="280" width="10" height="10" fill="#1C1712"/><rect x="290" y="280" width="10" height="10" fill="#1C1712"/><rect x="300" y="280" width="10" height="10" fill="#1C1712"/><rect x="310" y="280" width="10" height="10" fill="#1C1712"/><rect x="320" y="280" width="10" height="10" fill="#1C1712"/><rect x="120" y="290" width="10" height="10" fill="#1C1712"/><rect x="170" y="290" width="10" height="10" fill="#1C1712"/><rect x="210" y="290" width="10" height="10" fill="#1C1712"/><rect x="230" y="290" width="10" height="10" fill="#1C1712"/><rect x="250" y="290" width="10" height="10" fill="#1C1712"/><rect x="270" y="290" width="10" height="10" fill="#1C1712"/><rect x="280" y="290" width="10" height="10" fill="#1C1712"/><rect x="320" y="290" width="10" height="10" fill="#1C1712"/><rect x="340" y="290" width="10" height="10" fill="#1C1712"/><rect x="350" y="290" width="10" height="10" fill="#1C1712"/><rect x="360" y="290" width="10" height="10" fill="#1C1712"/><rect x="40" y="300" width="10" height="10" fill="#1C1712"/><rect x="50" y="300" width="10" height="10" fill="#1C1712"/><rect x="60" y="300" width="10" height="10" fill="#1C1712"/><rect x="70" y="300" width="10" height="10" fill="#1C1712"/><rect x="80" y="300" width="10" height="10" fill="#1C1712"/><rect x="90" y="300" width="10" height="10" fill="#1C1712"/><rect x="100" y="300" width="10" height="10" fill="#1C1712"/><rect x="120" y="300" width="10" height="10" fill="#1C1712"/><rect x="130" y="300" width="10" height="10" fill="#1C1712"/><rect x="150" y="300" width="10" height="10" fill="#1C1712"/><rect x="180" y="300" width="10" height="10" fill="#1C1712"/><rect x="190" y="300" width="10" height="10" fill="#1C1712"/><rect x="210" y="300" width="10" height="10" fill="#1C1712"/><rect x="230" y="300" width="10" height="10" fill="#1C1712"/><rect x="250" y="300" width="10" height="10" fill="#1C1712"/><rect x="260" y="300" width="10" height="10" fill="#1C1712"/><rect x="280" y="300" width="10" height="10" fill="#1C1712"/><rect x="300" y="300" width="10" height="10" fill="#1C1712"/><rect x="320" y="300" width="10" height="10" fill="#1C1712"/><rect x="330" y="300" width="10" height="10" fill="#1C1712"/><rect x="340" y="300" width="10" height="10" fill="#1C1712"/><rect x="350" y="300" width="10" height="10" fill="#1C1712"/><rect x="360" y="300" width="10" height="10" fill="#1C1712"/><rect x="40" y="310" width="10" height="10" fill="#1C1712"/><rect x="100" y="310" width="10" height="10" fill="#1C1712"/><rect x="160" y="310" width="10" height="10" fill="#1C1712"/><rect x="190" y="310" width="10" height="10" fill="#1C1712"/><rect x="200" y="310" width="10" height="10" fill="#1C1712"/><rect x="230" y="310" width="10" height="10" fill="#1C1712"/><rect x="240" y="310" width="10" height="10" fill="#1C1712"/><rect x="250" y="310" width="10" height="10" fill="#1C1712"/><rect x="280" y="310" width="10" height="10" fill="#1C1712"/><rect x="320" y="310" width="10" height="10" fill="#1C1712"/><rect x="350" y="310" width="10" height="10" fill="#1C1712"/><rect x="360" y="310" width="10" height="10" fill="#1C1712"/><rect x="40" y="320" width="10" height="10" fill="#1C1712"/><rect x="60" y="320" width="10" height="10" fill="#1C1712"/><rect x="70" y="320" width="10" height="10" fill="#1C1712"/><rect x="80" y="320" width="10" height="10" fill="#1C1712"/><rect x="100" y="320" width="10" height="10" fill="#1C1712"/><rect x="120" y="320" width="10" height="10" fill="#1C1712"/><rect x="170" y="320" width="10" height="10" fill="#1C1712"/><rect x="180" y="320" width="10" height="10" fill="#1C1712"/><rect x="200" y="320" width="10" height="10" fill="#1C1712"/><rect x="220" y="320" width="10" height="10" fill="#1C1712"/><rect x="230" y="320" width="10" height="10" fill="#1C1712"/><rect x="250" y="320" width="10" height="10" fill="#1C1712"/><rect x="260" y="320" width="10" height="10" fill="#1C1712"/><rect x="270" y="320" width="10" height="10" fill="#1C1712"/><rect x="280" y="320" width="10" height="10" fill="#1C1712"/><rect x="290" y="320" width="10" height="10" fill="#1C1712"/><rect x="300" y="320" width="10" height="10" fill="#1C1712"/><rect x="310" y="320" width="10" height="10" fill="#1C1712"/><rect x="320" y="320" width="10" height="10" fill="#1C1712"/><rect x="350" y="320" width="10" height="10" fill="#1C1712"/><rect x="40" y="330" width="10" height="10" fill="#1C1712"/><rect x="60" y="330" width="10" height="10" fill="#1C1712"/><rect x="70" y="330" width="10" height="10" fill="#1C1712"/><rect x="80" y="330" width="10" height="10" fill="#1C1712"/><rect x="100" y="330" width="10" height="10" fill="#1C1712"/><rect x="120" y="330" width="10" height="10" fill="#1C1712"/><rect x="130" y="330" width="10" height="10" fill="#1C1712"/><rect x="140" y="330" width="10" height="10" fill="#1C1712"/><rect x="180" y="330" width="10" height="10" fill="#1C1712"/><rect x="190" y="330" width="10" height="10" fill="#1C1712"/><rect x="200" y="330" width="10" height="10" fill="#1C1712"/><rect x="260" y="330" width="10" height="10" fill="#1C1712"/><rect x="270" y="330" width="10" height="10" fill="#1C1712"/><rect x="310" y="330" width="10" height="10" fill="#1C1712"/><rect x="320" y="330" width="10" height="10" fill="#1C1712"/><rect x="40" y="340" width="10" height="10" fill="#1C1712"/><rect x="60" y="340" width="10" height="10" fill="#1C1712"/><rect x="70" y="340" width="10" height="10" fill="#1C1712"/><rect x="80" y="340" width="10" height="10" fill="#1C1712"/><rect x="100" y="340" width="10" height="10" fill="#1C1712"/><rect x="120" y="340" width="10" height="10" fill="#1C1712"/><rect x="140" y="340" width="10" height="10" fill="#1C1712"/><rect x="150" y="340" width="10" height="10" fill="#1C1712"/><rect x="160" y="340" width="10" height="10" fill="#1C1712"/><rect x="180" y="340" width="10" height="10" fill="#1C1712"/><rect x="190" y="340" width="10" height="10" fill="#1C1712"/><rect x="200" y="340" width="10" height="10" fill="#1C1712"/><rect x="220" y="340" width="10" height="10" fill="#1C1712"/><rect x="240" y="340" width="10" height="10" fill="#1C1712"/><rect x="270" y="340" width="10" height="10" fill="#1C1712"/><rect x="290" y="340" width="10" height="10" fill="#1C1712"/><rect x="300" y="340" width="10" height="10" fill="#1C1712"/><rect x="310" y="340" width="10" height="10" fill="#1C1712"/><rect x="320" y="340" width="10" height="10" fill="#1C1712"/><rect x="330" y="340" width="10" height="10" fill="#1C1712"/><rect x="340" y="340" width="10" height="10" fill="#1C1712"/><rect x="360" y="340" width="10" height="10" fill="#1C1712"/><rect x="40" y="350" width="10" height="10" fill="#1C1712"/><rect x="100" y="350" width="10" height="10" fill="#1C1712"/><rect x="120" y="350" width="10" height="10" fill="#1C1712"/><rect x="130" y="350" width="10" height="10" fill="#1C1712"/><rect x="140" y="350" width="10" height="10" fill="#1C1712"/><rect x="150" y="350" width="10" height="10" fill="#1C1712"/><rect x="160" y="350" width="10" height="10" fill="#1C1712"/><rect x="170" y="350" width="10" height="10" fill="#1C1712"/><rect x="190" y="350" width="10" height="10" fill="#1C1712"/><rect x="220" y="350" width="10" height="10" fill="#1C1712"/><rect x="260" y="350" width="10" height="10" fill="#1C1712"/><rect x="270" y="350" width="10" height="10" fill="#1C1712"/><rect x="280" y="350" width="10" height="10" fill="#1C1712"/><rect x="300" y="350" width="10" height="10" fill="#1C1712"/><rect x="350" y="350" width="10" height="10" fill="#1C1712"/><rect x="40" y="360" width="10" height="10" fill="#1C1712"/><rect x="50" y="360" width="10" height="10" fill="#1C1712"/><rect x="60" y="360" width="10" height="10" fill="#1C1712"/><rect x="70" y="360" width="10" height="10" fill="#1C1712"/><rect x="80" y="360" width="10" height="10" fill="#1C1712"/><rect x="90" y="360" width="10" height="10" fill="#1C1712"/><rect x="100" y="360" width="10" height="10" fill="#1C1712"/><rect x="170" y="360" width="10" height="10" fill="#1C1712"/><rect x="180" y="360" width="10" height="10" fill="#1C1712"/><rect x="200" y="360" width="10" height="10" fill="#1C1712"/><rect x="220" y="360" width="10" height="10" fill="#1C1712"/><rect x="240" y="360" width="10" height="10" fill="#1C1712"/><rect x="260" y="360" width="10" height="10" fill="#1C1712"/><rect x="270" y="360" width="10" height="10" fill="#1C1712"/><rect x="300" y="360" width="10" height="10" fill="#1C1712"/><rect x="310" y="360" width="10" height="10" fill="#1C1712"/><rect x="350" y="360" width="10" height="10" fill="#1C1712"/><rect x="360" y="360" width="10" height="10" fill="#1C1712"/>
-</svg></div>
-          <p class="qr-label">Scanner pour partager vos photos</p>
-          <p class="qr-url" id="qrUrl"></p>
-          <button class="qr-download-btn" onclick="downloadQR()">Télécharger le QR code</button>
-        </div>
-
-        <div class="qr-instructions">
-          <h3>Comment utiliser le QR code ?</h3>
-          <div class="qr-step">
-            <div class="qr-step-num">1</div>
-            <span>Imprimez ce QR code ou affichez-le sur un écran lors de l'événement</span>
-          </div>
-          <div class="qr-step">
-            <div class="qr-step-num">2</div>
-            <span>Les invités scannent avec leur téléphone — sans application à installer</span>
-          </div>
-          <div class="qr-step">
-            <div class="qr-step-num">3</div>
-            <span>Ils arrivent directement sur cette page et partagent leurs photos instantanément</span>
-          </div>
-          <div class="qr-step">
-            <div class="qr-step-num">4</div>
-            <span>Toutes les photos sont centralisées dans la galerie en temps réel</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </main>
-
-  <div class="lightbox" id="lightbox" onclick="closeLightbox()">
-    <button class="lightbox-close" onclick="closeLightbox()">✕</button>
-    <img id="lightboxImg" src="" alt="" />
   </div>
 
-  <footer>
-    <p>Propulsé par <a href="#">Mementos</a> &nbsp;·&nbsp; vos souvenirs, centralisés</p>
-  </footer>
+  <!-- QR CODE -->
+  <div id="panel-qr" class="panel">
+    <div class="qr-wrap">
+      <div class="qr-box">
+        <!-- QR Code 100% scannable — Google Charts API -->
+        <img
+          src="https://chart.googleapis.com/chart?cht=qr&chs=220x220&chl=https%3A%2F%2Fmemorie-one.vercel.app&choe=UTF-8&chld=Q%7C4"
+          alt="QR Code Mementos"
+          onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https%3A%2F%2Fmemorie-one.vercel.app&margin=20&ecc=Q'"
+          id="qrImg"
+        />
+        <p class="qr-lbl">Scanner pour partager vos photos</p>
+        <p class="qr-url">https://memorie-one.vercel.app</p>
+        <button class="qr-dl" onclick="downloadQR()">⬇ Télécharger le QR code</button>
+      </div>
+      <div class="qr-steps">
+        <h3>Comment utiliser le QR code ?</h3>
+        <div class="step"><div class="sn">1</div><span>Imprimez ce QR code ou affichez-le sur un écran lors de l'événement</span></div>
+        <div class="step"><div class="sn">2</div><span>Les invités scannent avec leur téléphone — sans application à installer</span></div>
+        <div class="step"><div class="sn">3</div><span>Ils arrivent directement sur la page et partagent leurs photos instantanément</span></div>
+        <div class="step"><div class="sn">4</div><span>Toutes les photos sont centralisées dans la galerie en temps réel</span></div>
+      </div>
+    </div>
+  </div>
 
-  <script>
-    // ── CONFIG SUPABASE ──────────────────────────────────────────
-    const SUPABASE_URL = 'https://1xgqcmmvecywdzauxrea.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_mVI4XXM198o0PRLn6QnR5g_LAeoa7e4';
-    const EVENT_ID = 'mariage-melodie-thomas-2025';
-    const BUCKET = 'Photos';
+</div>
 
-    let db = null;
+<!-- LIGHTBOX -->
+<div class="lb" id="lb" onclick="closeLB()">
+  <button class="lb-x" onclick="closeLB()">✕</button>
+  <img id="lbImg" src="" alt="">
+</div>
+
+<footer><p>Propulsé par <a href="#">Mementos</a> &nbsp;·&nbsp; vos souvenirs, centralisés</p></footer>
+
+<script>
+// ══════════════════════════════════════════════
+//  CONFIG SUPABASE
+// ══════════════════════════════════════════════
+const SB_URL   = 'https://hmytqbgnjpugqeslnuvk.supabase.co';
+const SB_KEY   = 'sb_publishable_59uI3S3lCP0xyVtvrR6ZZA_vXsiF27o';
+const EVENT_ID = 'mariage-melodie-thomas-2025';
+const BUCKET   = 'photos';
+
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+let selectedFiles = [];
+
+// ══════════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════════
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('panel-' + id).classList.add('on');
+  if (id === 'gallery') loadGallery();
+}
+
+// ══════════════════════════════════════════════
+//  GESTION FICHIERS
+// ══════════════════════════════════════════════
+function onFileSelect(e) {
+  addFiles(Array.from(e.target.files));
+}
+
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropzone').classList.remove('drag');
+  addFiles(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')));
+}
+
+function addFiles(files) {
+  selectedFiles = [...selectedFiles, ...files];
+  renderPreviews();
+  document.getElementById('toast').style.display = 'none';
+}
+
+function removeFile(i) {
+  selectedFiles.splice(i, 1);
+  renderPreviews();
+}
+
+function renderPreviews() {
+  document.getElementById('previews').innerHTML = selectedFiles.map((f, i) => `
+    <div class="prev">
+      <img src="${URL.createObjectURL(f)}">
+      <button class="rm" onclick="removeFile(${i})">✕</button>
+    </div>`).join('');
+  document.getElementById('sbtn').style.display = selectedFiles.length ? 'block' : 'none';
+}
+
+// ══════════════════════════════════════════════
+//  UPLOAD VERS SUPABASE
+// ══════════════════════════════════════════════
+async function doUpload() {
+  if (!selectedFiles.length) return;
+
+  const btn          = document.getElementById('sbtn');
+  const uploaderName = document.getElementById('uname').value.trim() || 'Invité';
+
+  btn.disabled    = true;
+  btn.innerHTML   = '<span class="spin"></span>Envoi en cours…';
+  document.getElementById('prog').style.display  = 'block';
+  document.getElementById('toast').style.display = 'none';
+
+  let done = 0;
+  const total  = selectedFiles.length;
+  const errors = [];
+
+  for (const file of selectedFiles) {
     try {
-      if (typeof supabase !== 'undefined' && supabase && supabase.createClient) {
-        db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      }
-    } catch(e) {
-      // Supabase non disponible en prévisualisation
-    }
+      setProgress(done, total, `Photo ${done + 1} / ${total}`);
 
-    // ── QR CODE ──────────────────────────────────────────────────
-    const pageUrl = 'https://memorie-one.vercel.app';
-    document.getElementById('qrUrl').textContent = pageUrl;
+      // Nom de fichier unique
+      const ext      = (file.name.split('.').pop() || 'jpg').toLowerCase();
+      const filename = `${EVENT_ID}/${Date.now()}-${Math.random().toString(36).substr(2, 6)}.${ext}`;
 
-    function downloadQR() {
-      const svg = document.querySelector('#qrcode svg');
-      if (!svg) return;
-      const svgData = new XMLSerializer().serializeToString(svg);
-      const blob = new Blob([svgData], {type: 'image/svg+xml'});
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'qrcode-memorie-one.svg';
-      link.click();
-      URL.revokeObjectURL(url);
-    }
-
-    // ── TABS ─────────────────────────────────────────────────────
-    function switchTab(tab, btn) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById(`panel-${tab}`).classList.add('active');
-      if (tab === 'gallery') loadPhotos();
-    }
-
-    // ── FILE HANDLING ─────────────────────────────────────────────
-    let selectedFiles = [];
-
-    function handleFileSelect(e) { addFiles(Array.from(e.target.files)); }
-    function handleDragOver(e) { e.preventDefault(); document.getElementById('dropzone').classList.add('dragover'); }
-    function handleDragLeave() { document.getElementById('dropzone').classList.remove('dragover'); }
-    function handleDrop(e) {
-      e.preventDefault();
-      document.getElementById('dropzone').classList.remove('dragover');
-      addFiles(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')));
-    }
-
-    function addFiles(files) {
-      selectedFiles.push(...files);
-      renderPreviews();
-      document.getElementById('submitBtn').classList.toggle('visible', selectedFiles.length > 0);
-      document.getElementById('successToast').classList.remove('visible');
-      document.getElementById('errorToast').classList.remove('visible');
-    }
-
-    function renderPreviews() {
-      const queue = document.getElementById('previewQueue');
-      queue.innerHTML = '';
-      selectedFiles.forEach((file, i) => {
-        const url = URL.createObjectURL(file);
-        const item = document.createElement('div');
-        item.className = 'preview-item';
-        item.innerHTML = `<img src="${url}" /><button class="remove-btn" onclick="removeFile(${i})">✕</button>`;
-        queue.appendChild(item);
-      });
-    }
-
-    function removeFile(i) {
-      selectedFiles.splice(i, 1);
-      renderPreviews();
-      document.getElementById('submitBtn').classList.toggle('visible', selectedFiles.length > 0);
-    }
-
-    // ── UPLOAD VERS SUPABASE ──────────────────────────────────────
-    async function uploadPhotos() {
-      if (selectedFiles.length === 0) return;
-
-      const btn = document.getElementById('submitBtn');
-      const progress = document.getElementById('uploadProgress');
-      const fill = document.getElementById('progressFill');
-      const pct = document.getElementById('progressPct');
-      const label = document.getElementById('progressLabel');
-      const toast = document.getElementById('successToast');
-      const errorToast = document.getElementById('errorToast');
-      const uploaderName = document.getElementById('uploaderName').value.trim() || 'Invité';
-
-      btn.innerHTML = `<span class="loading-spinner"></span> Envoi en cours…`;
-      btn.disabled = true;
-      progress.style.display = 'block';
-      toast.classList.remove('visible');
-      errorToast.classList.remove('visible');
-
-      if (!db) {
-        document.getElementById('errorMsg').textContent = 'Connexion Supabase non disponible en prévisualisation. Déployez l\'app pour tester l\'upload réel.';
-        errorToast.classList.add('visible');
-        btn.innerHTML = 'Partager mes photos';
-        btn.disabled = false;
-        progress.style.display = 'none';
-        return;
-      }
-
-      let uploaded = 0;
-      const total = selectedFiles.length;
-
-      for (const file of selectedFiles) {
-        try {
-          label.textContent = `Photo ${uploaded + 1} / ${total}`;
-          const ext = file.name.split('.').pop();
-          const fileName = `${EVENT_ID}/${Date.now()}-${Math.random().toString(36).substr(2,6)}.${ext}`;
-
-          const { error: uploadError } = await db.storage
-            .from(BUCKET)
-            .upload(fileName, file, { cacheControl: '3600', upsert: false, contentType: file.type });
-
-          if (uploadError) throw uploadError;
-
-          const { data: urlData } = db.storage.from(BUCKET).getPublicUrl(fileName);
-
-          const { error: dbError } = await db.from('photos').insert({
-            event_id: EVENT_ID,
-            uploader_name: uploaderName,
-            storage_path: fileName,
-            public_url: urlData.publicUrl,
-            uploaded_at: new Date().toISOString()
-          });
-
-          if (dbError) console.warn('DB insert warning:', dbError.message);
-
-          uploaded++;
-          const pctVal = Math.round((uploaded / total) * 100);
-          fill.style.width = pctVal + '%';
-          pct.textContent = pctVal + '%';
-
-        } catch (err) {
-          console.error('Upload error:', err);
-          document.getElementById('errorMsg').textContent = `Erreur : ${err.message}`;
-          errorToast.classList.add('visible');
+      // ── 1. Upload Storage ──────────────────
+      const uploadRes = await fetch(
+        `${SB_URL}/storage/v1/object/${BUCKET}/${filename}`,
+        {
+          method: 'POST',
+          headers: {
+            'apikey':        SB_KEY,
+            'Authorization': `Bearer ${SB_KEY}`,
+            'Content-Type':  file.type || 'image/jpeg',
+            'x-upsert':      'true'
+          },
+          body: file
         }
+      );
+
+      if (!uploadRes.ok) {
+        const txt = await uploadRes.text();
+        throw new Error(`Storage ${uploadRes.status}: ${txt}`);
       }
 
-      progress.style.display = 'none';
-      btn.innerHTML = 'Partager mes photos';
-      btn.disabled = false;
+      // ── 2. URL publique ────────────────────
+      const publicUrl = `${SB_URL}/storage/v1/object/public/${BUCKET}/${filename}`;
 
-      if (uploaded > 0) {
-        toast.classList.add('visible');
-        document.getElementById('previewQueue').innerHTML = '';
-        selectedFiles = [];
-        btn.classList.remove('visible');
-        fill.style.width = '0%';
-      }
-    }
-
-    // ── GALERIE ──────────────────────────────────────────────────
-    async function loadPhotos() {
-      const grid = document.getElementById('galleryGrid');
-      grid.innerHTML = '<div class="gallery-empty"><div class="empty-icon">⏳</div><p>Chargement…</p></div>';
-
-      if (!db) {
-        grid.innerHTML = '<div class="gallery-empty"><div class="empty-icon">📷</div><p>Galerie disponible une fois l\'app déployée</p></div>';
-        return;
-      }
-
-      try {
-        const { data, error } = await db
-          .from('photos').select('*')
-          .eq('event_id', EVENT_ID)
-          .order('uploaded_at', { ascending: false });
-
-        if (error) throw error;
-
-        grid.innerHTML = '';
-        if (!data || data.length === 0) {
-          grid.innerHTML = '<div class="gallery-empty"><div class="empty-icon">📷</div><p>Les photos apparaîtront ici<br>dès que les invités commenceront à partager</p></div>';
-          document.getElementById('photoCount').textContent = '0';
-          return;
-        }
-        document.getElementById('photoCount').textContent = data.length;
-        data.forEach(photo => addPhotoToGrid(photo, false));
-
-      } catch (err) {
-        grid.innerHTML = `<div class="gallery-empty"><div class="empty-icon">⚠️</div><p>Impossible de charger les photos<br><small>${err.message}</small></p></div>`;
-      }
-    }
-
-    function addPhotoToGrid(photo, isNew = true) {
-      const grid = document.getElementById('galleryGrid');
-      const empty = grid.querySelector('.gallery-empty');
-      if (empty) empty.remove();
-
-      const item = document.createElement('div');
-      item.className = `gallery-item${isNew ? ' new-photo' : ''}`;
-      item.dataset.id = photo.id;
-      item.innerHTML = `
-        <img src="${photo.public_url}" alt="Photo de ${photo.uploader_name}" loading="lazy" />
-        <div class="photo-meta">par ${photo.uploader_name || 'Invité'}</div>
-      `;
-      item.addEventListener('click', () => openLightbox(photo.public_url));
-      if (isNew) {
-        grid.prepend(item);
-        const count = document.getElementById('photoCount');
-        count.textContent = parseInt(count.textContent || '0') + 1;
-      } else {
-        grid.appendChild(item);
-      }
-    }
-
-    // ── TEMPS RÉEL ────────────────────────────────────────────────
-    if (db) {
-      db.channel('photos-channel')
-        .on('postgres_changes', {
-          event: 'INSERT', schema: 'public', table: 'photos',
-          filter: `event_id=eq.${EVENT_ID}`
-        }, (payload) => {
-          const existing = document.querySelector(`[data-id="${payload.new.id}"]`);
-          if (!existing) addPhotoToGrid(payload.new, true);
+      // ── 3. Enregistrement en base ──────────
+      await fetch(`${SB_URL}/rest/v1/photos`, {
+        method: 'POST',
+        headers: {
+          'apikey':        SB_KEY,
+          'Authorization': `Bearer ${SB_KEY}`,
+          'Content-Type':  'application/json',
+          'Prefer':        'return=minimal'
+        },
+        body: JSON.stringify({
+          event_id:     EVENT_ID,
+          uploader_name: uploaderName,
+          storage_path:  filename,
+          public_url:    publicUrl,
+          uploaded_at:   new Date().toISOString()
         })
-        .subscribe();
+      });
+
+      done++;
+      setProgress(done, total);
+
+    } catch (err) {
+      errors.push(file.name + ': ' + err.message);
+    }
+  }
+
+  // Reset UI
+  btn.disabled  = false;
+  btn.innerHTML = 'Partager mes photos';
+  document.getElementById('prog').style.display = 'none';
+
+  if (done > 0) {
+    selectedFiles = [];
+    renderPreviews();
+    setProgress(0, 1);
+    showToast(`✦  ${done} photo${done > 1 ? 's' : ''} partagée${done > 1 ? 's' : ''} avec succès — merci !`, false);
+  }
+  if (errors.length) {
+    showToast('⚠️ ' + errors.join(' | '), true);
+  }
+}
+
+function setProgress(done, total, label) {
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-pct').textContent  = pct + '%';
+  if (label) document.getElementById('prog-lbl').textContent = label;
+}
+
+function showToast(msg, isErr) {
+  const t       = document.getElementById('toast');
+  t.textContent = msg;
+  t.className   = 'toast' + (isErr ? ' err' : '');
+  t.style.display = 'block';
+}
+
+// ══════════════════════════════════════════════
+//  GALERIE
+// ══════════════════════════════════════════════
+async function loadGallery() {
+  const grid = document.getElementById('gGrid');
+  grid.innerHTML = '<div class="gempty"><div class="ei">⏳</div><p>Chargement…</p></div>';
+
+  try {
+    const res = await fetch(
+      `${SB_URL}/rest/v1/photos?event_id=eq.${EVENT_ID}&order=uploaded_at.desc&select=*`,
+      {
+        headers: {
+          'apikey':        SB_KEY,
+          'Authorization': `Bearer ${SB_KEY}`
+        }
+      }
+    );
+    if (!res.ok) throw new Error(`Erreur ${res.status}: ${await res.text()}`);
+
+    const photos = await res.json();
+    document.getElementById('photoCount').textContent = photos.length;
+
+    if (!photos.length) {
+      grid.innerHTML = '<div class="gempty"><div class="ei">📷</div><p>Aucune photo pour l\'instant<br>Soyez le premier à partager !</p></div>';
+      return;
     }
 
-    // ── LIGHTBOX ─────────────────────────────────────────────────
-    function openLightbox(src) {
-      document.getElementById('lightboxImg').src = src;
-      document.getElementById('lightbox').classList.add('open');
-    }
-    function closeLightbox() {
-      document.getElementById('lightbox').classList.remove('open');
-    }
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
-  </script>
+    grid.innerHTML = photos.map(p => `
+      <div class="gitem" onclick="openLB('${p.public_url}')">
+        <img src="${p.public_url}" alt="Photo de ${p.uploader_name || 'Invité'}" loading="lazy"
+             onerror="this.parentElement.style.display='none'">
+        <div class="gmeta">par ${p.uploader_name || 'Invité'}</div>
+      </div>`).join('');
+
+  } catch (err) {
+    grid.innerHTML = `<div class="gempty"><div class="ei">⚠️</div><p>${err.message}</p></div>`;
+  }
+}
+
+// ══════════════════════════════════════════════
+//  QR CODE
+// ══════════════════════════════════════════════
+function downloadQR() {
+  window.open(
+    'https://chart.googleapis.com/chart?cht=qr&chs=600x600&chl=https%3A%2F%2Fmemorie-one.vercel.app&choe=UTF-8&chld=Q%7C4',
+    '_blank'
+  );
+}
+
+// ══════════════════════════════════════════════
+//  LIGHTBOX
+// ══════════════════════════════════════════════
+function openLB(src) {
+  document.getElementById('lbImg').src = src;
+  document.getElementById('lb').classList.add('open');
+}
+function closeLB() {
+  document.getElementById('lb').classList.remove('open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLB(); });
+</script>
 </body>
 </html>
