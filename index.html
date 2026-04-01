@@ -10,8 +10,6 @@
 :root{--cream:#F7F3EE;--warm:#FDFAF6;--gold:#B8935A;--gold-l:#D4AE7A;--gold-m:#E8D5B7;--dark:#1C1712;--stone:#8A8078;--charcoal:#3A3530}
 body{background:var(--cream);font-family:'Jost',sans-serif;font-weight:300;color:var(--dark);min-height:100vh}
 .wrap{max-width:680px;margin:0 auto;padding:0 20px 80px}
-
-/* HEADER */
 header{text-align:center;padding:48px 24px 32px}
 .orn{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:18px}
 .ol{height:1px;width:56px;background:linear-gradient(90deg,transparent,var(--gold))}
@@ -22,8 +20,6 @@ h1{font-family:'Cormorant Garamond',serif;font-size:clamp(36px,9vw,64px);font-we
 h1 em{font-style:italic;color:var(--gold)}
 .date{font-size:11px;letter-spacing:.2em;color:var(--stone);text-transform:uppercase;margin-top:6px}
 .tagline{font-size:13px;color:var(--charcoal);margin-top:14px;line-height:1.7;max-width:340px;margin-left:auto;margin-right:auto}
-
-/* TABS */
 .tabs{display:flex;justify-content:center;margin:0 24px 32px}
 .tab{flex:1;max-width:160px;padding:13px 8px;background:none;border:1px solid var(--gold-m);color:var(--stone);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:all .25s;font-weight:400}
 .tab:first-child{border-radius:2px 0 0 2px;border-right:none}
@@ -32,8 +28,6 @@ h1 em{font-style:italic;color:var(--gold)}
 .tab.on{background:var(--gold);border-color:var(--gold);color:var(--warm)}
 .tab:not(.on):hover{border-color:var(--gold);color:var(--gold)}
 .panel{display:none}.panel.on{display:block}
-
-/* CATEGORY CARDS */
 .cat-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;text-align:center;margin-bottom:6px;color:var(--dark)}
 .cat-sub{font-size:12px;color:var(--stone);text-align:center;margin-bottom:24px;letter-spacing:.05em}
 .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px}
@@ -45,10 +39,7 @@ h1 em{font-style:italic;color:var(--gold)}
 .cat-emoji{font-size:32px;margin-bottom:10px;display:block;line-height:1}
 .cat-name{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:400;color:var(--dark);margin-bottom:4px}
 .cat-desc{font-size:11px;color:var(--stone);line-height:1.5}
-
-/* UPLOAD ZONE */
-.upload-section{display:none}
-.upload-section.visible{display:block}
+.upload-section{display:none}.upload-section.visible{display:block}
 .back-btn{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--stone);background:none;border:none;cursor:pointer;margin-bottom:20px;padding:0;transition:color .2s}
 .back-btn:hover{color:var(--gold)}
 .selected-cat-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;background:linear-gradient(135deg,#FDF8F2,#FAF3E8);border:1px solid var(--gold-m);border-radius:20px;font-size:12px;color:var(--charcoal);margin-bottom:20px}
@@ -77,22 +68,9 @@ h1 em{font-style:italic;color:var(--gold)}
 .sbtn:hover:not(:disabled){background:var(--gold)}.sbtn:disabled{opacity:.6;cursor:not-allowed}
 .toast{margin-top:16px;padding:14px 18px;border-radius:2px;font-size:13px;line-height:1.5;border-left:3px solid var(--gold);background:linear-gradient(135deg,#F0EBE3,#EDE5D8);color:var(--charcoal)}
 .toast.err{border-left-color:#C0392B;background:#FDF0F0;color:#7B1D1D}
-
-/* GALLERY */
-.g-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
-.g-filter-btn{padding:8px 16px;border:1px solid var(--gold-m);border-radius:20px;background:var(--warm);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--stone);cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:6px}
-.g-filter-btn:hover{border-color:var(--gold);color:var(--gold)}
-.g-filter-btn.on{background:var(--gold);border-color:var(--gold);color:var(--warm)}
-.g-filter-btn .fc{font-size:14px}
-.g-filter-btn .fcount{font-size:9px;background:rgba(255,255,255,.3);padding:1px 5px;border-radius:10px}
-.g-filter-btn:not(.on) .fcount{background:var(--gold-m);color:var(--stone)}
-
-/* CATEGORY WIDGETS */
 .cat-widgets{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px}
-@media(min-width:520px){.cat-widgets{grid-template-columns:repeat(2,1fr)}}
 .cat-widget{border:1px solid var(--gold-m);border-radius:6px;overflow:hidden;cursor:pointer;transition:all .3s;background:var(--warm)}
 .cat-widget:hover{border-color:var(--gold);box-shadow:0 8px 28px rgba(184,147,90,.12);transform:translateY(-2px)}
-.cat-widget.on{border-color:var(--gold);box-shadow:0 8px 28px rgba(184,147,90,.15)}
 .cw-header{padding:16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--gold-m)}
 .cw-emoji{font-size:24px;line-height:1}
 .cw-info{flex:1}
@@ -101,8 +79,6 @@ h1 em{font-style:italic;color:var(--gold)}
 .cw-preview{display:grid;grid-template-columns:1fr 1fr;gap:2px;height:100px;overflow:hidden}
 .cw-preview img{width:100%;height:100%;object-fit:cover}
 .cw-preview .cw-empty{grid-column:1/-1;display:flex;align-items:center;justify-content:center;background:var(--cream);font-size:11px;color:var(--stone);letter-spacing:.1em}
-
-/* GALLERY GRID */
 .g-grid{columns:2;gap:10px}
 @media(min-width:480px){.g-grid{columns:3}}
 .gitem{break-inside:avoid;margin-bottom:10px;border-radius:3px;overflow:hidden;cursor:pointer;position:relative;transition:transform .3s,box-shadow .3s}
@@ -116,10 +92,12 @@ h1 em{font-style:italic;color:var(--gold)}
 .g-back{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--stone);background:none;border:none;cursor:pointer;margin-bottom:20px;padding:0;transition:color .2s}
 .g-back:hover{color:var(--gold)}
 
-/* QR */
+/* ── QR CODE ── */
 .qr-wrap{text-align:center;padding:32px 20px}
 .qr-box{display:inline-block;padding:24px;background:var(--warm);border:1px solid var(--gold-m);border-radius:4px;box-shadow:0 8px 32px rgba(184,147,90,.08)}
-.qr-box img{display:block;width:220px;height:220px;border-radius:2px;background:#fff}
+.qr-canvas-wrap{width:220px;height:220px;background:#fff;border-radius:2px;display:flex;align-items:center;justify-content:center;margin:0 auto}
+.qr-canvas-wrap canvas{display:block}
+.qr-loading{font-size:12px;color:var(--stone);letter-spacing:.1em}
 .qr-lbl{margin-top:16px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--stone)}
 .qr-url{margin-top:6px;font-size:11px;color:var(--gold)}
 .qr-dl{display:inline-block;margin-top:20px;padding:11px 28px;background:var(--gold);color:var(--warm);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.22em;text-transform:uppercase;border:none;border-radius:2px;cursor:pointer;transition:all .25s}
@@ -129,7 +107,6 @@ h1 em{font-style:italic;color:var(--gold)}
 .step{display:flex;gap:10px;margin-bottom:10px;font-size:13px;color:var(--charcoal);line-height:1.5}
 .sn{width:22px;height:22px;min-width:22px;background:var(--gold);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;margin-top:1px}
 
-/* LIGHTBOX */
 .lb{position:fixed;inset:0;background:rgba(28,23,18,.93);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
 .lb.open{display:flex}
 .lb img{max-width:100%;max-height:90vh;border-radius:3px;object-fit:contain}
@@ -164,10 +141,8 @@ footer a{color:var(--gold);text-decoration:none}
 
 <div class="wrap">
 
-  <!-- ── UPLOAD ── -->
+  <!-- UPLOAD -->
   <div id="panel-upload" class="panel on">
-
-    <!-- ÉTAPE 1 : Choix de catégorie -->
     <div id="step-category">
       <p class="cat-title">Dans quel moment êtes-vous ?</p>
       <p class="cat-sub">Choisissez une catégorie pour mieux organiser vos souvenirs</p>
@@ -194,11 +169,9 @@ footer a{color:var(--gold);text-decoration:none}
         </div>
       </div>
     </div>
-
-    <!-- ÉTAPE 2 : Upload -->
     <div id="step-upload" class="upload-section">
       <button class="back-btn" onclick="goBack()">← Changer de catégorie</button>
-      <div id="selected-badge" class="selected-cat-badge">
+      <div class="selected-cat-badge">
         <span class="badge-emoji" id="badge-emoji"></span>
         <span id="badge-name"></span>
       </div>
@@ -227,13 +200,10 @@ footer a{color:var(--gold);text-decoration:none}
       <button class="sbtn" id="sbtn" style="display:none" onclick="doUpload()">Partager mes photos</button>
       <div id="toast" style="display:none" class="toast"></div>
     </div>
-
   </div>
 
-  <!-- ── GALERIE ── -->
+  <!-- GALERIE -->
   <div id="panel-gallery" class="panel">
-
-    <!-- Vue widgets (défaut) -->
     <div id="gallery-widgets">
       <div class="g-hdr">
         <p class="g-count"><span id="totalCount">0</span> photos partagées</p>
@@ -241,8 +211,6 @@ footer a{color:var(--gold);text-decoration:none}
       </div>
       <div class="cat-widgets" id="catWidgets"></div>
     </div>
-
-    <!-- Vue catégorie détail -->
     <div id="gallery-detail" style="display:none">
       <button class="g-back" onclick="showWidgets()">← Toutes les catégories</button>
       <div class="g-hdr">
@@ -251,22 +219,18 @@ footer a{color:var(--gold);text-decoration:none}
       </div>
       <div class="g-grid" id="gGrid"></div>
     </div>
-
   </div>
 
-  <!-- ── QR CODE ── -->
+  <!-- QR CODE -->
   <div id="panel-qr" class="panel">
     <div class="qr-wrap">
       <div class="qr-box">
-        <img
-          src="https://chart.googleapis.com/chart?cht=qr&chs=220x220&chl=https%3A%2F%2Fmemorie-one.vercel.app&choe=UTF-8&chld=Q%7C4"
-          alt="QR Code Mementos"
-          onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https%3A%2F%2Fmemorie-one.vercel.app&margin=20&ecc=Q'"
-          id="qrImg"
-        />
+        <div class="qr-canvas-wrap" id="qrCanvasWrap">
+          <span class="qr-loading">Génération…</span>
+        </div>
         <p class="qr-lbl">Scanner pour partager vos photos</p>
-        <p class="qr-url">https://memorie-one.vercel.app</p>
-        <button class="qr-dl" onclick="downloadQR()">⬇ Télécharger le QR code</button>
+        <p class="qr-url">memorie-one.vercel.app</p>
+        <button class="qr-dl" id="qrDlBtn" onclick="downloadQR()">⬇ Télécharger le QR code</button>
       </div>
       <div class="qr-steps">
         <h3>Comment utiliser le QR code ?</h3>
@@ -280,7 +244,6 @@ footer a{color:var(--gold);text-decoration:none}
 
 </div>
 
-<!-- LIGHTBOX -->
 <div class="lb" id="lb" onclick="closeLB()">
   <button class="lb-x" onclick="closeLB()">✕</button>
   <img id="lbImg" src="" alt="">
@@ -288,14 +251,15 @@ footer a{color:var(--gold);text-decoration:none}
 
 <footer><p>Propulsé par <a href="#">Mementos</a> &nbsp;·&nbsp; vos souvenirs, centralisés</p></footer>
 
+<!-- QRCode.js — génération 100% locale, aucune API externe -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
 <script>
-// ══════════════════════════════════════════
-//  CONFIG
-// ══════════════════════════════════════════
 const SB_URL   = 'https://hmytqbgnjpugqeslnuvk.supabase.co';
 const SB_KEY   = 'sb_publishable_59uI3S3lCP0xyVtvrR6ZZA_vXsiF27o';
 const EVENT_ID = 'mariage-melodie-thomas-2025';
 const BUCKET   = 'photos';
+const SITE_URL = 'https://memorie-one.vercel.app';
 
 const CATEGORIES = [
   { id: 'ceremonie', emoji: '💍', name: 'Cérémonie',      desc: "L'échange des vœux" },
@@ -304,39 +268,57 @@ const CATEGORIES = [
   { id: 'danse',     emoji: '💃', name: 'Piste de danse',  desc: "La fête jusqu'au bout" },
 ];
 
-// ══════════════════════════════════════════
-//  STATE
-// ══════════════════════════════════════════
-let selectedFiles    = [];
-let selectedCategory = null;
-let allPhotos        = [];
+let selectedFiles = [], selectedCategory = null, allPhotos = [], qrInstance = null;
 
-// ══════════════════════════════════════════
-//  TABS
-// ══════════════════════════════════════════
+// ── QR CODE (généré localement via QRCode.js) ──
+function initQR() {
+  const wrap = document.getElementById('qrCanvasWrap');
+  wrap.innerHTML = '';
+  try {
+    qrInstance = new QRCode(wrap, {
+      text:          SITE_URL,
+      width:         220,
+      height:        220,
+      colorDark:     '#1C1712',
+      colorLight:    '#ffffff',
+      correctLevel:  QRCode.CorrectLevel.Q
+    });
+  } catch(e) {
+    wrap.innerHTML = '<span class="qr-loading" style="color:#C0392B">Erreur génération QR</span>';
+  }
+}
+
+function downloadQR() {
+  const canvas = document.querySelector('#qrCanvasWrap canvas');
+  if (!canvas) return;
+  const link = document.createElement('a');
+  link.download = 'qrcode-melodie-thomas.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+// Générer le QR dès que la lib est chargée
+window.addEventListener('load', () => { if (typeof QRCode !== 'undefined') initQR(); });
+// Régénérer à l'ouverture de l'onglet si pas encore fait
+function ensureQR() { if (!qrInstance) initQR(); }
+
+// ── TABS ──
 function switchTab(id, btn) {
   document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
   btn.classList.add('on');
   document.getElementById('panel-' + id).classList.add('on');
   if (id === 'gallery') loadGallery();
+  if (id === 'qr') ensureQR();
 }
 
-// ══════════════════════════════════════════
-//  CATÉGORIE
-// ══════════════════════════════════════════
+// ── CATÉGORIE ──
 function selectCategory(id, emoji, name) {
   selectedCategory = { id, emoji, name };
-
-  // Highlight carte
   document.querySelectorAll('.cat-card').forEach(c => c.classList.remove('selected'));
   event.currentTarget.classList.add('selected');
-
-  // Badge
   document.getElementById('badge-emoji').textContent = emoji;
   document.getElementById('badge-name').textContent  = name;
-
-  // Transition vers l'upload
   setTimeout(() => {
     document.getElementById('step-category').style.display = 'none';
     document.getElementById('step-upload').classList.add('visible');
@@ -344,8 +326,7 @@ function selectCategory(id, emoji, name) {
 }
 
 function goBack() {
-  selectedCategory = null;
-  selectedFiles    = [];
+  selectedCategory = null; selectedFiles = [];
   renderPreviews();
   document.getElementById('step-upload').classList.remove('visible');
   document.getElementById('step-category').style.display = 'block';
@@ -353,221 +334,118 @@ function goBack() {
   document.getElementById('toast').style.display = 'none';
 }
 
-// ══════════════════════════════════════════
-//  FICHIERS
-// ══════════════════════════════════════════
+// ── FICHIERS ──
 function onFileSelect(e) { addFiles(Array.from(e.target.files)); }
-
 function onDrop(e) {
   e.preventDefault();
   document.getElementById('dropzone').classList.remove('drag');
   addFiles(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')));
 }
-
 function addFiles(files) {
   selectedFiles = [...selectedFiles, ...files];
   renderPreviews();
   document.getElementById('toast').style.display = 'none';
 }
-
-function removeFile(i) {
-  selectedFiles.splice(i, 1);
-  renderPreviews();
-}
-
+function removeFile(i) { selectedFiles.splice(i, 1); renderPreviews(); }
 function renderPreviews() {
-  document.getElementById('previews').innerHTML = selectedFiles.map((f, i) => `
-    <div class="prev">
-      <img src="${URL.createObjectURL(f)}">
-      <button class="rm" onclick="removeFile(${i})">✕</button>
-    </div>`).join('');
+  document.getElementById('previews').innerHTML = selectedFiles.map((f, i) =>
+    `<div class="prev"><img src="${URL.createObjectURL(f)}">
+     <button class="rm" onclick="removeFile(${i})">✕</button></div>`
+  ).join('');
   document.getElementById('sbtn').style.display = selectedFiles.length ? 'block' : 'none';
 }
 
-// ══════════════════════════════════════════
-//  UPLOAD
-// ══════════════════════════════════════════
+// ── UPLOAD ──
 async function doUpload() {
   if (!selectedFiles.length || !selectedCategory) return;
-
-  const btn          = document.getElementById('sbtn');
+  const btn = document.getElementById('sbtn');
   const uploaderName = document.getElementById('uname').value.trim() || 'Invité';
-
-  btn.disabled    = true;
-  btn.innerHTML   = '<span class="spin"></span>Envoi en cours…';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>Envoi en cours…';
   document.getElementById('prog').style.display  = 'block';
   document.getElementById('toast').style.display = 'none';
-
-  let done = 0;
-  const total  = selectedFiles.length;
-  const errors = [];
-
+  let done = 0; const total = selectedFiles.length; const errors = [];
   for (const file of selectedFiles) {
     try {
-      setProgress(done, total, `Photo ${done + 1} / ${total}`);
-
-      const ext      = (file.name.split('.').pop() || 'jpg').toLowerCase();
+      setProgress(done, total, `Photo ${done+1} / ${total}`);
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
       const filename = `${EVENT_ID}/${selectedCategory.id}/${Date.now()}-${Math.random().toString(36).substr(2,6)}.${ext}`;
-
-      // 1. Upload Storage
-      const uploadRes = await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${filename}`, {
-        method: 'POST',
-        headers: {
-          'apikey':        SB_KEY,
-          'Authorization': `Bearer ${SB_KEY}`,
-          'Content-Type':  file.type || 'image/jpeg',
-          'x-upsert':      'true'
-        },
-        body: file
+      const up = await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${filename}`, {
+        method:'POST', headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':file.type||'image/jpeg','x-upsert':'true'}, body:file
       });
-
-      if (!uploadRes.ok) {
-        const txt = await uploadRes.text();
-        throw new Error(`Storage ${uploadRes.status}: ${txt}`);
-      }
-
-      // 2. URL publique
+      if (!up.ok) throw new Error(`Storage ${up.status}: ${await up.text()}`);
       const publicUrl = `${SB_URL}/storage/v1/object/public/${BUCKET}/${filename}`;
-
-      // 3. Insert DB avec catégorie + prénom
-      const dbRes = await fetch(`${SB_URL}/rest/v1/photos`, {
-        method: 'POST',
-        headers: {
-          'apikey':        SB_KEY,
-          'Authorization': `Bearer ${SB_KEY}`,
-          'Content-Type':  'application/json',
-          'Prefer':        'return=minimal'
-        },
-        body: JSON.stringify({
-          event_id:      EVENT_ID,
-          uploader_name: uploaderName,
-          category:      selectedCategory.id,
-          storage_path:  filename,
-          public_url:    publicUrl,
-          uploaded_at:   new Date().toISOString()
-        })
+      await fetch(`${SB_URL}/rest/v1/photos`, {
+        method:'POST', headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal'},
+        body:JSON.stringify({event_id:EVENT_ID,uploader_name:uploaderName,category:selectedCategory.id,storage_path:filename,public_url:publicUrl,uploaded_at:new Date().toISOString()})
       });
-
-      if (!dbRes.ok) {
-        const txt = await dbRes.text();
-        console.warn('DB warning:', txt);
-      }
-
-      done++;
-      setProgress(done, total);
-
-    } catch (err) {
-      errors.push(file.name + ': ' + err.message);
-    }
+      done++; setProgress(done, total);
+    } catch(err) { errors.push(file.name+': '+err.message); }
   }
-
-  btn.disabled  = false;
-  btn.innerHTML = 'Partager mes photos';
+  btn.disabled = false; btn.innerHTML = 'Partager mes photos';
   document.getElementById('prog').style.display = 'none';
-
   if (done > 0) {
-    selectedFiles = [];
-    renderPreviews();
-    setProgress(0, 1);
-    showToast(`✦  ${done} photo${done > 1 ? 's' : ''} partagée${done > 1 ? 's' : ''} dans ${selectedCategory.emoji} ${selectedCategory.name} — merci !`, false);
+    selectedFiles = []; renderPreviews(); setProgress(0,1);
+    showToast(`✦  ${done} photo${done>1?'s':''} partagée${done>1?'s':''} dans ${selectedCategory.emoji} ${selectedCategory.name} — merci !`, false);
   }
-  if (errors.length) {
-    showToast('⚠️ ' + errors.join(' | '), true);
-  }
+  if (errors.length) showToast('⚠️ '+errors.join(' | '), true);
 }
 
 function setProgress(done, total, label) {
-  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-  document.getElementById('prog-fill').style.width = pct + '%';
-  document.getElementById('prog-pct').textContent  = pct + '%';
+  const pct = total > 0 ? Math.round((done/total)*100) : 0;
+  document.getElementById('prog-fill').style.width = pct+'%';
+  document.getElementById('prog-pct').textContent  = pct+'%';
   if (label) document.getElementById('prog-lbl').textContent = label;
 }
-
 function showToast(msg, isErr) {
   const t = document.getElementById('toast');
-  t.textContent   = msg;
-  t.className     = 'toast' + (isErr ? ' err' : '');
-  t.style.display = 'block';
+  t.textContent = msg; t.className = 'toast'+(isErr?' err':''); t.style.display='block';
 }
 
-// ══════════════════════════════════════════
-//  GALERIE
-// ══════════════════════════════════════════
+// ── GALERIE ──
 async function loadGallery() {
-  document.getElementById('catWidgets').innerHTML = CATEGORIES.map(c => `
-    <div class="cat-widget" onclick="openCategory('${c.id}')">
-      <div class="cw-header">
-        <span class="cw-emoji">${c.emoji}</span>
-        <div class="cw-info">
-          <div class="cw-name">${c.name}</div>
-          <div class="cw-count" id="count-${c.id}">Chargement…</div>
-        </div>
-      </div>
-      <div class="cw-preview" id="preview-${c.id}">
-        <div class="cw-empty">Aucune photo</div>
-      </div>
+  document.getElementById('catWidgets').innerHTML = CATEGORIES.map(c =>
+    `<div class="cat-widget" onclick="openCategory('${c.id}')">
+      <div class="cw-header"><span class="cw-emoji">${c.emoji}</span>
+        <div class="cw-info"><div class="cw-name">${c.name}</div>
+        <div class="cw-count" id="count-${c.id}">Chargement…</div></div></div>
+      <div class="cw-preview" id="preview-${c.id}"><div class="cw-empty">Aucune photo</div></div>
     </div>`).join('');
-
   try {
-    const res = await fetch(
-      `${SB_URL}/rest/v1/photos?event_id=eq.${EVENT_ID}&order=uploaded_at.desc&select=*`,
-      { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` } }
-    );
+    const res = await fetch(`${SB_URL}/rest/v1/photos?event_id=eq.${EVENT_ID}&order=uploaded_at.desc&select=*`,
+      {headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
     if (!res.ok) throw new Error(await res.text());
     allPhotos = await res.json();
-
     document.getElementById('totalCount').textContent = allPhotos.length;
-
-    // Remplir chaque widget
     CATEGORIES.forEach(cat => {
       const photos = allPhotos.filter(p => p.category === cat.id);
-      const countEl   = document.getElementById('count-' + cat.id);
-      const previewEl = document.getElementById('preview-' + cat.id);
-
-      countEl.textContent = photos.length
-        ? `${photos.length} photo${photos.length > 1 ? 's' : ''}`
-        : 'Aucune photo encore';
-
+      document.getElementById('count-'+cat.id).textContent = photos.length ? `${photos.length} photo${photos.length>1?'s':''}` : 'Aucune photo encore';
       if (photos.length) {
-        // Afficher les 4 premières en aperçu
-        previewEl.innerHTML = photos.slice(0, 4).map(p => `
-          <img src="${p.public_url}" alt="" loading="lazy"
-               onerror="this.parentElement.style.background='var(--cream)';this.style.display='none'">`
+        document.getElementById('preview-'+cat.id).innerHTML = photos.slice(0,4).map(p =>
+          `<img src="${p.public_url}" alt="" loading="lazy" onerror="this.parentElement.style.background='var(--cream)';this.style.display='none'">`
         ).join('');
       }
     });
-
-  } catch (err) {
-    document.getElementById('catWidgets').innerHTML =
-      `<div class="gempty"><div class="ei">⚠️</div><p>${err.message}</p></div>`;
+  } catch(err) {
+    document.getElementById('catWidgets').innerHTML = `<div class="gempty"><div class="ei">⚠️</div><p>${err.message}</p></div>`;
   }
 }
 
 function openCategory(catId) {
-  const cat    = CATEGORIES.find(c => c.id === catId);
+  const cat = CATEGORIES.find(c => c.id === catId);
   const photos = allPhotos.filter(p => p.category === catId);
-
   document.getElementById('gallery-widgets').style.display = 'none';
   document.getElementById('gallery-detail').style.display  = 'block';
-
-  document.getElementById('detail-title').innerHTML =
-    `<span>${cat.emoji} ${cat.name}</span> &nbsp;—&nbsp; <span style="color:var(--gold)">${photos.length} photo${photos.length !== 1 ? 's' : ''}</span>`;
-
+  document.getElementById('detail-title').innerHTML = `<span>${cat.emoji} ${cat.name}</span> &nbsp;—&nbsp; <span style="color:var(--gold)">${photos.length} photo${photos.length!==1?'s':''}</span>`;
   const grid = document.getElementById('gGrid');
-
   if (!photos.length) {
     grid.innerHTML = `<div class="gempty"><div class="ei">${cat.emoji}</div><p>Aucune photo dans cette catégorie encore<br>Soyez le premier à partager !</p></div>`;
     return;
   }
-
-  grid.innerHTML = photos.map(p => `
-    <div class="gitem" onclick="openLB('${p.public_url}')">
-      <img src="${p.public_url}" alt="Photo de ${p.uploader_name || 'Invité'}" loading="lazy"
-           onerror="this.parentElement.style.display='none'">
-      <div class="gmeta">
-        <div class="gmeta-cat">${cat.emoji} ${cat.name}</div>
-        par ${p.uploader_name || 'Invité'}
-      </div>
+  grid.innerHTML = photos.map(p =>
+    `<div class="gitem" onclick="openLB('${p.public_url}')">
+      <img src="${p.public_url}" alt="Photo de ${p.uploader_name||'Invité'}" loading="lazy" onerror="this.parentElement.style.display='none'">
+      <div class="gmeta"><div class="gmeta-cat">${cat.emoji} ${cat.name}</div>par ${p.uploader_name||'Invité'}</div>
     </div>`).join('');
 }
 
@@ -576,27 +454,10 @@ function showWidgets() {
   document.getElementById('gallery-widgets').style.display = 'block';
 }
 
-// ══════════════════════════════════════════
-//  QR CODE
-// ══════════════════════════════════════════
-function downloadQR() {
-  window.open(
-    'https://chart.googleapis.com/chart?cht=qr&chs=600x600&chl=https%3A%2F%2Fmemorie-one.vercel.app&choe=UTF-8&chld=Q%7C4',
-    '_blank'
-  );
-}
-
-// ══════════════════════════════════════════
-//  LIGHTBOX
-// ══════════════════════════════════════════
-function openLB(src) {
-  document.getElementById('lbImg').src = src;
-  document.getElementById('lb').classList.add('open');
-}
-function closeLB() {
-  document.getElementById('lb').classList.remove('open');
-}
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLB(); });
+// ── LIGHTBOX ──
+function openLB(src) { document.getElementById('lbImg').src=src; document.getElementById('lb').classList.add('open'); }
+function closeLB()   { document.getElementById('lb').classList.remove('open'); }
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeLB(); });
 </script>
 </body>
 </html>
