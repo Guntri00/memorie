@@ -831,9 +831,10 @@ function openCategory(catId) {
 
 // ── Construire une photo item ─────────────────────────
 function buildPhotoItem(p) {
-  const age       = Date.now() - new Date(p.uploaded_at).getTime();
-  const remaining = DELETE_WINDOW_MS - age;
-  const canDelete = remaining > 0;
+  const uploadedAt = new Date(p.uploaded_at).getTime();
+  const age        = Date.now() - uploadedAt;
+  const remaining  = DELETE_WINDOW_MS - age;
+  const canDelete  = remaining > 0;
 
   return `
     <div class="gitem" id="photo-${p.id}" onclick="openLB('${p.public_url}')">
@@ -856,20 +857,19 @@ function buildPhotoItem(p) {
 function startDeleteTimer(photoId, remainingMs) {
   if (timerIntervals[photoId]) clearInterval(timerIntervals[photoId]);
 
-  const startTime = Date.now();
-  const endTime   = startTime + remainingMs;
+  const endTime = Date.now() + remainingMs;
 
   function tick() {
     const left = endTime - Date.now();
     if (left <= 0) {
       clearInterval(timerIntervals[photoId]);
-      // Masquer le bouton supprimer et le timer
+      delete timerIntervals[photoId];
       const btn   = document.querySelector(`#photo-${photoId} .del-btn`);
-      const timer = document.getElementById('timer-'+photoId);
-      const bar   = document.getElementById('timer-bar-'+photoId);
+      const timer = document.getElementById('timer-' + photoId);
+      const prog  = document.querySelector(`#photo-${photoId} .del-progress`);
       if (btn)   btn.style.display   = 'none';
       if (timer) timer.style.display = 'none';
-      if (bar)   bar.parentElement.style.display = 'none';
+      if (prog)  prog.style.display  = 'none';
       return;
     }
 
@@ -893,54 +893,70 @@ function startDeleteTimer(photoId, remainingMs) {
 //  SUPPRESSION
 // ══════════════════════════════════════════
 function askDelete(photoId, storagePath, el) {
-  pendingDeleteId   = { id: photoId, path: storagePath };
-  pendingDeleteEl   = el;
+  pendingDeleteId = { id: photoId, path: storagePath };
+  pendingDeleteEl = el;
   document.getElementById('modalBg').classList.add('open');
 }
 
 function closeModal() {
   document.getElementById('modalBg').classList.remove('open');
-  pendingDeleteId = null;
-  pendingDeleteEl = null;
+  // Ne pas remettre à null ici — confirmDelete en a besoin
 }
 
 async function confirmDelete() {
   if (!pendingDeleteId) return;
-  closeModal();
 
   const { id, path } = pendingDeleteId;
   const el = pendingDeleteEl;
+
+  // Fermer le modal ET vider l'état APRÈS avoir copié les valeurs
+  document.getElementById('modalBg').classList.remove('open');
+  pendingDeleteId = null;
+  pendingDeleteEl = null;
 
   // Animation de suppression
   if (el) el.classList.add('deleting');
 
   try {
     // 1. Supprimer du Storage
-    await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${path}`, {
-      method:'DELETE',
-      headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}` }
+    const storageRes = await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${path}`, {
+      method: 'DELETE',
+      headers: {
+        'apikey':        SB_KEY,
+        'Authorization': `Bearer ${SB_KEY}`,
+        'Content-Type':  'application/json'
+      }
     });
+    if (!storageRes.ok) console.warn('Storage delete warning:', await storageRes.text());
 
     // 2. Supprimer de la DB
-    await fetch(`${SB_URL}/rest/v1/photos?id=eq.${id}`, {
-      method:'DELETE',
-      headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}` }
+    const dbRes = await fetch(`${SB_URL}/rest/v1/photos?id=eq.${id}`, {
+      method: 'DELETE',
+      headers: {
+        'apikey':        SB_KEY,
+        'Authorization': `Bearer ${SB_KEY}`,
+        'Content-Type':  'application/json',
+        'Prefer':        'return=minimal'
+      }
     });
+    if (!dbRes.ok) console.warn('DB delete warning:', await dbRes.text());
 
-    // 3. Retirer du DOM + de allPhotos
-    if (el) setTimeout(() => el.remove(), 400);
+    // 3. Retirer du DOM après animation
+    setTimeout(() => { if (el) el.remove(); }, 400);
+
+    // 4. Mettre à jour allPhotos
     allPhotos = allPhotos.filter(p => p.id !== id);
 
-    // 4. Mettre à jour le compteur
-    const catId  = allPhotos.length > 0 ? null : null;
-    const total  = document.getElementById('totalCount');
-    if (total) total.textContent = parseInt(total.textContent) - 1;
+    // 5. Mettre à jour le compteur total
+    const totalEl = document.getElementById('totalCount');
+    if (totalEl) totalEl.textContent = Math.max(0, parseInt(totalEl.textContent) - 1);
 
-    // Arrêter le timer
+    // 6. Arrêter le timer
     if (timerIntervals[id]) { clearInterval(timerIntervals[id]); delete timerIntervals[id]; }
 
-  } catch(err) {
+  } catch (err) {
     if (el) el.classList.remove('deleting');
+    console.error('Delete error:', err);
     alert('Erreur lors de la suppression : ' + err.message);
   }
 }
