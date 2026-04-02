@@ -52,6 +52,46 @@ h1 em{font-style:italic;color:var(--gold)}
 .usub{font-size:12px;color:var(--stone);line-height:1.6}
 .ubtn{display:inline-block;margin-top:20px;padding:12px 32px;background:var(--gold);color:var(--warm);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.25em;text-transform:uppercase;border:none;border-radius:2px;cursor:pointer;transition:all .25s}
 .ubtn:hover{background:var(--charcoal)}
+/* UPLOAD SOUS-ONGLETS */
+.upload-tabs{display:flex;gap:0;margin-bottom:20px;border:1px solid var(--gold-m);border-radius:4px;overflow:hidden}
+.upload-tab{flex:1;padding:11px 8px;background:none;border:none;font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--stone);cursor:pointer;transition:all .25s;font-weight:400}
+.upload-tab:first-child{border-right:1px solid var(--gold-m)}
+.upload-tab.on{background:var(--gold);color:var(--warm)}
+.upload-tab:not(.on):hover{background:var(--cream);color:var(--gold)}
+
+/* CAMÉRA */
+.camera-wrap{position:relative;width:100%;border-radius:8px;overflow:hidden;background:#000;aspect-ratio:4/3}
+#cameraVideo{width:100%;height:100%;object-fit:cover;display:block}
+.camera-overlay{position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center}
+.camera-frame{width:70%;aspect-ratio:1;border:2px solid rgba(255,255,255,.4);border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,.25)}
+.camera-controls{position:absolute;bottom:0;left:0;right:0;padding:16px 24px 20px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(transparent,rgba(0,0,0,.5))}
+.cam-shoot-btn{width:64px;height:64px;background:rgba(255,255,255,.95);border:3px solid rgba(255,255,255,.5);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.cam-shoot-btn:hover{transform:scale(1.08)}
+.cam-shoot-btn:active{transform:scale(.93)}
+.cam-shoot-inner{width:44px;height:44px;background:white;border-radius:50%;display:block}
+.cam-flip-btn{width:44px;height:44px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;backdrop-filter:blur(4px)}
+.cam-flip-btn:hover{background:rgba(255,255,255,.28)}
+.cam-flash-on{background:rgba(255,220,50,.35) !important;border-color:rgba(255,220,50,.6) !important}
+
+/* Flash visuel au déclenchement */
+.cam-flash{position:absolute;inset:0;background:white;opacity:0;pointer-events:none;border-radius:8px;transition:opacity .08s}
+.cam-flash.active{opacity:1}
+
+/* Aperçu photo */
+.cam-preview-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cam-retake,.cam-keep{padding:8px 16px;border-radius:2px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:all .2s;border:none}
+.cam-retake{background:none;border:1px solid var(--gold-m);color:var(--stone)}
+.cam-retake:hover{border-color:var(--stone);color:var(--dark)}
+.cam-keep{background:var(--gold);color:var(--warm)}
+.cam-keep:hover{background:var(--charcoal)}
+.cam-preview-label{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--stone)}
+
+/* Erreur caméra */
+.cam-error{text-align:center;padding:40px 20px;background:var(--warm);border:1px solid var(--gold-m);border-radius:8px;color:var(--charcoal)}
+.cam-error-icon{font-size:36px;margin-bottom:12px;opacity:.4}
+.cam-error p{font-family:'Cormorant Garamond',serif;font-size:18px;margin-bottom:6px}
+.cam-error small{font-size:12px;color:var(--stone)}
+
 .nfield{margin-top:20px}
 .nfield label{display:block;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--stone);margin-bottom:7px}
 .nfield input{width:100%;padding:12px 14px;border:1px solid var(--gold-m);border-radius:2px;background:var(--warm);font-family:'Jost',sans-serif;font-size:14px;color:var(--dark);font-weight:300;outline:none;transition:border-color .25s}
@@ -274,18 +314,60 @@ footer a{color:var(--gold);text-decoration:none}
       <div class="selected-cat-badge">
         <span id="badge-emoji"></span><span id="badge-name"></span>
       </div>
-      <div class="zone" id="dropzone"
-        ondragover="event.preventDefault();this.classList.add('drag')"
-        ondragleave="this.classList.remove('drag')"
-        ondrop="onDrop(event)"
-        onclick="document.getElementById('fi').click()">
-        <div class="uico">
-          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <!-- Sous-onglets Galerie / Appareil photo -->
+      <div class="upload-tabs">
+        <button class="upload-tab on" id="utab-gallery" onclick="switchUploadTab('gallery')">🖼️ Galerie</button>
+        <button class="upload-tab" id="utab-camera" onclick="switchUploadTab('camera')">📷 Appareil photo</button>
+      </div>
+
+      <!-- Onglet galerie -->
+      <div id="upload-gallery-pane">
+        <div class="zone" id="dropzone"
+          ondragover="event.preventDefault();this.classList.add('drag')"
+          ondragleave="this.classList.remove('drag')"
+          ondrop="onDrop(event)"
+          onclick="document.getElementById('fi').click()">
+          <div class="uico">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <p class="utitle">Déposez vos photos ici</p>
+          <p class="usub">ou cliquez pour choisir depuis votre galerie<br>JPG, PNG, HEIC · Jusqu'à 20 Mo</p>
+          <button class="ubtn" onclick="event.stopPropagation();document.getElementById('fi').click()">Choisir des photos</button>
+          <input id="fi" type="file" multiple accept="image/*" style="display:none" onchange="onFileSelect(event)">
         </div>
-        <p class="utitle">Déposez vos photos ici</p>
-        <p class="usub">ou cliquez pour choisir depuis votre galerie<br>JPG, PNG, HEIC · Jusqu'à 20 Mo</p>
-        <button class="ubtn" onclick="event.stopPropagation();document.getElementById('fi').click()">Choisir des photos</button>
-        <input id="fi" type="file" multiple accept="image/*" style="display:none" onchange="onFileSelect(event)">
+      </div>
+
+      <!-- Onglet appareil photo -->
+      <div id="upload-camera-pane" style="display:none">
+        <div class="camera-wrap" id="cameraWrap">
+          <video id="cameraVideo" autoplay playsinline muted></video>
+          <div class="camera-overlay">
+            <div class="camera-frame"></div>
+          </div>
+          <div class="camera-controls">
+            <button class="cam-flip-btn" onclick="flipCamera()" title="Retourner">🔄</button>
+            <button class="cam-shoot-btn" onclick="takePhoto()">
+              <span class="cam-shoot-inner"></span>
+            </button>
+            <button class="cam-flip-btn" onclick="toggleFlash()" id="flashBtn" title="Flash">⚡</button>
+          </div>
+        </div>
+        <!-- Prévisualisation photo prise -->
+        <div id="cameraPreview" style="display:none">
+          <div class="cam-preview-header">
+            <button class="cam-retake" onclick="retakePhoto()">↩ Reprendre</button>
+            <span class="cam-preview-label">Aperçu</span>
+            <button class="cam-keep" onclick="keepPhoto()">Garder ✓</button>
+          </div>
+          <img id="camPreviewImg" style="width:100%;border-radius:4px;display:block">
+        </div>
+        <!-- Message si caméra non disponible -->
+        <div id="cameraError" style="display:none" class="cam-error">
+          <div class="cam-error-icon">📷</div>
+          <p>Caméra non accessible</p>
+          <small>Autorisez l'accès à la caméra dans les réglages de votre navigateur</small>
+          <button class="ubtn" style="margin-top:16px" onclick="startCamera()">Réessayer</button>
+        </div>
       </div>
       <div class="previews" id="previews"></div>
       <div class="nfield">
@@ -393,15 +475,135 @@ let pendingDeleteId  = null; // ID photo en attente de confirmation
 let pendingDeleteEl  = null;
 
 // ══════════════════════════════════════════
-//  TABS
+//  SOUS-ONGLETS UPLOAD
 // ══════════════════════════════════════════
+function switchUploadTab(tab) {
+  document.querySelectorAll('.upload-tab').forEach(b => b.classList.remove('on'));
+  document.getElementById('utab-' + tab).classList.add('on');
+
+  document.getElementById('upload-gallery-pane').style.display = tab === 'gallery' ? 'block' : 'none';
+  document.getElementById('upload-camera-pane').style.display  = tab === 'camera'  ? 'block' : 'none';
+
+  if (tab === 'camera') startCamera();
+  else stopCamera();
+}
+
+// ══════════════════════════════════════════
+//  CAMÉRA
+// ══════════════════════════════════════════
+let cameraStream   = null;
+let facingMode     = 'environment'; // arrière par défaut
+let flashEnabled   = false;
+let capturedBlob   = null;
+
+async function startCamera() {
+  const video    = document.getElementById('cameraVideo');
+  const errEl    = document.getElementById('cameraError');
+  const wrapEl   = document.getElementById('cameraWrap');
+  const previewEl = document.getElementById('cameraPreview');
+
+  errEl.style.display     = 'none';
+  previewEl.style.display = 'none';
+  wrapEl.style.display    = 'block';
+
+  // Arrêter le stream existant
+  stopCamera();
+
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: facingMode,
+        width:  { ideal: 1920 },
+        height: { ideal: 1080 }
+      },
+      audio: false
+    });
+    video.srcObject = cameraStream;
+  } catch (err) {
+    wrapEl.style.display = 'none';
+    errEl.style.display  = 'block';
+    console.warn('Camera error:', err.message);
+  }
+}
+
+function stopCamera() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(t => t.stop());
+    cameraStream = null;
+  }
+}
+
+function flipCamera() {
+  facingMode = facingMode === 'environment' ? 'user' : 'environment';
+  startCamera();
+}
+
+function toggleFlash() {
+  flashEnabled = !flashEnabled;
+  const btn = document.getElementById('flashBtn');
+  btn.classList.toggle('cam-flash-on', flashEnabled);
+}
+
+function takePhoto() {
+  const video = document.getElementById('cameraVideo');
+  if (!video.srcObject) return;
+
+  // Flash visuel
+  const flashEl = document.createElement('div');
+  flashEl.className = 'cam-flash';
+  document.getElementById('cameraWrap').appendChild(flashEl);
+  requestAnimationFrame(() => {
+    flashEl.classList.add('active');
+    setTimeout(() => { flashEl.classList.remove('active'); setTimeout(() => flashEl.remove(), 100); }, 80);
+  });
+
+  // Capture via canvas
+  const canvas = document.createElement('canvas');
+  canvas.width  = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+
+  // Miroir si caméra frontale
+  if (facingMode === 'user') {
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+  }
+  ctx.drawImage(video, 0, 0);
+
+  canvas.toBlob(blob => {
+    capturedBlob = blob;
+    const url = URL.createObjectURL(blob);
+    document.getElementById('camPreviewImg').src = url;
+    document.getElementById('cameraWrap').style.display    = 'none';
+    document.getElementById('cameraPreview').style.display = 'block';
+  }, 'image/jpeg', 0.92);
+}
+
+function retakePhoto() {
+  capturedBlob = null;
+  document.getElementById('cameraPreview').style.display = 'none';
+  document.getElementById('cameraWrap').style.display    = 'block';
+}
+
+function keepPhoto() {
+  if (!capturedBlob) return;
+  // Créer un File depuis le blob
+  const file = new File([capturedBlob], `photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
+  addFiles([file]);
+  capturedBlob = null;
+  // Retourner sur l'onglet galerie pour voir la prévisualisation
+  switchUploadTab('gallery');
+  stopCamera();
+}
+
+
 function switchTab(id, btn) {
   document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
   btn.classList.add('on');
   document.getElementById('panel-' + id).classList.add('on');
   if (id === 'gallery') loadGallery();
-  else stopAllSliders();
+  else { stopAllSliders(); stopCamera(); }
 }
 
 // ══════════════════════════════════════════
