@@ -846,6 +846,19 @@ function takePhoto() {
     document.getElementById('camPreviewImg').src = url;
     document.getElementById('cameraWrap').style.display    = 'none';
     document.getElementById('cameraPreview').style.display = 'block';
+
+    // Éteindre le flash/torch après la capture
+    if (flashEnabled && cameraStream) {
+      try {
+        const track = cameraStream.getVideoTracks()[0];
+        if (track && track.getCapabilities && track.getCapabilities().torch) {
+          track.applyConstraints({ advanced: [{ torch: false }] });
+        }
+      } catch(e) {}
+      flashEnabled = false;
+      const btn = document.getElementById('flashBtn');
+      if (btn) { btn.classList.remove('cam-flash-on'); btn.textContent = '⚡'; }
+    }
   }, 'image/jpeg', 0.92);
 }
 
