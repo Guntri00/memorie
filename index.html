@@ -1389,6 +1389,124 @@ document.addEventListener('keydown', e => {
 });
 
 
+
+// ══════════════════════════════════════════
+//  DIAPORAMA — TOUTES CATÉGORIES
+// ══════════════════════════════════════════
+let ssPhotos   = [];
+let ssIndex    = 0;
+let ssPlaying  = true;
+let ssTimer    = null;
+const SS_DURATION = 4000; // 4s par photo
+
+async function startSlideshowAll() {
+  // Charger toutes les photos fraîches depuis Supabase
+  try {
+    const res = await fetch(
+      `${SB_URL}/rest/v1/photos?event_id=eq.${EVENT_ID}&order=uploaded_at.asc&select=*`,
+      { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` } }
+    );
+    if (!res.ok) throw new Error(await res.text());
+    ssPhotos = await res.json();
+  } catch(e) {
+    ssPhotos = [...allPhotos].sort((a,b) => new Date(a.uploaded_at) - new Date(b.uploaded_at));
+  }
+
+  if (!ssPhotos.length) {
+    showDlToast('Aucune photo à afficher pour le moment');
+    return;
+  }
+
+  ssIndex  = 0;
+  ssPlaying = true;
+
+  document.getElementById('ssCat').textContent = `✨ Toutes les photos — ${ssPhotos.length} clichés`;
+  document.getElementById('slideshowOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  ssShow(ssIndex);
+  ssStartTimer();
+}
+
+function ssShow(idx) {
+  if (!ssPhotos.length) return;
+  const p   = ssPhotos[idx];
+  const img = document.getElementById('ssImg');
+
+  // Animation fade
+  img.style.opacity = '0';
+  img.style.transform = 'scale(0.97)';
+  img.src = p.public_url;
+  img.onload = () => {
+    img.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    img.style.opacity = '1';
+    img.style.transform = 'scale(1)';
+  };
+
+  // Infos
+  const cat = CATEGORIES.find(c => c.id === p.category);
+  document.getElementById('ssName').textContent  = `par ${p.uploader_name || 'Invité'}`;
+  document.getElementById('ssTime').textContent  = cat ? `${cat.emoji} ${cat.name}` : '';
+  document.getElementById('ssCounter').textContent = `${idx + 1} / ${ssPhotos.length}`;
+
+  // Barre de progression
+  const bar = document.getElementById('ssProgress');
+  if (bar) {
+    bar.style.transition = 'none';
+    bar.style.width = '0%';
+    requestAnimationFrame(() => {
+      bar.style.transition = `width ${SS_DURATION}ms linear`;
+      bar.style.width = '100%';
+    });
+  }
+}
+
+function ssStartTimer() {
+  clearTimeout(ssTimer);
+  if (!ssPlaying) return;
+  ssTimer = setTimeout(() => ssNext(), SS_DURATION);
+}
+
+function ssNext() {
+  if (!ssPhotos.length) return;
+  ssIndex = (ssIndex + 1) % ssPhotos.length;
+  ssShow(ssIndex);
+  ssStartTimer();
+}
+
+function ssPrev() {
+  if (!ssPhotos.length) return;
+  ssIndex = (ssIndex - 1 + ssPhotos.length) % ssPhotos.length;
+  ssShow(ssIndex);
+  ssStartTimer();
+}
+
+function ssTogglePlay() {
+  ssPlaying = !ssPlaying;
+  const btn = document.getElementById('ssPlayBtn');
+  if (btn) btn.textContent = ssPlaying ? '⏸' : '▶';
+  if (ssPlaying) {
+    ssStartTimer();
+    const bar = document.getElementById('ssProgress');
+    if (bar) {
+      bar.style.transition = `width ${SS_DURATION}ms linear`;
+      bar.style.width = '100%';
+    }
+  } else {
+    clearTimeout(ssTimer);
+    const bar = document.getElementById('ssProgress');
+    if (bar) bar.style.transition = 'none';
+  }
+}
+
+function ssClose() {
+  clearTimeout(ssTimer);
+  ssPhotos = [];
+  document.getElementById('slideshowOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  const img = document.getElementById('ssImg');
+  if (img) { img.src = ''; img.style.opacity = '1'; img.style.transform = 'scale(1)'; }
+}
+
 // ══════════════════════════════════════════
 //  TÉLÉCHARGEMENT
 // ══════════════════════════════════════════
