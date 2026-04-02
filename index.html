@@ -914,8 +914,30 @@ async function doUpload() {
   if (done>0) {
     selectedFiles=[]; renderPreviews(); setProgress(0,1);
     showToast(`✦  ${done} photo${done>1?'s':''} partagée${done>1?'s':''} dans ${selectedCategory.emoji} ${selectedCategory.name} — merci !`, false);
+    // Recharger allPhotos pour que la galerie soit à jour
+    refreshAllPhotos();
   }
   if (errors.length) showToast('⚠️ '+errors.join(' | '), true);
+}
+
+// Recharger silencieusement allPhotos depuis Supabase
+async function refreshAllPhotos() {
+  try {
+    const res = await fetch(
+      `${SB_URL}/rest/v1/photos?event_id=eq.${EVENT_ID}&order=uploaded_at.desc&select=*`,
+      { headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}` } }
+    );
+    if (!res.ok) return;
+    allPhotos = await res.json();
+    // Si la galerie est visible et qu'une catégorie est ouverte, la rafraîchir
+    const galPanel  = document.getElementById('panel-gallery');
+    const catDetail = document.getElementById('gallery-detail');
+    if (galPanel && galPanel.classList.contains('on') &&
+        catDetail && catDetail.style.display !== 'none') {
+      const curCat = galPanel.dataset.currentCat;
+      if (curCat) openCategory(curCat);
+    }
+  } catch(e) { console.warn('Refresh failed:', e); }
 }
 
 function setProgress(done, total, label) {
@@ -1322,15 +1344,24 @@ async function downloadPhoto(url, filename) {
 
 // Télécharger toutes les photos de la catégorie une par une
 async function downloadAllPhotos() {
-  const catId  = document.getElementById('panel-gallery').dataset.currentCat;
-  if (!catId) return;
+  // Récupérer la catégorie où se trouve l'utilisateur
+  const catId = document.getElementById('panel-gallery').dataset.currentCat;
+  if (!catId) {
+    showDlToast('⚠️ Aucune catégorie sélectionnée');
+    return;
+  }
 
+  // Recharger les photos fraîches depuis Supabase
+  await refreshAllPhotos();
   const photos = allPhotos.filter(p => p.category === catId);
-  if (!photos.length) return;
+
+  if (!photos.length) {
+    showDlToast('Aucune photo dans cette catégorie');
+    return;
+  }
 
   const btn = document.getElementById('dlAllBtn');
-  btn.classList.add('loading');
-  btn.textContent = '⏳ Téléchargement…';
+  if (btn) { btn.classList.add('loading'); btn.innerHTML = '⏳ Téléchargement…'; }
 
   showDlToast(`Téléchargement de ${photos.length} photo${photos.length > 1 ? 's' : ''}…`);
 
@@ -1340,21 +1371,21 @@ async function downloadAllPhotos() {
       const res  = await fetch(p.public_url);
       const blob = await res.blob();
       const a    = document.createElement('a');
-      const ext  = p.storage_path.split('.').pop() || 'jpg';
+      const ext  = (p.storage_path || 'photo.jpg').split('.').pop() || 'jpg';
       a.href     = URL.createObjectURL(blob);
       a.download = `mementos-${p.category}-${done + 1}.${ext}`;
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
       URL.revokeObjectURL(a.href);
       done++;
-      // Petit délai entre chaque téléchargement pour ne pas bloquer le navigateur
-      await new Promise(r => setTimeout(r, 400));
+      await new Promise(r => setTimeout(r, 500));
     } catch(e) {
-      console.warn('Download failed for:', p.public_url);
+      console.warn('Download failed:', p.public_url, e);
     }
   }
 
-  btn.classList.remove('loading');
-  btn.innerHTML = '⬇ Tout télécharger';
+  if (btn) { btn.classList.remove('loading'); btn.innerHTML = '⬇ Tout télécharger'; }
   showDlToast(`✓ ${done} photo${done > 1 ? 's' : ''} téléchargée${done > 1 ? 's' : ''} !`);
 }
 
