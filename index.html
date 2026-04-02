@@ -738,6 +738,18 @@ async function startCamera() {
 }
 
 function stopCamera() {
+  // Éteindre le torch avant d'arrêter
+  if (cameraStream && flashEnabled) {
+    try {
+      const track = cameraStream.getVideoTracks()[0];
+      if (track && track.getCapabilities && track.getCapabilities().torch) {
+        track.applyConstraints({ advanced: [{ torch: false }] });
+      }
+    } catch(e) {}
+    flashEnabled = false;
+    const btn = document.getElementById('flashBtn');
+    if (btn) { btn.classList.remove('cam-flash-on'); btn.textContent = '⚡'; }
+  }
   if (cameraStream) {
     cameraStream.getTracks().forEach(t => t.stop());
     cameraStream = null;
@@ -749,24 +761,71 @@ function flipCamera() {
   startCamera();
 }
 
-function toggleFlash() {
-  flashEnabled = !flashEnabled;
+async function toggleFlash() {
   const btn = document.getElementById('flashBtn');
-  btn.classList.toggle('cam-flash-on', flashEnabled);
+
+  // Vérifier si le torch est supporté
+  if (!cameraStream) {
+    showDlToast('Activez la caméra d\'abord');
+    return;
+  }
+
+  const track = cameraStream.getVideoTracks()[0];
+  if (!track) return;
+
+  const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+
+  // Torch supporté nativement (Android Chrome, Safari iOS 17+)
+  if (capabilities.torch) {
+    flashEnabled = !flashEnabled;
+    try {
+      await track.applyConstraints({ advanced: [{ torch: flashEnabled }] });
+      btn.classList.toggle('cam-flash-on', flashEnabled);
+      btn.textContent = flashEnabled ? '🔦' : '⚡';
+      showDlToast(flashEnabled ? '🔦 Flash activé' : 'Flash désactivé');
+    } catch(e) {
+      console.warn('Torch error:', e);
+      flashEnabled = false;
+      showDlToast('Flash non disponible sur cet appareil');
+    }
+  } else {
+    // Fallback : flash visuel blanc à la prise de photo
+    flashEnabled = !flashEnabled;
+    btn.classList.toggle('cam-flash-on', flashEnabled);
+    btn.textContent = flashEnabled ? '💡' : '⚡';
+    showDlToast(flashEnabled
+      ? '💡 Flash simulé activé (écran blanc)'
+      : 'Flash désactivé');
+  }
 }
+
 
 function takePhoto() {
   const video = document.getElementById('cameraVideo');
   if (!video.srcObject) return;
 
-  // Flash visuel
-  const flashEl = document.createElement('div');
-  flashEl.className = 'cam-flash';
-  document.getElementById('cameraWrap').appendChild(flashEl);
-  requestAnimationFrame(() => {
-    flashEl.classList.add('active');
-    setTimeout(() => { flashEl.classList.remove('active'); setTimeout(() => flashEl.remove(), 100); }, 80);
-  });
+  // Flash visuel uniquement si torch non dispo (mode fallback)
+  const track = cameraStream ? cameraStream.getVideoTracks()[0] : null;
+  const hasTorch = track && track.getCapabilities && track.getCapabilities().torch;
+  if (flashEnabled && !hasTorch) {
+    // Flash écran blanc simulé
+    const flashEl = document.createElement('div');
+    flashEl.className = 'cam-flash';
+    document.getElementById('cameraWrap').appendChild(flashEl);
+    requestAnimationFrame(() => {
+      flashEl.classList.add('active');
+      setTimeout(() => { flashEl.classList.remove('active'); setTimeout(() => flashEl.remove(), 150); }, 150);
+    });
+  } else {
+    // Flash subtil même sans flash activé (feedback visuel)
+    const flashEl = document.createElement('div');
+    flashEl.className = 'cam-flash';
+    document.getElementById('cameraWrap').appendChild(flashEl);
+    requestAnimationFrame(() => {
+      flashEl.classList.add('active');
+      setTimeout(() => { flashEl.classList.remove('active'); setTimeout(() => flashEl.remove(), 100); }, 60);
+    });
+  }
 
   // Capture via canvas
   const canvas = document.createElement('canvas');
