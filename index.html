@@ -1042,12 +1042,11 @@ function stopAllSliders() {
 // ══════════════════════════════════════════
 //  DÉTAIL CATÉGORIE
 // ══════════════════════════════════════════
-function openCategory(catId) {
+async function openCategory(catId) {
   stopAllSliders();
-  const cat    = CATEGORIES.find(c => c.id === catId);
-  const photos = allPhotos.filter(p => p.category === catId);
+  const cat = CATEGORIES.find(c => c.id === catId);
 
-  // Basculer les vues
+  // Basculer les vues immédiatement
   document.getElementById('gallery-widgets').style.display = 'none';
   document.getElementById('gallery-detail').style.display  = 'block';
   document.getElementById('panel-gallery').dataset.currentCat = catId;
@@ -1056,34 +1055,49 @@ function openCategory(catId) {
   document.getElementById('detail-cat-emoji').textContent = cat.emoji;
   document.getElementById('detail-cat-name').textContent  = cat.name;
 
-  // Compteur
-  document.getElementById('detail-title').innerHTML =
-    `<span style="color:var(--gold)">${photos.length}</span>&nbsp;photo${photos.length !== 1 ? 's' : ''}`;
-
-  // Bouton tout télécharger
-  const dlAllBtn = document.getElementById('dlAllBtn');
-  if (dlAllBtn) dlAllBtn.style.display = photos.length > 0 ? 'inline-flex' : 'none';
-
-  // Effacer le badge de notif
+  // Afficher chargement
+  const grid = document.getElementById('gGrid');
+  grid.innerHTML = `<div class="gempty"><div class="ei">⏳</div><p>Chargement…</p></div>`;
   clearCategoryBadge(catId);
 
-  // Grille photos
-  const grid = document.getElementById('gGrid');
+  // Toujours fetcher directement depuis Supabase pour avoir les données fraîches
+  try {
+    const res = await fetch(
+      `${SB_URL}/rest/v1/photos?event_id=eq.${EVENT_ID}&category=eq.${catId}&order=uploaded_at.desc&select=*`,
+      { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` } }
+    );
+    if (!res.ok) throw new Error(await res.text());
+    const photos = await res.json();
 
-  if (!photos.length) {
-    grid.innerHTML = `<div class="gempty"><div class="ei">${cat.emoji}</div><p>Aucune photo dans cette catégorie<br>Soyez le premier à partager !</p></div>`;
-    return;
+    // Mettre à jour allPhotos pour cette catégorie
+    allPhotos = allPhotos.filter(p => p.category !== catId).concat(photos);
+
+    // Compteur
+    document.getElementById('detail-title').innerHTML =
+      `<span style="color:var(--gold)">${photos.length}</span>&nbsp;photo${photos.length !== 1 ? 's' : ''}`;
+
+    // Bouton tout télécharger
+    const dlAllBtn = document.getElementById('dlAllBtn');
+    if (dlAllBtn) dlAllBtn.style.display = photos.length > 0 ? 'inline-flex' : 'none';
+
+    if (!photos.length) {
+      grid.innerHTML = `<div class="gempty"><div class="ei">${cat.emoji}</div><p>Aucune photo dans cette catégorie<br>Soyez le premier à partager !</p></div>`;
+      return;
+    }
+
+    // Afficher les photos
+    grid.innerHTML = photos.map(p => buildPhotoItem(p)).join('');
+
+    // Comptes à rebours suppression
+    photos.forEach(p => {
+      const age       = Date.now() - new Date(p.uploaded_at).getTime();
+      const remaining = DELETE_WINDOW_MS - age;
+      if (remaining > 0) startDeleteTimer(p.id, remaining);
+    });
+
+  } catch(err) {
+    grid.innerHTML = `<div class="gempty"><div class="ei">⚠️</div><p>Erreur : ${err.message}</p></div>`;
   }
-
-  // ✅ Afficher les photos
-  grid.innerHTML = photos.map(p => buildPhotoItem(p)).join('');
-
-  // Lancer les comptes à rebours pour les photos récentes
-  photos.forEach(p => {
-    const age       = Date.now() - new Date(p.uploaded_at).getTime();
-    const remaining = DELETE_WINDOW_MS - age;
-    if (remaining > 0) startDeleteTimer(p.id, remaining);
-  });
 }
 
 // ── Construire une photo item ─────────────────────────
