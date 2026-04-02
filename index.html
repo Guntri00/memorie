@@ -322,23 +322,6 @@ footer a{color:var(--gold);text-decoration:none}
 
       <!-- Onglet appareil photo (défaut) -->
       <div id="upload-camera-pane">
-        <div class="zone" id="dropzone"
-          ondragover="event.preventDefault();this.classList.add('drag')"
-          ondragleave="this.classList.remove('drag')"
-          ondrop="onDrop(event)"
-          onclick="document.getElementById('fi').click()">
-          <div class="uico">
-            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          </div>
-          <p class="utitle">Déposez vos photos ici</p>
-          <p class="usub">ou cliquez pour choisir depuis votre galerie<br>JPG, PNG, HEIC · Jusqu'à 20 Mo</p>
-          <button class="ubtn" onclick="event.stopPropagation();document.getElementById('fi').click()">Choisir des photos</button>
-          <input id="fi" type="file" multiple accept="image/*" style="display:none" onchange="onFileSelect(event)">
-        </div>
-      </div>
-
-      <!-- Onglet galerie -->
-      <div id="upload-gallery-pane" style="display:none">
         <div class="camera-wrap" id="cameraWrap">
           <video id="cameraVideo" autoplay playsinline muted></video>
           <div class="camera-overlay">
@@ -367,6 +350,23 @@ footer a{color:var(--gold);text-decoration:none}
           <p>Caméra non accessible</p>
           <small>Autorisez l'accès à la caméra dans les réglages de votre navigateur</small>
           <button class="ubtn" style="margin-top:16px" onclick="startCamera()">Réessayer</button>
+        </div>
+      </div>
+
+      <!-- Onglet galerie -->
+      <div id="upload-gallery-pane" style="display:none">
+        <div class="zone" id="dropzone"
+          ondragover="event.preventDefault();this.classList.add('drag')"
+          ondragleave="this.classList.remove('drag')"
+          ondrop="onDrop(event)"
+          onclick="document.getElementById('fi').click()">
+          <div class="uico">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <p class="utitle">Déposez vos photos ici</p>
+          <p class="usub">ou cliquez pour choisir depuis votre galerie<br>JPG, PNG, HEIC · Jusqu'à 20 Mo</p>
+          <button class="ubtn" onclick="event.stopPropagation();document.getElementById('fi').click()">Choisir des photos</button>
+          <input id="fi" type="file" multiple accept="image/*" style="display:none" onchange="onFileSelect(event)">
         </div>
       </div>
       <div class="previews" id="previews"></div>
@@ -497,9 +497,9 @@ let flashEnabled   = false;
 let capturedBlob   = null;
 
 async function startCamera() {
-  const video    = document.getElementById('cameraVideo');
-  const errEl    = document.getElementById('cameraError');
-  const wrapEl   = document.getElementById('cameraWrap');
+  const video     = document.getElementById('cameraVideo');
+  const errEl     = document.getElementById('cameraError');
+  const wrapEl    = document.getElementById('cameraWrap');
   const previewEl = document.getElementById('cameraPreview');
 
   errEl.style.display     = 'none';
@@ -509,21 +509,29 @@ async function startCamera() {
   // Arrêter le stream existant
   stopCamera();
 
-  try {
-    cameraStream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: facingMode,
-        width:  { ideal: 1920 },
-        height: { ideal: 1080 }
-      },
-      audio: false
-    });
-    video.srcObject = cameraStream;
-  } catch (err) {
-    wrapEl.style.display = 'none';
-    errEl.style.display  = 'block';
-    console.warn('Camera error:', err.message);
+  // Contraintes par ordre de priorité
+  const constraints = [
+    { video: { facingMode: { exact: facingMode }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false },
+    { video: { facingMode: facingMode, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false },
+    { video: true, audio: false } // fallback total
+  ];
+
+  for (const constraint of constraints) {
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia(constraint);
+      video.srcObject = cameraStream;
+      // Forcer le play (nécessaire sur certains iOS)
+      await video.play().catch(() => {});
+      return; // succès
+    } catch (err) {
+      console.warn('Camera attempt failed:', err.message);
+      cameraStream = null;
+    }
   }
+
+  // Aucune contrainte n'a fonctionné
+  wrapEl.style.display = 'none';
+  errEl.style.display  = 'block';
 }
 
 function stopCamera() {
@@ -587,13 +595,11 @@ function retakePhoto() {
 
 function keepPhoto() {
   if (!capturedBlob) return;
-  // Créer un File depuis le blob
   const file = new File([capturedBlob], `photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
   addFiles([file]);
   capturedBlob = null;
-  // Retourner sur l'onglet galerie pour voir la prévisualisation
+  // Passer sur l'onglet galerie pour voir la prévisualisation + envoyer
   switchUploadTab('gallery');
-  stopCamera();
 }
 
 
