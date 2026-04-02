@@ -220,16 +220,27 @@ h1 em{font-style:italic;color:var(--gold)}
 .dl-btn:hover{transform:scale(1.15);background:rgba(184,147,90,.9)}
 
 /* Bouton télécharger tout */
+
+/* ── DETAIL CAT HEADER ── */
+.detail-cat-header{
+  text-align:center;
+  font-family:'Cormorant Garamond',serif;
+  font-size:28px;font-weight:300;
+  margin:0 0 12px;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  color:var(--dark);
+}
 .dl-all-btn{
-  display:flex;align-items:center;gap:6px;
-  padding:8px 14px;
+  display:inline-flex;align-items:center;gap:6px;
+  padding:9px 20px;
   background:var(--warm);border:1px solid var(--gold-m);
-  border-radius:4px;font-family:'Jost',sans-serif;
+  border-radius:20px;font-family:'Jost',sans-serif;
   font-size:10px;letter-spacing:.15em;text-transform:uppercase;
   color:var(--charcoal);cursor:pointer;transition:all .25s;
 }
 .dl-all-btn:hover{background:var(--dark);color:var(--warm);border-color:var(--dark)}
 .dl-all-btn.loading{opacity:.6;cursor:not-allowed;pointer-events:none}
+
 
 /* Toast téléchargement */
 .dl-toast{
@@ -538,19 +549,29 @@ footer a{color:var(--gold);text-decoration:none}
     <div id="gallery-widgets">
       <div class="g-hdr">
         <p class="g-count"><span id="totalCount">0</span> photos partagées</p>
-        <div class="live"><div class="dot"></div>En direct</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="live"><div class="dot"></div>En direct</div>
+          <button class="slideshow-btn" id="ssBtnAll" onclick="startSlideshowAll()">▶ Diaporama</button>
+        </div>
       </div>
       <div class="cat-widgets" id="catWidgets"></div>
     </div>
     <div id="gallery-detail" style="display:none">
+      <!-- Bouton retour -->
       <button class="g-back" onclick="showWidgets()">← Toutes les catégories</button>
+      <!-- Nom de la catégorie centré -->
+      <div class="detail-cat-header">
+        <span id="detail-cat-emoji"></span>
+        <span id="detail-cat-name"></span>
+      </div>
+      <!-- Bouton tout télécharger centré -->
+      <div style="text-align:center;margin-bottom:20px">
+        <button class="dl-all-btn" id="dlAllBtn" onclick="downloadAllPhotos()" style="display:none;margin:0 auto">⬇ Tout télécharger</button>
+      </div>
+      <!-- Compteur + live -->
       <div class="g-hdr">
         <p class="g-count" id="detail-title"></p>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <div class="live"><div class="dot"></div>En direct</div>
-          <button class="slideshow-btn" id="ssBtn" onclick="startSlideshow()" style="display:none">▶ Diaporama</button>
-          <button class="dl-all-btn" id="dlAllBtn" onclick="downloadAllPhotos()" style="display:none">⬇ Tout télécharger</button>
-        </div>
+        <div class="live"><div class="dot"></div>En direct</div>
       </div>
       <div class="g-grid" id="gGrid"></div>
     </div>
@@ -1001,31 +1022,43 @@ function stopAllSliders() {
 // ══════════════════════════════════════════
 function openCategory(catId) {
   stopAllSliders();
-  const cat    = CATEGORIES.find(c=>c.id===catId);
-  const photos = allPhotos.filter(p=>p.category===catId);
+  const cat    = CATEGORIES.find(c => c.id === catId);
+  const photos = allPhotos.filter(p => p.category === catId);
 
+  // Basculer les vues
   document.getElementById('gallery-widgets').style.display = 'none';
   document.getElementById('gallery-detail').style.display  = 'block';
   document.getElementById('panel-gallery').dataset.currentCat = catId;
+
+  // Nom de la catégorie centré
+  document.getElementById('detail-cat-emoji').textContent = cat.emoji;
+  document.getElementById('detail-cat-name').textContent  = cat.name;
+
+  // Compteur
   document.getElementById('detail-title').innerHTML =
-    `${cat.emoji} ${cat.name} &nbsp;—&nbsp; <span style="color:var(--gold)">${photos.length} photo${photos.length!==1?'s':''}</span>`;
-  const ssBtn = document.getElementById('ssBtn');
-  if (ssBtn) ssBtn.style.display = photos.length > 0 ? 'flex' : 'none';
+    `<span style="color:var(--gold)">${photos.length}</span>&nbsp;photo${photos.length !== 1 ? 's' : ''}`;
+
+  // Bouton tout télécharger
   const dlAllBtn = document.getElementById('dlAllBtn');
-  if (dlAllBtn) dlAllBtn.style.display = photos.length > 0 ? 'flex' : 'none';
+  if (dlAllBtn) dlAllBtn.style.display = photos.length > 0 ? 'inline-flex' : 'none';
+
+  // Effacer le badge de notif
   clearCategoryBadge(catId);
 
+  // Grille photos
   const grid = document.getElementById('gGrid');
+
   if (!photos.length) {
     grid.innerHTML = `<div class="gempty"><div class="ei">${cat.emoji}</div><p>Aucune photo dans cette catégorie<br>Soyez le premier à partager !</p></div>`;
     return;
   }
 
+  // ✅ Afficher les photos
   grid.innerHTML = photos.map(p => buildPhotoItem(p)).join('');
 
   // Lancer les comptes à rebours pour les photos récentes
   photos.forEach(p => {
-    const age = Date.now() - new Date(p.uploaded_at).getTime();
+    const age       = Date.now() - new Date(p.uploaded_at).getTime();
     const remaining = DELETE_WINDOW_MS - age;
     if (remaining > 0) startDeleteTimer(p.id, remaining);
   });
@@ -1043,7 +1076,7 @@ function buildPhotoItem(p) {
       <img src="${p.public_url}" alt="Photo de ${p.uploader_name||'Invité'}" loading="lazy"
            onerror="this.parentElement.style.display='none'">
       <div class="gmeta">par ${p.uploader_name||'Invité'}</div>
-      <button class="dl-btn" onclick="event.stopPropagation();downloadPhoto('${p.public_url}','mementos-${p.category}-${p.id.substr(0,6)}.jpg')" title="Télécharger">⬇</button>
+      <button class="dl-btn" onclick="event.stopPropagation();downloadPhoto('${p.public_url}','mementos-${p.category}-${p.id.substr(0,6)}.jpg')" title="Télécharger cette photo">⬇️</button>
       <div class="reactions">
         <button class="react-btn ${getLike(p.id)?'liked':''}" onclick="event.stopPropagation();toggleLike('${p.id}',this)">
           ❤️ <span class="react-count" id="likes-${p.id}">${p.likes||0}</span>
