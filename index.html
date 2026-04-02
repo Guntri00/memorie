@@ -1100,12 +1100,77 @@ async function openCategory(catId) {
   }
 }
 
+// ══════════════════════════════════════════
+//  RÉACTIONS & LIKES
+// ══════════════════════════════════════════
+function getLike(photoId) {
+  try {
+    const likes = JSON.parse(localStorage.getItem('mementos_likes') || '{}');
+    return !!likes[photoId];
+  } catch(e) { return false; }
+}
+
+function setLike(photoId, val) {
+  try {
+    const likes = JSON.parse(localStorage.getItem('mementos_likes') || '{}');
+    if (val) likes[photoId] = true;
+    else delete likes[photoId];
+    localStorage.setItem('mementos_likes', JSON.stringify(likes));
+  } catch(e) {}
+}
+
+async function toggleLike(photoId, btn) {
+  const liked    = getLike(photoId);
+  const countEl  = document.getElementById('likes-' + photoId);
+  const current  = parseInt(countEl ? countEl.textContent : '0') || 0;
+  const newVal   = liked ? Math.max(0, current - 1) : current + 1;
+
+  setLike(photoId, !liked);
+  if (btn) btn.classList.toggle('liked', !liked);
+  if (countEl) countEl.textContent = newVal;
+  if (!liked) floatEmoji('❤️', btn);
+
+  try {
+    await fetch(`${SB_URL}/rest/v1/photos?id=eq.${photoId}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`,
+        'Content-Type': 'application/json', 'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ likes: newVal })
+    });
+  } catch(e) { console.warn('Like update failed:', e); }
+}
+
+function addReaction(photoId, emoji, btn) {
+  floatEmoji(emoji, btn);
+  if (btn) {
+    btn.style.transform = 'scale(1.3)';
+    setTimeout(() => { btn.style.transform = ''; }, 200);
+  }
+}
+
+function floatEmoji(emoji, refEl) {
+  try {
+    const rect = refEl ? refEl.getBoundingClientRect() : { left: window.innerWidth/2, top: window.innerHeight/2, width: 0 };
+    const el   = document.createElement('div');
+    el.className   = 'react-anim';
+    el.textContent = emoji;
+    el.style.cssText = `left:${rect.left + rect.width/2}px;top:${rect.top}px;position:fixed;z-index:999`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 900);
+  } catch(e) {}
+}
+
 // ── Construire une photo item ─────────────────────────
 function buildPhotoItem(p) {
   const uploadedAt = new Date(p.uploaded_at).getTime();
   const age        = Date.now() - uploadedAt;
   const remaining  = DELETE_WINDOW_MS - age;
   const canDelete  = remaining > 0;
+
+  const isLiked  = getLike(p.id);
+  const likeCount = p.likes || 0;
 
   return `
     <div class="gitem" id="photo-${p.id}" onclick="openLB('${p.public_url}')">
@@ -1114,8 +1179,8 @@ function buildPhotoItem(p) {
       <div class="gmeta">par ${p.uploader_name||'Invité'}</div>
       <button class="dl-btn" onclick="event.stopPropagation();downloadPhoto('${p.public_url}','mementos-${p.category}-${p.id.substr(0,6)}.jpg')" title="Télécharger cette photo">⬇️</button>
       <div class="reactions">
-        <button class="react-btn ${getLike(p.id)?'liked':''}" onclick="event.stopPropagation();toggleLike('${p.id}',this)">
-          ❤️ <span class="react-count" id="likes-${p.id}">${p.likes||0}</span>
+        <button class="react-btn ${isLiked?'liked':''}" id="like-btn-${p.id}" onclick="event.stopPropagation();toggleLike('${p.id}',this)">
+          ❤️ <span class="react-count" id="likes-${p.id}">${likeCount}</span>
         </button>
         <button class="react-btn" onclick="event.stopPropagation();addReaction('${p.id}','🔥',this)">🔥</button>
         <button class="react-btn" onclick="event.stopPropagation();addReaction('${p.id}','😍',this)">😍</button>
@@ -1312,17 +1377,7 @@ function openLB(src) {
 function closeLB() { document.getElementById('lb').classList.remove('open'); }
 document.addEventListener('keydown', e => { if(e.key==='Escape'){ closeLB(); closeModal(); } });
 
-function floatEmoji(emoji, refEl) {
-  try {
-    const rect = refEl.getBoundingClientRect();
-    const el   = document.createElement('div');
-    el.className   = 'react-anim';
-    el.textContent = emoji;
-    el.style.cssText = `left:${rect.left + rect.width/2}px;top:${rect.top}px;position:fixed`;
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 900);
-  } catch(e) {}
-}
+
 
 document.addEventListener('keydown', e => {
   const ss = document.getElementById('slideshowOverlay');
