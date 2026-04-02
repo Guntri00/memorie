@@ -28,22 +28,22 @@ h1 em{font-style:italic;color:var(--gold)}
 .tab.on{background:var(--gold);border-color:var(--gold);color:var(--warm)}
 .tab:not(.on):hover{border-color:var(--gold);color:var(--gold)}
 .panel{display:none}.panel.on{display:block}
-.cat-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;text-align:center;margin-bottom:6px;color:var(--dark)}
+
+/* UPLOAD */
+.cat-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;text-align:center;margin-bottom:6px}
 .cat-sub{font-size:12px;color:var(--stone);text-align:center;margin-bottom:24px;letter-spacing:.05em}
 .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px}
-.cat-card{border:1.5px solid var(--gold-m);border-radius:6px;padding:20px 16px;text-align:center;cursor:pointer;transition:all .3s;background:var(--warm);position:relative;overflow:hidden}
-.cat-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(184,147,90,.05),transparent);pointer-events:none}
+.cat-card{border:1.5px solid var(--gold-m);border-radius:6px;padding:20px 16px;text-align:center;cursor:pointer;transition:all .3s;background:var(--warm);position:relative}
 .cat-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 8px 28px rgba(184,147,90,.12)}
 .cat-card.selected{border-color:var(--gold);background:linear-gradient(135deg,#FDF8F2,#FAF3E8);box-shadow:0 8px 28px rgba(184,147,90,.15)}
 .cat-card.selected::after{content:'✓';position:absolute;top:8px;right:10px;font-size:11px;color:var(--gold);font-weight:500}
-.cat-emoji{font-size:32px;margin-bottom:10px;display:block;line-height:1}
-.cat-name{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:400;color:var(--dark);margin-bottom:4px}
+.cat-emoji{font-size:32px;margin-bottom:10px;display:block}
+.cat-name{font-family:'Cormorant Garamond',serif;font-size:17px;margin-bottom:4px}
 .cat-desc{font-size:11px;color:var(--stone);line-height:1.5}
 .upload-section{display:none}.upload-section.visible{display:block}
-.back-btn{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--stone);background:none;border:none;cursor:pointer;margin-bottom:20px;padding:0;transition:color .2s}
+.back-btn{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--stone);background:none;border:none;cursor:pointer;margin-bottom:20px;transition:color .2s}
 .back-btn:hover{color:var(--gold)}
 .selected-cat-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;background:linear-gradient(135deg,#FDF8F2,#FAF3E8);border:1px solid var(--gold-m);border-radius:20px;font-size:12px;color:var(--charcoal);margin-bottom:20px}
-.selected-cat-badge .badge-emoji{font-size:16px}
 .zone{border:1.5px dashed var(--gold-m);border-radius:4px;padding:40px 24px;text-align:center;cursor:pointer;transition:all .3s;background:var(--warm)}
 .zone:hover,.zone.drag{border-color:var(--gold);background:#FEFCF8;transform:translateY(-2px);box-shadow:0 12px 40px rgba(184,147,90,.1)}
 .uico{width:48px;height:48px;margin:0 auto 16px;background:linear-gradient(135deg,var(--gold-m),#E8D5CC);border-radius:50%;display:flex;align-items:center;justify-content:center}
@@ -68,36 +68,128 @@ h1 em{font-style:italic;color:var(--gold)}
 .sbtn:hover:not(:disabled){background:var(--gold)}.sbtn:disabled{opacity:.6;cursor:not-allowed}
 .toast{margin-top:16px;padding:14px 18px;border-radius:2px;font-size:13px;line-height:1.5;border-left:3px solid var(--gold);background:linear-gradient(135deg,#F0EBE3,#EDE5D8);color:var(--charcoal)}
 .toast.err{border-left-color:#C0392B;background:#FDF0F0;color:#7B1D1D}
-.cat-widgets{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px}
-.cat-widget{border:1px solid var(--gold-m);border-radius:6px;overflow:hidden;cursor:pointer;transition:all .3s;background:var(--warm)}
-.cat-widget:hover{border-color:var(--gold);box-shadow:0 8px 28px rgba(184,147,90,.12);transform:translateY(-2px)}
-.cw-header{padding:16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--gold-m)}
-.cw-emoji{font-size:24px;line-height:1}
-.cw-info{flex:1}
-.cw-name{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:400;color:var(--dark)}
+
+/* GALLERY */
+.g-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+.g-count{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--stone)}
+.g-count span{color:var(--gold);font-weight:500}
+.live{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--stone)}
+.dot{width:6px;height:6px;background:#7DBF7A;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.8)}}
+
+/* WIDGETS */
+.cat-widgets{display:flex;flex-direction:column;gap:16px}
+.cat-widget{border:1px solid var(--gold-m);border-radius:8px;overflow:hidden;background:var(--warm);transition:box-shadow .3s,transform .3s;cursor:pointer}
+.cat-widget:hover{box-shadow:0 10px 36px rgba(184,147,90,.14);transform:translateY(-2px)}
+.cw-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--gold-m);background:linear-gradient(135deg,var(--warm),#FDF8F3)}
+.cw-left{display:flex;align-items:center;gap:12px}
+.cw-emoji{font-size:26px;line-height:1}
+.cw-name{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;color:var(--dark)}
 .cw-count{font-size:10px;color:var(--stone);letter-spacing:.1em;margin-top:2px}
-.cw-preview{display:grid;grid-template-columns:1fr 1fr;gap:2px;height:100px;overflow:hidden}
-.cw-preview img{width:100%;height:100%;object-fit:cover}
-.cw-preview .cw-empty{grid-column:1/-1;display:flex;align-items:center;justify-content:center;background:var(--cream);font-size:11px;color:var(--stone);letter-spacing:.1em}
+.cw-arrow{font-size:14px;color:var(--gold-m);transition:all .3s}
+.cat-widget:hover .cw-arrow{color:var(--gold);transform:translateX(3px)}
+.cw-slider{position:relative;height:140px;overflow:hidden;background:var(--cream)}
+.cw-track{display:flex;gap:3px;height:100%;will-change:transform}
+.cw-thumb{flex-shrink:0;width:140px;height:140px;overflow:hidden;position:relative}
+.cw-thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s ease}
+.cw-thumb:hover img{transform:scale(1.05)}
+.cw-slider::before,.cw-slider::after{content:'';position:absolute;top:0;bottom:0;width:40px;z-index:2;pointer-events:none}
+.cw-slider::before{left:0;background:linear-gradient(90deg,var(--warm),transparent)}
+.cw-slider::after{right:0;background:linear-gradient(270deg,var(--warm),transparent)}
+.cw-empty{height:140px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--stone);font-size:12px;background:var(--cream);letter-spacing:.05em}
+.cw-empty .ei{font-size:28px;opacity:.3}
+.cw-footer{padding:10px 18px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--gold-m);background:linear-gradient(135deg,var(--warm),#FDF8F3)}
+.cw-names{font-size:11px;color:var(--stone);letter-spacing:.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.cw-see-all{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);white-space:nowrap;margin-left:12px}
+
+/* DETAIL VIEW */
+.g-back{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--stone);background:none;border:none;cursor:pointer;margin-bottom:20px;transition:color .2s}
+.g-back:hover{color:var(--gold)}
 .g-grid{columns:2;gap:10px}
 @media(min-width:480px){.g-grid{columns:3}}
-.gitem{break-inside:avoid;margin-bottom:10px;border-radius:3px;overflow:hidden;cursor:pointer;position:relative;transition:transform .3s,box-shadow .3s}
+
+/* ══════════════════════════════════
+   PHOTO ITEM AVEC SUPPRESSION
+══════════════════════════════════ */
+.gitem{
+  break-inside:avoid;margin-bottom:10px;border-radius:3px;
+  overflow:hidden;cursor:pointer;position:relative;
+  transition:transform .3s,box-shadow .3s;
+}
 .gitem:hover{transform:translateY(-3px);box-shadow:0 14px 36px rgba(28,23,18,.14)}
 .gitem img{width:100%;display:block}
-.gmeta{position:absolute;bottom:0;left:0;right:0;padding:20px 10px 9px;background:linear-gradient(transparent,rgba(28,23,18,.6));opacity:0;transition:opacity .3s;font-size:11px;color:rgba(253,250,246,.9)}
-.gitem:hover .gmeta{opacity:1}
-.gmeta-cat{font-size:9px;letter-spacing:.1em;text-transform:uppercase;opacity:.8;margin-bottom:2px}
-.gempty{text-align:center;padding:52px 20px;color:var(--stone);font-size:13px;line-height:1.8;grid-column:1/-1}
-.gempty .ei{font-size:32px;margin-bottom:12px;opacity:.4}
-.g-back{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--stone);background:none;border:none;cursor:pointer;margin-bottom:20px;padding:0;transition:color .2s}
-.g-back:hover{color:var(--gold)}
 
-/* ── QR CODE ── */
+/* Overlay infos */
+.gmeta{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:28px 10px 9px;
+  background:linear-gradient(transparent,rgba(28,23,18,.65));
+  opacity:0;transition:opacity .3s;
+  font-size:11px;color:rgba(253,250,246,.9);
+}
+.gitem:hover .gmeta{opacity:1}
+
+/* Bouton supprimer */
+.del-btn{
+  position:absolute;top:7px;right:7px;
+  width:28px;height:28px;
+  background:rgba(192,57,43,.88);
+  border:none;border-radius:50%;
+  color:#fff;font-size:13px;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;
+  transition:opacity .25s,transform .2s;
+  z-index:5;
+  backdrop-filter:blur(4px);
+}
+.gitem:hover .del-btn{opacity:1}
+.del-btn:hover{transform:scale(1.15);background:rgba(169,50,38,1)}
+
+/* Compte à rebours */
+.del-timer{
+  position:absolute;top:7px;left:7px;
+  background:rgba(28,23,18,.75);
+  color:var(--warm);
+  font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+  padding:3px 7px;border-radius:10px;
+  font-family:'Jost',sans-serif;
+  display:flex;align-items:center;gap:4px;
+  z-index:5;
+  backdrop-filter:blur(4px);
+  opacity:0;transition:opacity .25s;
+}
+.gitem:hover .del-timer{opacity:1}
+.del-timer.urgent{background:rgba(192,57,43,.85)}
+
+/* Barre de progression du timer */
+.del-progress{
+  position:absolute;bottom:0;left:0;right:0;height:2px;
+  background:rgba(255,255,255,.15);
+  z-index:5;overflow:hidden;
+}
+.del-progress-fill{
+  height:100%;
+  background:linear-gradient(90deg,#7DBF7A,var(--gold));
+  transition:width 1s linear;
+}
+
+/* Animation suppression */
+.gitem.deleting{
+  animation:fadeOut .4s ease forwards;
+}
+@keyframes fadeOut{
+  0%{opacity:1;transform:scale(1)}
+  100%{opacity:0;transform:scale(.85)}
+}
+
+.gempty{text-align:center;padding:52px 20px;color:var(--stone);font-size:13px;line-height:1.8}
+.gempty .ei{font-size:32px;margin-bottom:12px;opacity:.4}
+
+/* QR */
 .qr-wrap{text-align:center;padding:32px 20px}
 .qr-box{display:inline-block;padding:24px;background:var(--warm);border:1px solid var(--gold-m);border-radius:4px;box-shadow:0 8px 32px rgba(184,147,90,.08)}
-.qr-canvas-wrap{width:220px;height:220px;background:#fff;border-radius:2px;display:flex;align-items:center;justify-content:center;margin:0 auto}
-.qr-canvas-wrap canvas{display:block}
-.qr-loading{font-size:12px;color:var(--stone);letter-spacing:.1em}
+.qr-box img{display:block;width:220px;height:220px;border-radius:2px}
 .qr-lbl{margin-top:16px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--stone)}
 .qr-url{margin-top:6px;font-size:11px;color:var(--gold)}
 .qr-dl{display:inline-block;margin-top:20px;padding:11px 28px;background:var(--gold);color:var(--warm);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.22em;text-transform:uppercase;border:none;border-radius:2px;cursor:pointer;transition:all .25s}
@@ -107,6 +199,7 @@ h1 em{font-style:italic;color:var(--gold)}
 .step{display:flex;gap:10px;margin-bottom:10px;font-size:13px;color:var(--charcoal);line-height:1.5}
 .sn{width:22px;height:22px;min-width:22px;background:var(--gold);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;margin-top:1px}
 
+/* LIGHTBOX */
 .lb{position:fixed;inset:0;background:rgba(28,23,18,.93);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
 .lb.open{display:flex}
 .lb img{max-width:100%;max-height:90vh;border-radius:3px;object-fit:contain}
@@ -115,12 +208,19 @@ footer{text-align:center;padding:24px;font-size:10px;letter-spacing:.18em;color:
 footer a{color:var(--gold);text-decoration:none}
 .spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;margin-right:7px;vertical-align:middle}
 @keyframes sp{to{transform:rotate(360deg)}}
-.dot{width:6px;height:6px;background:#7DBF7A;border-radius:50%;animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.8)}}
-.live{display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--stone)}
-.g-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
-.g-count{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--stone)}
-.g-count span{color:var(--gold);font-weight:500}
+
+/* CONFIRM MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(28,23,18,.6);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal{background:var(--warm);border-radius:8px;padding:28px 24px;max-width:320px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(28,23,18,.2)}
+.modal-icon{font-size:36px;margin-bottom:14px}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:20px;margin-bottom:8px}
+.modal-text{font-size:13px;color:var(--stone);line-height:1.6;margin-bottom:24px}
+.modal-btns{display:flex;gap:10px}
+.modal-cancel{flex:1;padding:12px;background:none;border:1px solid var(--gold-m);border-radius:2px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;color:var(--stone);transition:all .2s}
+.modal-cancel:hover{border-color:var(--stone);color:var(--dark)}
+.modal-confirm{flex:1;padding:12px;background:#C0392B;border:none;border-radius:2px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;color:#fff;transition:all .2s}
+.modal-confirm:hover{background:#A93226}
 </style>
 </head>
 <body>
@@ -172,8 +272,7 @@ footer a{color:var(--gold);text-decoration:none}
     <div id="step-upload" class="upload-section">
       <button class="back-btn" onclick="goBack()">← Changer de catégorie</button>
       <div class="selected-cat-badge">
-        <span class="badge-emoji" id="badge-emoji"></span>
-        <span id="badge-name"></span>
+        <span id="badge-emoji"></span><span id="badge-name"></span>
       </div>
       <div class="zone" id="dropzone"
         ondragover="event.preventDefault();this.classList.add('drag')"
@@ -225,12 +324,11 @@ footer a{color:var(--gold);text-decoration:none}
   <div id="panel-qr" class="panel">
     <div class="qr-wrap">
       <div class="qr-box">
-        <div class="qr-canvas-wrap" id="qrCanvasWrap">
-          <span class="qr-loading">Génération…</span>
-        </div>
+        <img src="https://chart.googleapis.com/chart?cht=qr&chs=220x220&chl=https%3A%2F%2Fmemorie-one.vercel.app&choe=UTF-8&chld=Q%7C4"
+          alt="QR Code" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https%3A%2F%2Fmemorie-one.vercel.app&margin=20&ecc=Q'"/>
         <p class="qr-lbl">Scanner pour partager vos photos</p>
-        <p class="qr-url">memorie-one.vercel.app</p>
-        <button class="qr-dl" id="qrDlBtn" onclick="downloadQR()">⬇ Télécharger le QR code</button>
+        <p class="qr-url">https://memorie-one.vercel.app</p>
+        <button class="qr-dl" onclick="downloadQR()">⬇ Télécharger le QR code</button>
       </div>
       <div class="qr-steps">
         <h3>Comment utiliser le QR code ?</h3>
@@ -244,75 +342,71 @@ footer a{color:var(--gold);text-decoration:none}
 
 </div>
 
+<!-- LIGHTBOX -->
 <div class="lb" id="lb" onclick="closeLB()">
   <button class="lb-x" onclick="closeLB()">✕</button>
   <img id="lbImg" src="" alt="">
 </div>
 
+<!-- MODAL CONFIRMATION SUPPRESSION -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <div class="modal-icon">🗑️</div>
+    <div class="modal-title">Supprimer cette photo ?</div>
+    <div class="modal-text">Cette action est irréversible. La photo sera définitivement supprimée de la galerie.</div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModal()">Annuler</button>
+      <button class="modal-confirm" onclick="confirmDelete()">Supprimer</button>
+    </div>
+  </div>
+</div>
+
 <footer><p>Propulsé par <a href="#">Mementos</a> &nbsp;·&nbsp; vos souvenirs, centralisés</p></footer>
 
-<!-- QRCode.js — génération 100% locale, aucune API externe -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
 <script>
+// ══════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════
 const SB_URL   = 'https://hmytqbgnjpugqeslnuvk.supabase.co';
 const SB_KEY   = 'sb_publishable_59uI3S3lCP0xyVtvrR6ZZA_vXsiF27o';
 const EVENT_ID = 'mariage-melodie-thomas-2025';
 const BUCKET   = 'photos';
-const SITE_URL = 'https://memorie-one.vercel.app';
+const DELETE_WINDOW_MS = 60 * 1000; // 1 minute
 
 const CATEGORIES = [
-  { id: 'ceremonie', emoji: '💍', name: 'Cérémonie',      desc: "L'échange des vœux" },
-  { id: 'cocktail',  emoji: '🥂', name: 'Cocktail',       desc: 'Les bulles et retrouvailles' },
-  { id: 'diner',     emoji: '🍽️', name: 'Dîner / Soirée', desc: 'Le repas et les discours' },
-  { id: 'danse',     emoji: '💃', name: 'Piste de danse',  desc: "La fête jusqu'au bout" },
+  { id:'ceremonie', emoji:'💍', name:'Cérémonie' },
+  { id:'cocktail',  emoji:'🥂', name:'Cocktail' },
+  { id:'diner',     emoji:'🍽️', name:'Dîner / Soirée' },
+  { id:'danse',     emoji:'💃', name:'Piste de danse' },
 ];
 
-let selectedFiles = [], selectedCategory = null, allPhotos = [], qrInstance = null;
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+let selectedFiles    = [];
+let selectedCategory = null;
+let allPhotos        = [];
+let sliderIntervals  = {};
+let sliderPositions  = {};
+let timerIntervals   = {};   // compte à rebours par photo
+let pendingDeleteId  = null; // ID photo en attente de confirmation
+let pendingDeleteEl  = null;
 
-// ── QR CODE (généré localement via QRCode.js) ──
-function initQR() {
-  const wrap = document.getElementById('qrCanvasWrap');
-  wrap.innerHTML = '';
-  try {
-    qrInstance = new QRCode(wrap, {
-      text:          SITE_URL,
-      width:         220,
-      height:        220,
-      colorDark:     '#1C1712',
-      colorLight:    '#ffffff',
-      correctLevel:  QRCode.CorrectLevel.Q
-    });
-  } catch(e) {
-    wrap.innerHTML = '<span class="qr-loading" style="color:#C0392B">Erreur génération QR</span>';
-  }
-}
-
-function downloadQR() {
-  const canvas = document.querySelector('#qrCanvasWrap canvas');
-  if (!canvas) return;
-  const link = document.createElement('a');
-  link.download = 'qrcode-melodie-thomas.png';
-  link.href = canvas.toDataURL('image/png');
-  link.click();
-}
-
-// Générer le QR dès que la lib est chargée
-window.addEventListener('load', () => { if (typeof QRCode !== 'undefined') initQR(); });
-// Régénérer à l'ouverture de l'onglet si pas encore fait
-function ensureQR() { if (!qrInstance) initQR(); }
-
-// ── TABS ──
+// ══════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════
 function switchTab(id, btn) {
   document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
   btn.classList.add('on');
   document.getElementById('panel-' + id).classList.add('on');
   if (id === 'gallery') loadGallery();
-  if (id === 'qr') ensureQR();
+  else stopAllSliders();
 }
 
-// ── CATÉGORIE ──
+// ══════════════════════════════════════════
+//  CATÉGORIE
+// ══════════════════════════════════════════
 function selectCategory(id, emoji, name) {
   selectedCategory = { id, emoji, name };
   document.querySelectorAll('.cat-card').forEach(c => c.classList.remove('selected'));
@@ -334,7 +428,9 @@ function goBack() {
   document.getElementById('toast').style.display = 'none';
 }
 
-// ── FICHIERS ──
+// ══════════════════════════════════════════
+//  FICHIERS
+// ══════════════════════════════════════════
 function onFileSelect(e) { addFiles(Array.from(e.target.files)); }
 function onDrop(e) {
   e.preventDefault();
@@ -346,118 +442,323 @@ function addFiles(files) {
   renderPreviews();
   document.getElementById('toast').style.display = 'none';
 }
-function removeFile(i) { selectedFiles.splice(i, 1); renderPreviews(); }
+function removeFile(i) { selectedFiles.splice(i,1); renderPreviews(); }
 function renderPreviews() {
-  document.getElementById('previews').innerHTML = selectedFiles.map((f, i) =>
-    `<div class="prev"><img src="${URL.createObjectURL(f)}">
-     <button class="rm" onclick="removeFile(${i})">✕</button></div>`
-  ).join('');
+  document.getElementById('previews').innerHTML = selectedFiles.map((f,i) => `
+    <div class="prev"><img src="${URL.createObjectURL(f)}">
+    <button class="rm" onclick="removeFile(${i})">✕</button></div>`).join('');
   document.getElementById('sbtn').style.display = selectedFiles.length ? 'block' : 'none';
 }
 
-// ── UPLOAD ──
+// ══════════════════════════════════════════
+//  UPLOAD
+// ══════════════════════════════════════════
 async function doUpload() {
   if (!selectedFiles.length || !selectedCategory) return;
   const btn = document.getElementById('sbtn');
   const uploaderName = document.getElementById('uname').value.trim() || 'Invité';
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span>Envoi en cours…';
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Envoi en cours…';
   document.getElementById('prog').style.display  = 'block';
   document.getElementById('toast').style.display = 'none';
-  let done = 0; const total = selectedFiles.length; const errors = [];
+
+  let done=0; const total=selectedFiles.length; const errors=[];
+
   for (const file of selectedFiles) {
     try {
       setProgress(done, total, `Photo ${done+1} / ${total}`);
-      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+      const ext      = (file.name.split('.').pop()||'jpg').toLowerCase();
       const filename = `${EVENT_ID}/${selectedCategory.id}/${Date.now()}-${Math.random().toString(36).substr(2,6)}.${ext}`;
-      const up = await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${filename}`, {
-        method:'POST', headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':file.type||'image/jpeg','x-upsert':'true'}, body:file
+
+      const uploadRes = await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${filename}`, {
+        method:'POST',
+        headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':file.type||'image/jpeg','x-upsert':'true' },
+        body:file
       });
-      if (!up.ok) throw new Error(`Storage ${up.status}: ${await up.text()}`);
+      if (!uploadRes.ok) throw new Error(`Storage ${uploadRes.status}: ${await uploadRes.text()}`);
+
       const publicUrl = `${SB_URL}/storage/v1/object/public/${BUCKET}/${filename}`;
       await fetch(`${SB_URL}/rest/v1/photos`, {
-        method:'POST', headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal'},
-        body:JSON.stringify({event_id:EVENT_ID,uploader_name:uploaderName,category:selectedCategory.id,storage_path:filename,public_url:publicUrl,uploaded_at:new Date().toISOString()})
+        method:'POST',
+        headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal' },
+        body:JSON.stringify({ event_id:EVENT_ID, uploader_name:uploaderName, category:selectedCategory.id, storage_path:filename, public_url:publicUrl, uploaded_at:new Date().toISOString() })
       });
       done++; setProgress(done, total);
     } catch(err) { errors.push(file.name+': '+err.message); }
   }
-  btn.disabled = false; btn.innerHTML = 'Partager mes photos';
-  document.getElementById('prog').style.display = 'none';
-  if (done > 0) {
-    selectedFiles = []; renderPreviews(); setProgress(0,1);
+
+  btn.disabled=false; btn.innerHTML='Partager mes photos';
+  document.getElementById('prog').style.display='none';
+
+  if (done>0) {
+    selectedFiles=[]; renderPreviews(); setProgress(0,1);
     showToast(`✦  ${done} photo${done>1?'s':''} partagée${done>1?'s':''} dans ${selectedCategory.emoji} ${selectedCategory.name} — merci !`, false);
   }
   if (errors.length) showToast('⚠️ '+errors.join(' | '), true);
 }
 
 function setProgress(done, total, label) {
-  const pct = total > 0 ? Math.round((done/total)*100) : 0;
+  const pct = total>0 ? Math.round((done/total)*100) : 0;
   document.getElementById('prog-fill').style.width = pct+'%';
   document.getElementById('prog-pct').textContent  = pct+'%';
   if (label) document.getElementById('prog-lbl').textContent = label;
 }
 function showToast(msg, isErr) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.className = 'toast'+(isErr?' err':''); t.style.display='block';
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast'+(isErr?' err':''); t.style.display='block';
 }
 
-// ── GALERIE ──
+// ══════════════════════════════════════════
+//  GALERIE
+// ══════════════════════════════════════════
 async function loadGallery() {
-  document.getElementById('catWidgets').innerHTML = CATEGORIES.map(c =>
-    `<div class="cat-widget" onclick="openCategory('${c.id}')">
-      <div class="cw-header"><span class="cw-emoji">${c.emoji}</span>
-        <div class="cw-info"><div class="cw-name">${c.name}</div>
-        <div class="cw-count" id="count-${c.id}">Chargement…</div></div></div>
-      <div class="cw-preview" id="preview-${c.id}"><div class="cw-empty">Aucune photo</div></div>
+  stopAllSliders();
+  document.getElementById('catWidgets').innerHTML = CATEGORIES.map(c => `
+    <div class="cat-widget" id="widget-${c.id}" onclick="openCategory('${c.id}')">
+      <div class="cw-head">
+        <div class="cw-left">
+          <span class="cw-emoji">${c.emoji}</span>
+          <div><div class="cw-name">${c.name}</div><div class="cw-count" id="cnt-${c.id}">Chargement…</div></div>
+        </div>
+        <span class="cw-arrow">→</span>
+      </div>
+      <div class="cw-slider" id="slider-${c.id}"><div class="cw-track" id="track-${c.id}"></div></div>
+      <div class="cw-footer">
+        <span class="cw-names" id="names-${c.id}"></span>
+        <span class="cw-see-all">Voir tout →</span>
+      </div>
     </div>`).join('');
+
   try {
-    const res = await fetch(`${SB_URL}/rest/v1/photos?event_id=eq.${EVENT_ID}&order=uploaded_at.desc&select=*`,
-      {headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});
+    const res = await fetch(
+      `${SB_URL}/rest/v1/photos?event_id=eq.${EVENT_ID}&order=uploaded_at.desc&select=*`,
+      { headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}` } }
+    );
     if (!res.ok) throw new Error(await res.text());
     allPhotos = await res.json();
     document.getElementById('totalCount').textContent = allPhotos.length;
+
     CATEGORIES.forEach(cat => {
       const photos = allPhotos.filter(p => p.category === cat.id);
-      document.getElementById('count-'+cat.id).textContent = photos.length ? `${photos.length} photo${photos.length>1?'s':''}` : 'Aucune photo encore';
-      if (photos.length) {
-        document.getElementById('preview-'+cat.id).innerHTML = photos.slice(0,4).map(p =>
-          `<img src="${p.public_url}" alt="" loading="lazy" onerror="this.parentElement.style.background='var(--cream)';this.style.display='none'">`
-        ).join('');
+      document.getElementById('cnt-'+cat.id).textContent =
+        photos.length ? `${photos.length} photo${photos.length>1?'s':''}` : 'Aucune photo encore';
+
+      if (!photos.length) {
+        document.getElementById('track-'+cat.id).parentElement.innerHTML =
+          `<div class="cw-empty"><div class="ei">${cat.emoji}</div><span>Soyez le premier à partager !</span></div>`;
+        return;
       }
+
+      const loop = photos.length===1?[...photos,...photos,...photos]:photos.length===2?[...photos,...photos]:photos;
+      document.getElementById('track-'+cat.id).innerHTML = loop.map(p => `
+        <div class="cw-thumb"><img src="${p.public_url}" alt="" loading="lazy"
+          onerror="this.parentElement.style.background='var(--cream)';this.style.display='none'"></div>`).join('');
+
+      const names = [...new Set(photos.map(p=>p.uploader_name||'Invité'))].slice(0,4);
+      document.getElementById('names-'+cat.id).textContent =
+        `par ${names.join(', ')}${photos.length>4?'…':''}`;
+
+      sliderPositions[cat.id] = 0;
+      startSlider(cat.id, loop.length);
     });
   } catch(err) {
-    document.getElementById('catWidgets').innerHTML = `<div class="gempty"><div class="ei">⚠️</div><p>${err.message}</p></div>`;
+    document.getElementById('catWidgets').innerHTML =
+      `<div class="gempty"><div class="ei">⚠️</div><p>${err.message}</p></div>`;
   }
 }
 
+function startSlider(catId, total) {
+  if (sliderIntervals[catId]) clearInterval(sliderIntervals[catId]);
+  const THUMB_W=143, DURATION=2800;
+  sliderIntervals[catId] = setInterval(() => {
+    const track = document.getElementById('track-'+catId);
+    if (!track) { clearInterval(sliderIntervals[catId]); return; }
+    sliderPositions[catId] = (sliderPositions[catId]+1) % total;
+    const offset = sliderPositions[catId] * THUMB_W;
+    track.style.transition = 'transform 0.7s cubic-bezier(0.25,0.46,0.45,0.94)';
+    track.style.transform  = `translateX(-${offset}px)`;
+    if (sliderPositions[catId] === total-1) {
+      setTimeout(() => {
+        if (!track) return;
+        track.style.transition='none'; track.style.transform='translateX(0)';
+        sliderPositions[catId]=0;
+      }, 750);
+    }
+  }, DURATION);
+}
+
+function stopAllSliders() {
+  Object.keys(sliderIntervals).forEach(id => { clearInterval(sliderIntervals[id]); delete sliderIntervals[id]; });
+}
+
+// ══════════════════════════════════════════
+//  DÉTAIL CATÉGORIE
+// ══════════════════════════════════════════
 function openCategory(catId) {
-  const cat = CATEGORIES.find(c => c.id === catId);
-  const photos = allPhotos.filter(p => p.category === catId);
+  stopAllSliders();
+  const cat    = CATEGORIES.find(c=>c.id===catId);
+  const photos = allPhotos.filter(p=>p.category===catId);
+
   document.getElementById('gallery-widgets').style.display = 'none';
   document.getElementById('gallery-detail').style.display  = 'block';
-  document.getElementById('detail-title').innerHTML = `<span>${cat.emoji} ${cat.name}</span> &nbsp;—&nbsp; <span style="color:var(--gold)">${photos.length} photo${photos.length!==1?'s':''}</span>`;
+  document.getElementById('detail-title').innerHTML =
+    `${cat.emoji} ${cat.name} &nbsp;—&nbsp; <span style="color:var(--gold)">${photos.length} photo${photos.length!==1?'s':''}</span>`;
+
   const grid = document.getElementById('gGrid');
   if (!photos.length) {
-    grid.innerHTML = `<div class="gempty"><div class="ei">${cat.emoji}</div><p>Aucune photo dans cette catégorie encore<br>Soyez le premier à partager !</p></div>`;
+    grid.innerHTML = `<div class="gempty"><div class="ei">${cat.emoji}</div><p>Aucune photo dans cette catégorie<br>Soyez le premier à partager !</p></div>`;
     return;
   }
-  grid.innerHTML = photos.map(p =>
-    `<div class="gitem" onclick="openLB('${p.public_url}')">
-      <img src="${p.public_url}" alt="Photo de ${p.uploader_name||'Invité'}" loading="lazy" onerror="this.parentElement.style.display='none'">
-      <div class="gmeta"><div class="gmeta-cat">${cat.emoji} ${cat.name}</div>par ${p.uploader_name||'Invité'}</div>
-    </div>`).join('');
+
+  grid.innerHTML = photos.map(p => buildPhotoItem(p)).join('');
+
+  // Lancer les comptes à rebours pour les photos récentes
+  photos.forEach(p => {
+    const age = Date.now() - new Date(p.uploaded_at).getTime();
+    const remaining = DELETE_WINDOW_MS - age;
+    if (remaining > 0) startDeleteTimer(p.id, remaining);
+  });
+}
+
+// ── Construire une photo item ─────────────────────────
+function buildPhotoItem(p) {
+  const age       = Date.now() - new Date(p.uploaded_at).getTime();
+  const remaining = DELETE_WINDOW_MS - age;
+  const canDelete = remaining > 0;
+
+  return `
+    <div class="gitem" id="photo-${p.id}" onclick="openLB('${p.public_url}')">
+      <img src="${p.public_url}" alt="Photo de ${p.uploader_name||'Invité'}" loading="lazy"
+           onerror="this.parentElement.style.display='none'">
+      <div class="gmeta">par ${p.uploader_name||'Invité'}</div>
+      ${canDelete ? `
+        <button class="del-btn" onclick="event.stopPropagation();askDelete('${p.id}','${p.storage_path}',this.closest('.gitem'))">🗑</button>
+        <div class="del-timer" id="timer-${p.id}">
+          <span id="timer-txt-${p.id}"></span>
+        </div>
+        <div class="del-progress">
+          <div class="del-progress-fill" id="timer-bar-${p.id}" style="width:${Math.round((remaining/DELETE_WINDOW_MS)*100)}%"></div>
+        </div>
+      ` : ''}
+    </div>`;
+}
+
+// ── Compte à rebours ──────────────────────────────────
+function startDeleteTimer(photoId, remainingMs) {
+  if (timerIntervals[photoId]) clearInterval(timerIntervals[photoId]);
+
+  const startTime = Date.now();
+  const endTime   = startTime + remainingMs;
+
+  function tick() {
+    const left = endTime - Date.now();
+    if (left <= 0) {
+      clearInterval(timerIntervals[photoId]);
+      // Masquer le bouton supprimer et le timer
+      const btn   = document.querySelector(`#photo-${photoId} .del-btn`);
+      const timer = document.getElementById('timer-'+photoId);
+      const bar   = document.getElementById('timer-bar-'+photoId);
+      if (btn)   btn.style.display   = 'none';
+      if (timer) timer.style.display = 'none';
+      if (bar)   bar.parentElement.style.display = 'none';
+      return;
+    }
+
+    const secs = Math.ceil(left / 1000);
+    const pct  = Math.round((left / DELETE_WINDOW_MS) * 100);
+
+    const txtEl = document.getElementById('timer-txt-'+photoId);
+    const barEl = document.getElementById('timer-bar-'+photoId);
+    const timerEl = document.getElementById('timer-'+photoId);
+
+    if (txtEl)   txtEl.textContent  = `${secs}s`;
+    if (barEl)   barEl.style.width  = pct + '%';
+    if (timerEl) timerEl.classList.toggle('urgent', secs <= 15);
+  }
+
+  tick();
+  timerIntervals[photoId] = setInterval(tick, 1000);
+}
+
+// ══════════════════════════════════════════
+//  SUPPRESSION
+// ══════════════════════════════════════════
+function askDelete(photoId, storagePath, el) {
+  pendingDeleteId   = { id: photoId, path: storagePath };
+  pendingDeleteEl   = el;
+  document.getElementById('modalBg').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modalBg').classList.remove('open');
+  pendingDeleteId = null;
+  pendingDeleteEl = null;
+}
+
+async function confirmDelete() {
+  if (!pendingDeleteId) return;
+  closeModal();
+
+  const { id, path } = pendingDeleteId;
+  const el = pendingDeleteEl;
+
+  // Animation de suppression
+  if (el) el.classList.add('deleting');
+
+  try {
+    // 1. Supprimer du Storage
+    await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${path}`, {
+      method:'DELETE',
+      headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}` }
+    });
+
+    // 2. Supprimer de la DB
+    await fetch(`${SB_URL}/rest/v1/photos?id=eq.${id}`, {
+      method:'DELETE',
+      headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}` }
+    });
+
+    // 3. Retirer du DOM + de allPhotos
+    if (el) setTimeout(() => el.remove(), 400);
+    allPhotos = allPhotos.filter(p => p.id !== id);
+
+    // 4. Mettre à jour le compteur
+    const catId  = allPhotos.length > 0 ? null : null;
+    const total  = document.getElementById('totalCount');
+    if (total) total.textContent = parseInt(total.textContent) - 1;
+
+    // Arrêter le timer
+    if (timerIntervals[id]) { clearInterval(timerIntervals[id]); delete timerIntervals[id]; }
+
+  } catch(err) {
+    if (el) el.classList.remove('deleting');
+    alert('Erreur lors de la suppression : ' + err.message);
+  }
 }
 
 function showWidgets() {
   document.getElementById('gallery-detail').style.display  = 'none';
   document.getElementById('gallery-widgets').style.display = 'block';
+  CATEGORIES.forEach(cat => {
+    const photos = allPhotos.filter(p=>p.category===cat.id);
+    if (photos.length>0) {
+      const loop = photos.length===1?[...photos,...photos,...photos]:photos.length===2?[...photos,...photos]:photos;
+      startSlider(cat.id, loop.length);
+    }
+  });
 }
 
-// ── LIGHTBOX ──
-function openLB(src) { document.getElementById('lbImg').src=src; document.getElementById('lb').classList.add('open'); }
-function closeLB()   { document.getElementById('lb').classList.remove('open'); }
-document.addEventListener('keydown', e => { if(e.key==='Escape') closeLB(); });
+// ══════════════════════════════════════════
+//  QR + LIGHTBOX
+// ══════════════════════════════════════════
+function downloadQR() {
+  window.open('https://chart.googleapis.com/chart?cht=qr&chs=600x600&chl=https%3A%2F%2Fmemorie-one.vercel.app&choe=UTF-8&chld=Q%7C4','_blank');
+}
+function openLB(src) {
+  document.getElementById('lbImg').src=src;
+  document.getElementById('lb').classList.add('open');
+}
+function closeLB() { document.getElementById('lb').classList.remove('open'); }
+document.addEventListener('keydown', e => { if(e.key==='Escape'){ closeLB(); closeModal(); } });
 </script>
 </body>
 </html>
