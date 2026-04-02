@@ -60,11 +60,11 @@ h1 em{font-style:italic;color:var(--gold)}
 .upload-tab:not(.on):hover{background:var(--cream);color:var(--gold)}
 
 /* CAMÉRA */
-.camera-wrap{position:relative;width:100%;border-radius:8px;overflow:hidden;background:#000;aspect-ratio:4/3}
+.camera-wrap{position:relative;width:100%;border-radius:8px;overflow:hidden;background:#000;aspect-ratio:9/16;max-height:72vh}
 #cameraVideo{width:100%;height:100%;object-fit:cover;display:block}
 .camera-overlay{position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center}
-.camera-frame{width:70%;aspect-ratio:1;border:2px solid rgba(255,255,255,.4);border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,.25)}
-.camera-controls{position:absolute;bottom:0;left:0;right:0;padding:16px 24px 20px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(transparent,rgba(0,0,0,.5))}
+.camera-frame{width:80%;aspect-ratio:3/4;border:2px solid rgba(255,255,255,.35);border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,.2)}
+.camera-controls{position:absolute;bottom:0;left:0;right:0;padding:20px 28px 28px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(transparent,rgba(0,0,0,.6))}
 .cam-shoot-btn{width:64px;height:64px;background:rgba(255,255,255,.95);border:3px solid rgba(255,255,255,.5);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;box-shadow:0 4px 20px rgba(0,0,0,.3)}
 .cam-shoot-btn:hover{transform:scale(1.08)}
 .cam-shoot-btn:active{transform:scale(.93)}
@@ -316,12 +316,12 @@ footer a{color:var(--gold);text-decoration:none}
       </div>
       <!-- Sous-onglets Galerie / Appareil photo -->
       <div class="upload-tabs">
-        <button class="upload-tab on" id="utab-gallery" onclick="switchUploadTab('gallery')">🖼️ Galerie</button>
-        <button class="upload-tab" id="utab-camera" onclick="switchUploadTab('camera')">📷 Appareil photo</button>
+        <button class="upload-tab on" id="utab-camera" onclick="switchUploadTab('camera')">📷 Appareil photo</button>
+        <button class="upload-tab" id="utab-gallery" onclick="switchUploadTab('gallery')">🖼️ Galerie</button>
       </div>
 
-      <!-- Onglet galerie -->
-      <div id="upload-gallery-pane">
+      <!-- Onglet appareil photo (défaut) -->
+      <div id="upload-camera-pane">
         <div class="zone" id="dropzone"
           ondragover="event.preventDefault();this.classList.add('drag')"
           ondragleave="this.classList.remove('drag')"
@@ -337,8 +337,8 @@ footer a{color:var(--gold);text-decoration:none}
         </div>
       </div>
 
-      <!-- Onglet appareil photo -->
-      <div id="upload-camera-pane" style="display:none">
+      <!-- Onglet galerie -->
+      <div id="upload-gallery-pane" style="display:none">
         <div class="camera-wrap" id="cameraWrap">
           <video id="cameraVideo" autoplay playsinline muted></video>
           <div class="camera-overlay">
@@ -481,8 +481,8 @@ function switchUploadTab(tab) {
   document.querySelectorAll('.upload-tab').forEach(b => b.classList.remove('on'));
   document.getElementById('utab-' + tab).classList.add('on');
 
-  document.getElementById('upload-gallery-pane').style.display = tab === 'gallery' ? 'block' : 'none';
   document.getElementById('upload-camera-pane').style.display  = tab === 'camera'  ? 'block' : 'none';
+  document.getElementById('upload-gallery-pane').style.display = tab === 'gallery' ? 'block' : 'none';
 
   if (tab === 'camera') startCamera();
   else stopCamera();
@@ -618,6 +618,8 @@ function selectCategory(id, emoji, name) {
   setTimeout(() => {
     document.getElementById('step-category').style.display = 'none';
     document.getElementById('step-upload').classList.add('visible');
+    // Démarrer directement sur l'appareil photo
+    switchUploadTab('camera');
   }, 200);
 }
 
