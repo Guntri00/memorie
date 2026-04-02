@@ -74,8 +74,16 @@ h1 em{font-style:italic;color:var(--gold)}
 .cam-flash-on{background:rgba(255,220,50,.35) !important;border-color:rgba(255,220,50,.6) !important}
 
 /* Flash visuel au déclenchement */
-.cam-flash{position:absolute;inset:0;background:white;opacity:0;pointer-events:none;border-radius:8px;transition:opacity .08s}
-.cam-flash.active{opacity:1}
+/* Flash selfie plein écran */
+.selfie-flash{
+  position:fixed;inset:0;
+  background:#fff;
+  opacity:0;
+  pointer-events:none;
+  z-index:9999;
+  transition:opacity 0.05s ease;
+}
+.selfie-flash.active{ opacity:1; }
 
 /* Aperçu photo */
 .cam-preview-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
@@ -804,37 +812,74 @@ function takePhoto() {
   const video = document.getElementById('cameraVideo');
   if (!video.srcObject) return;
 
-  // Flash visuel uniquement si torch non dispo (mode fallback)
-  const track = cameraStream ? cameraStream.getVideoTracks()[0] : null;
+  const track    = cameraStream ? cameraStream.getVideoTracks()[0] : null;
   const hasTorch = track && track.getCapabilities && track.getCapabilities().torch;
-  if (flashEnabled && !hasTorch) {
-    // Flash écran blanc simulé
-    const flashEl = document.createElement('div');
-    flashEl.className = 'cam-flash';
-    document.getElementById('cameraWrap').appendChild(flashEl);
+  const isSelfie = facingMode === 'user';
+
+  // ── CAS 1 : Caméra FRONTALE (selfie) + flash activé
+  //    → écran blanc plein écran pour éblouir et illuminer
+  if (isSelfie && flashEnabled) {
+    // Créer le flash plein écran
+    const overlay = document.createElement('div');
+    overlay.className = 'selfie-flash';
+    document.body.appendChild(overlay);
+
+    // Illuminer l'écran
     requestAnimationFrame(() => {
-      flashEl.classList.add('active');
-      setTimeout(() => { flashEl.classList.remove('active'); setTimeout(() => flashEl.remove(), 150); }, 150);
+      overlay.classList.add('active');
+
+      // Attendre que l'écran soit bien blanc (300ms) puis capturer
+      setTimeout(() => {
+        captureFrame(video, isSelfie);
+
+        // Garder l'écran blanc encore un peu puis l'éteindre
+        setTimeout(() => {
+          overlay.classList.remove('active');
+          setTimeout(() => overlay.remove(), 200);
+        }, 200);
+
+        // Reset bouton flash
+        flashEnabled = false;
+        const btn = document.getElementById('flashBtn');
+        if (btn) { btn.classList.remove('cam-flash-on'); btn.textContent = '⚡'; }
+
+      }, 300);
     });
+
+  // ── CAS 2 : Caméra ARRIÈRE + flash activé → torch réel géré par toggleFlash
+  //    → simple feedback visuel rapide
   } else {
-    // Flash subtil même sans flash activé (feedback visuel)
     const flashEl = document.createElement('div');
-    flashEl.className = 'cam-flash';
-    document.getElementById('cameraWrap').appendChild(flashEl);
+    flashEl.className = 'selfie-flash';
+    flashEl.style.opacity = '0';
+    document.body.appendChild(flashEl);
     requestAnimationFrame(() => {
-      flashEl.classList.add('active');
-      setTimeout(() => { flashEl.classList.remove('active'); setTimeout(() => flashEl.remove(), 100); }, 60);
+      flashEl.style.opacity = '0.7';
+      setTimeout(() => {
+        captureFrame(video, isSelfie);
+        flashEl.style.opacity = '0';
+        setTimeout(() => flashEl.remove(), 150);
+
+        // Éteindre torch après capture
+        if (flashEnabled && hasTorch) {
+          try { track.applyConstraints({ advanced: [{ torch: false }] }); } catch(e) {}
+          flashEnabled = false;
+          const btn = document.getElementById('flashBtn');
+          if (btn) { btn.classList.remove('cam-flash-on'); btn.textContent = '⚡'; }
+        }
+      }, 80);
     });
   }
+}
 
-  // Capture via canvas
+function captureFrame(video, isSelfie) {
   const canvas = document.createElement('canvas');
   canvas.width  = video.videoWidth;
   canvas.height = video.videoHeight;
   const ctx = canvas.getContext('2d');
 
   // Miroir si caméra frontale
-  if (facingMode === 'user') {
+  if (isSelfie) {
     ctx.translate(canvas.width, 0);
     ctx.scale(-1, 1);
   }
@@ -846,19 +891,6 @@ function takePhoto() {
     document.getElementById('camPreviewImg').src = url;
     document.getElementById('cameraWrap').style.display    = 'none';
     document.getElementById('cameraPreview').style.display = 'block';
-
-    // Éteindre le flash/torch après la capture
-    if (flashEnabled && cameraStream) {
-      try {
-        const track = cameraStream.getVideoTracks()[0];
-        if (track && track.getCapabilities && track.getCapabilities().torch) {
-          track.applyConstraints({ advanced: [{ torch: false }] });
-        }
-      } catch(e) {}
-      flashEnabled = false;
-      const btn = document.getElementById('flashBtn');
-      if (btn) { btn.classList.remove('cam-flash-on'); btn.textContent = '⚡'; }
-    }
   }, 'image/jpeg', 0.92);
 }
 
