@@ -287,6 +287,19 @@ body{background:var(--cream);font-family:'Jost',sans-serif;font-weight:300;color
 @keyframes shimmer{0%,100%{opacity:.4}50%{opacity:.8}}
 
 footer{text-align:center;padding:24px;font-size:10px;letter-spacing:.18em;color:var(--gold-m);text-transform:uppercase}
+
+/* ══ RESPONSIVE DESKTOP ══ */
+@media (min-width: 768px) {
+  .dash-body { padding: 40px 40px 80px; }
+  .stats-grid { grid-template-columns: repeat(4, 1fr); }
+  .photo-grid { grid-template-columns: repeat(4, 1fr); }
+}
+@media (min-width: 1200px) {
+  .dash-body { max-width: 1300px; padding: 48px 60px 100px; }
+  .photo-grid { grid-template-columns: repeat(5, 1fr); }
+  .stats-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
 </style>
 </head>
 <body>
@@ -701,30 +714,50 @@ async function downloadZip(catFilter) {
   let done = 0;
   for (const p of photos) {
     try {
-      label.textContent = `Photo ${done+1} / ${photos.length} — ${p.uploader_name||'Invité'}`;
-      const res  = await fetch(p.public_url);
+      label.textContent = `Téléchargement ${done+1} / ${photos.length}…`;
+      
+      // Fetch avec timeout
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+      const res = await fetch(p.public_url, { signal: controller.signal });
+      clearTimeout(timeout);
+      
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const blob = await res.blob();
-      const a    = document.createElement('a');
-      const ext  = (p.storage_path||'photo.jpg').split('.').pop() || 'jpg';
-      const cat  = p.category || 'photo';
-      a.href     = URL.createObjectURL(blob);
-      a.download = `mementos-${cat}-${done+1}.${ext}`;
+      
+      // Télécharger
+      const url = URL.createObjectURL(blob);
+      const a   = document.createElement('a');
+      const ext = (p.storage_path || 'photo.jpg').split('.').pop() || 'jpg';
+      a.href     = url;
+      a.download = `mementos-${p.category||'photo'}-${String(done+1).padStart(3,'0')}.${ext}`;
+      a.style.display = 'none';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(a.href);
+      
+      // Libérer après délai suffisant
+      await new Promise(r => setTimeout(r, 1200));
+      URL.revokeObjectURL(url);
+      
       done++;
-      const p2 = Math.round((done/photos.length)*100);
-      bar.style.width  = p2+'%';
-      pct.textContent  = p2+'%';
-      await new Promise(r=>setTimeout(r,400));
-    } catch(e) { console.warn('Download failed:', e); }
+      const pct2 = Math.round((done / photos.length) * 100);
+      bar.style.width = pct2 + '%';
+      pct.textContent = pct2 + '%';
+      
+    } catch(e) {
+      console.warn('Download failed:', p.public_url, e.message);
+      // Continuer malgré l'erreur
+    }
+    
+    // Pause entre chaque fichier pour éviter le blocage navigateur
+    await new Promise(r => setTimeout(r, 800));
   }
 
   prog.classList.remove('show');
   bar.style.width = '0%';
   document.getElementById('dlAllZipBtn').disabled = false;
-  toast(`✓ ${done} photo${done>1?'s':''} téléchargée${done>1?'s':''} !`);
+  toast(`✓ ${done} / ${photos.length} photos téléchargées !`);
 }
 
 // ══════════════════════════════════════════
