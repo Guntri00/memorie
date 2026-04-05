@@ -508,6 +508,40 @@ footer{
   position:relative;z-index:1;
 }
 footer em{font-style:italic;font-family:'Playfair Display',serif;font-size:12px;color:var(--gold)}
+
+/* ══ RESPONSIVE DESKTOP ══ */
+@media (min-width: 768px) {
+  .body { padding: 48px 40px 100px; }
+  .dl-grid { grid-template-columns: repeat(4, 1fr); }
+  .photo-grid { grid-template-columns: repeat(4, 1fr); }
+  .hero-names { font-size: 72px; }
+  .ss-card { padding: 36px 40px; }
+  .welcome-banner { padding: 48px 40px; }
+}
+@media (min-width: 1200px) {
+  .body { max-width: 1100px; padding: 56px 48px 120px; }
+  .photo-grid { grid-template-columns: repeat(5, 1fr); }
+  .hero-names { font-size: 86px; }
+}
+
+/* Diaporama plein écran desktop */
+.ss-overlay { background: #000; }
+.ss-img {
+  max-width: 100vw;
+  max-height: 100vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+@media (min-width: 768px) {
+  .ss-img { max-height: 88vh; }
+  .ss-footer { padding: 20px 40px 36px; }
+  .ss-footer-info strong { font-size: 22px; }
+  .ss-btn { width: 52px; height: 52px; font-size: 24px; }
+  .ss-num { font-size: 13px; padding: 6px 16px; }
+  .ss-tag { font-size: 11px; padding: 6px 16px; }
+}
+
 </style>
 </head>
 <body>
@@ -964,33 +998,57 @@ async function downloadAll(){
   if(btn)btn.disabled=false;
 }
 
-async function runDownload(photos,label){
-  const prog=document.getElementById('dlProg');
-  const fill=document.getElementById('dlProgFill');
-  const lbl=document.getElementById('dlProgLabel');
-  const pct=document.getElementById('dlProgPct');
+async function runDownload(photos, label){
+  const prog = document.getElementById('dlProg');
+  const fill = document.getElementById('dlProgFill');
+  const lbl  = document.getElementById('dlProgLabel');
+  const pct  = document.getElementById('dlProgPct');
   prog.classList.add('show');
-  let done=0;
-  for(const p of photos){
-    try{
-      lbl.textContent=`${label} — ${done+1} / ${photos.length}`;
-      const res=await fetch(p.public_url);
-      const blob=await res.blob();
-      const a=document.createElement('a');
-      const ext=(p.storage_path||'photo.jpg').split('.').pop()||'jpg';
-      a.href=URL.createObjectURL(blob);
-      a.download=`mementos-${p.category||'photo'}-${String(done+1).padStart(3,'0')}.${ext}`;
-      a.style.display='none';
-      document.body.appendChild(a);a.click();document.body.removeChild(a);
-      setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  let done = 0;
+
+  for (const p of photos) {
+    try {
+      lbl.textContent = `${label} — ${done+1} / ${photos.length}`;
+
+      // Fetch avec timeout 30s
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+      const res = await fetch(p.public_url, { signal: controller.signal });
+      clearTimeout(timeout);
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+
+      const url = URL.createObjectURL(blob);
+      const a   = document.createElement('a');
+      const ext = (p.storage_path || 'photo.jpg').split('.').pop() || 'jpg';
+      a.href     = url;
+      a.download = `mementos-${p.category||'photo'}-${String(done+1).padStart(3,'0')}.${ext}`;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      // Libérer après délai suffisant pour que le navigateur traite le DL
+      await new Promise(r => setTimeout(r, 1200));
+      URL.revokeObjectURL(url);
+
       done++;
-      const p2=Math.round((done/photos.length)*100);
-      fill.style.width=p2+'%';pct.textContent=p2+'%';
-      await new Promise(r=>setTimeout(r,600));
-    }catch(e){console.warn('fail:',e);}
+      const p2 = Math.round((done / photos.length) * 100);
+      fill.style.width = p2 + '%';
+      pct.textContent  = p2 + '%';
+
+    } catch(e) {
+      console.warn('Download failed:', p.public_url, e.message);
+    }
+
+    // Pause entre chaque fichier
+    await new Promise(r => setTimeout(r, 800));
   }
-  prog.classList.remove('show');fill.style.width='0%';
-  showToast(`✓ ${done} photo${done>1?'s':''} téléchargée${done>1?'s':''} !`);
+
+  prog.classList.remove('show');
+  fill.style.width = '0%';
+  showToast(`✓ ${done} / ${photos.length} photos téléchargées !`);
 }
 
 // DIAPORAMA
@@ -1002,22 +1060,38 @@ function startSlideshow(){
   ssShow(0);ssStartTimer();
 }
 function ssShow(idx){
-  const p=ssPhotos[idx];
-  const img=document.getElementById('ssImg');
-  img.style.opacity='0';img.style.transform='scale(0.97)';
-  img.src=p.public_url;
-  img.onload=()=>{
-    img.style.transition='opacity .5s ease,transform .5s ease';
-    img.style.opacity='1';img.style.transform='scale(1)';
+  const p   = ssPhotos[idx];
+  const img = document.getElementById('ssImg');
+
+  // Afficher immédiatement sans animation de fade si image déjà en cache
+  img.style.transition = 'none';
+  img.style.opacity    = '0';
+  img.style.transform  = 'scale(1)';
+  img.src = p.public_url;
+  img.onload = () => {
+    img.style.transition = 'opacity 0.3s ease';
+    img.style.opacity = '1';
   };
-  const cat=CATS[p.category]||{emoji:'📷',name:''};
-  document.getElementById('ssTag').textContent=`${cat.emoji} ${cat.name}`;
-  document.getElementById('ssNum').textContent=`${idx+1} / ${ssPhotos.length}`;
-  document.getElementById('ssName').textContent=`par ${p.uploader_name||'Invité'}`;
-  document.getElementById('ssTime').textContent=new Date(p.uploaded_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-  const bar=document.getElementById('ssBarFill');
-  bar.style.transition='none';bar.style.width='0%';
-  requestAnimationFrame(()=>{bar.style.transition=`width ${SS_DUR}ms linear`;bar.style.width='100%';});
+  img.onerror = () => { ssNext(); }; // Passer à la suivante si erreur
+
+  // Précharger la prochaine image en avance
+  const nextIdx = (idx + 1) % ssPhotos.length;
+  const preload = new Image();
+  preload.src   = ssPhotos[nextIdx].public_url;
+
+  const cat = CATS[p.category] || {emoji:'📷', name:''};
+  document.getElementById('ssTag').textContent  = `${cat.emoji} ${cat.name}`;
+  document.getElementById('ssNum').textContent  = `${idx+1} / ${ssPhotos.length}`;
+  document.getElementById('ssName').textContent = `par ${p.uploader_name||'Invité'}`;
+  document.getElementById('ssTime').textContent = new Date(p.uploaded_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+
+  const bar = document.getElementById('ssBarFill');
+  bar.style.transition = 'none';
+  bar.style.width = '0%';
+  requestAnimationFrame(() => {
+    bar.style.transition = `width ${SS_DUR}ms linear`;
+    bar.style.width = '100%';
+  });
 }
 function ssStartTimer(){clearTimeout(ssTimer);if(!ssPlaying)return;ssTimer=setTimeout(ssNext,SS_DUR);}
 function ssNext(){ssIndex=(ssIndex+1)%ssPhotos.length;ssShow(ssIndex);ssStartTimer();}
