@@ -771,27 +771,45 @@ const SS_DUR=4000;
 
 // AUTH
 
-// Hachage SHA-256 via Web Crypto API (native, pas de lib externe)
+
+// Hachage SHA-256 natif
 async function sha256(str) {
-  const buf  = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
 async function doLogin() {
-  const user=document.getElementById('loginInput').value.trim();
-  const pwd=document.getElementById('pwdInput').value;
-  const err=document.getElementById('loginErr');
-  if (user===LOGIN && pwd===PASSWORD) {
-    sessionStorage.setItem('mementos_maries','1');
-    document.getElementById('loginPage').style.display='none';
-    document.getElementById('dashboard').style.display='block';
-    err.classList.remove('show');
-    initDashboard();
-  } else {
+  const user = document.getElementById('loginInput').value.trim();
+  const pwd  = document.getElementById('pwdInput').value;
+  const err  = document.getElementById('loginErr');
+
+  if (!user || !pwd) {
     err.classList.add('show');
-    document.getElementById('pwdInput').value='';
+    return;
+  }
+
+  try {
+    const userHash = await sha256(user);
+    const pwdHash  = await sha256(pwd);
+
+    if (userHash === '504e02313e5e82e24e61527f47919c4a5413e793414500e37df18c22bab1114e' && pwdHash === 'a1cf06f27846209423f536f840c228016fd0527b8aa5b2f89c0bab9e96d53dda') {
+      sessionStorage.setItem('mementos_maries', '1');
+      document.getElementById('loginPage') && (document.getElementById('loginPage').style.display = 'none');
+      document.getElementById('loginWrap') && (document.getElementById('loginWrap').style.display = 'none');
+      document.getElementById('dashboard').style.display = 'block';
+      err.classList.remove('show');
+      typeof loadDashboard === 'function' ? loadDashboard() : typeof initDashboard === 'function' ? initDashboard() : null;
+    } else {
+      err.classList.add('show');
+      document.getElementById('pwdInput').value = '';
+      document.getElementById('loginInput').focus();
+    }
+  } catch(e) {
+    console.error('Login error:', e);
+    err.classList.add('show');
   }
 }
+
 function doLogout(){
   sessionStorage.removeItem('mementos_maries');
   location.reload();
@@ -815,20 +833,42 @@ window.addEventListener('DOMContentLoaded',()=>{
 
 // INIT
 async function initDashboard(){
+  console.log('Dashboard mariés: connexion Supabase', SB_URL);
+  console.log('EVENT_ID:', EVENT_ID);
   await loadPhotos();
+  startAutoRefresh();
 }
 
 async function loadPhotos(){
   try{
     const res=await fetch(
       `${SB_URL}/rest/v1/photos?event_id=eq.${EVENT_ID}&order=uploaded_at.asc&select=*`,
-      {headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}}
+      {
+        headers:{
+          'apikey': SB_KEY,
+          'Authorization': `Bearer ${SB_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      }
     );
-    if(!res.ok) throw new Error(await res.text());
+    if(!res.ok){
+      const errText = await res.text();
+      throw new Error(`Supabase ${res.status}: ${errText}`);
+    }
     allPhotos=await res.json();
     updateUI();
     renderPhotos();
-  }catch(e){ showToast('⚠️ '+e.message); }
+  }catch(e){
+    console.error('Fetch error:', e);
+    showToast('⚠️ '+e.message);
+  }
+}
+
+// Auto-refresh toutes les 15 secondes
+let autoRefreshInterval = null;
+function startAutoRefresh(){
+  if(autoRefreshInterval) clearInterval(autoRefreshInterval);
+  autoRefreshInterval = setInterval(()=>{ loadPhotos(); }, 15000);
 }
 
 function updateUI(){
