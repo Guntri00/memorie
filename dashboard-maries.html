@@ -746,8 +746,8 @@ const SB_URL   = 'https://hmytqbgnjpugqeslnuvk.supabase.co';
 const SB_KEY   = 'sb_publishable_59uI3S3lCP0xyVtvrR6ZZA_vXsiF27o';
 const EVENT_ID = 'mariage-melodie-thomas-2025';
 const BUCKET   = 'photos';
-const LOGIN    = 'marier';
-const PASSWORD = 'pourtoujours0000!!';
+const LOGIN_H  = '504e02313e5e82e24e61527f47919c4a5413e793414500e37df18c22bab1114e'; // SHA-256
+const PWD_H    = 'a1cf06f27846209423f536f840c228016fd0527b8aa5b2f89c0bab9e96d53dda'; // SHA-256
 const CATS = {
   ceremonie:{emoji:'💍',name:'Cérémonie'},
   cocktail: {emoji:'🥂',name:'Cocktail'},
@@ -770,7 +770,14 @@ let ssPhotos=[], ssIndex=0, ssPlaying=true, ssTimer=null;
 const SS_DUR=4000;
 
 // AUTH
-function doLogin() {
+
+// Hachage SHA-256 via Web Crypto API (native, pas de lib externe)
+async function sha256(str) {
+  const buf  = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function doLogin() {
   const user=document.getElementById('loginInput').value.trim();
   const pwd=document.getElementById('pwdInput').value;
   const err=document.getElementById('loginErr');
