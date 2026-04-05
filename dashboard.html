@@ -299,11 +299,15 @@ footer{text-align:center;padding:24px;font-size:10px;letter-spacing:.18em;color:
       <p>Espace organisateur</p>
     </div>
     <div class="login-field">
+      <label>Identifiant</label>
+      <input type="text" id="loginInput" placeholder="Votre identifiant" onkeydown="if(event.key==='Enter')doLogin()" autocomplete="username">
+    </div>
+    <div class="login-field">
       <label>Mot de passe</label>
-      <input type="password" id="pwdInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      <input type="password" id="pwdInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" autocomplete="current-password">
     </div>
     <button class="login-btn" onclick="doLogin()">Accéder au dashboard</button>
-    <p class="login-err" id="loginErr">Mot de passe incorrect</p>
+    <p class="login-err" id="loginErr">Identifiant ou mot de passe incorrect</p>
   </div>
 </div>
 
@@ -463,6 +467,7 @@ const SB_URL   = 'https://hmytqbgnjpugqeslnuvk.supabase.co';
 const SB_KEY   = 'sb_publishable_59uI3S3lCP0xyVtvrR6ZZA_vXsiF27o';
 const EVENT_ID = 'mariage-melodie-thomas-2025';
 const BUCKET   = 'photos';
+const LOGIN    = 'Guntri';
 const PASSWORD = 'Feriel01!!';
 
 const CATEGORIES = {
@@ -484,9 +489,10 @@ let pendingDeletePath= null;
 //  AUTH
 // ══════════════════════════════════════════
 function doLogin() {
-  const val = document.getElementById('pwdInput').value;
-  const err = document.getElementById('loginErr');
-  if (val === PASSWORD) {
+  const user = document.getElementById('loginInput').value.trim();
+  const val  = document.getElementById('pwdInput').value;
+  const err  = document.getElementById('loginErr');
+  if (user === LOGIN && val === PASSWORD) {
     sessionStorage.setItem('mementos_auth', '1');
     document.getElementById('loginWrap').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';
@@ -495,7 +501,7 @@ function doLogin() {
   } else {
     err.classList.add('show');
     document.getElementById('pwdInput').value = '';
-    document.getElementById('pwdInput').focus();
+    document.getElementById('loginInput').focus();
   }
 }
 
@@ -512,7 +518,7 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('dashboard').style.display = 'block';
     loadDashboard();
   }
-  document.getElementById('pwdInput').focus();
+  document.getElementById('loginInput').focus();
 });
 
 // ══════════════════════════════════════════
