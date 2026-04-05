@@ -118,47 +118,7 @@ h1 em{font-style:italic;color:var(--gold)}
 @keyframes badgePop{from{transform:scale(0)}to{transform:scale(1)}}
 .cw-head-wrap{position:relative;display:inline-flex;width:100%}
 
-/* ── TÉLÉCHARGEMENT PHOTO ── */
-.dl-btn{
-  position:absolute;top:7px;left:7px;
-  width:28px;height:28px;
-  background:rgba(28,23,18,.75);
-  border:none;border-radius:50%;
-  color:#fff;font-size:13px;
-  cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  opacity:0;
-  transition:opacity .25s,transform .2s;
-  z-index:5;
-  backdrop-filter:blur(4px);
-  text-decoration:none;
-}
-.gitem:hover .dl-btn{opacity:1}
-.dl-btn:hover{transform:scale(1.15);background:rgba(184,147,90,.9)}
-
-/* Bouton télécharger tout */
-
-/* ── DETAIL CAT HEADER ── */
-.detail-cat-header{
-  text-align:center;
-  font-family:'Cormorant Garamond',serif;
-  font-size:28px;font-weight:300;
-  margin:0 0 12px;
-  display:flex;align-items:center;justify-content:center;gap:10px;
-  color:var(--dark);
-}
-.dl-all-btn{
-  display:inline-flex;align-items:center;gap:6px;
-  padding:9px 20px;
-  background:var(--warm);border:1px solid var(--gold-m);
-  border-radius:20px;font-family:'Jost',sans-serif;
-  font-size:10px;letter-spacing:.15em;text-transform:uppercase;
-  color:var(--charcoal);cursor:pointer;transition:all .25s;
-}
-.dl-all-btn:hover{background:var(--dark);color:var(--warm);border-color:var(--dark)}
-.dl-all-btn.loading{opacity:.6;cursor:not-allowed;pointer-events:none}
-
-
+/* ── RÉACTIONS ── */
 .reactions{
   display:flex;align-items:center;gap:6px;
   position:absolute;bottom:0;left:0;right:0;
@@ -249,7 +209,45 @@ h1 em{font-style:italic;color:var(--gold)}
 }
 
 
+/* ── TÉLÉCHARGEMENT PHOTO ── */
+.dl-btn{
+  position:absolute;top:7px;left:7px;
+  width:28px;height:28px;
+  background:rgba(28,23,18,.75);
+  border:none;border-radius:50%;
+  color:#fff;font-size:13px;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;
+  transition:opacity .25s,transform .2s;
+  z-index:5;
+  backdrop-filter:blur(4px);
+  text-decoration:none;
+}
+.gitem:hover .dl-btn{opacity:1}
+.dl-btn:hover{transform:scale(1.15);background:rgba(184,147,90,.9)}
 
+/* Bouton télécharger tout */
+
+/* ── DETAIL CAT HEADER ── */
+.detail-cat-header{
+  text-align:center;
+  font-family:'Cormorant Garamond',serif;
+  font-size:28px;font-weight:300;
+  margin:0 0 12px;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  color:var(--dark);
+}
+.dl-all-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:9px 20px;
+  background:var(--warm);border:1px solid var(--gold-m);
+  border-radius:20px;font-family:'Jost',sans-serif;
+  font-size:10px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--charcoal);cursor:pointer;transition:all .25s;
+}
+.dl-all-btn:hover{background:var(--dark);color:var(--warm);border-color:var(--dark)}
+.dl-all-btn.loading{opacity:.6;cursor:not-allowed;pointer-events:none}
 
 
 /* Toast téléchargement */
@@ -446,7 +444,7 @@ footer a{color:var(--gold);text-decoration:none}
   <p class="date">21 Juin 2025 · Château de Valmirande</p>
   <p class="tagline">Partagez vos plus beaux clichés de cette journée avec les mariés et tous les invités</p>
 </header>
-
+  
 <div class="tabs">
   <button class="tab on" onclick="switchTab('upload',this)">📤 Partager</button>
   <button class="tab" onclick="switchTab('gallery',this)">🖼️ Galerie</button>
@@ -577,11 +575,10 @@ footer a{color:var(--gold);text-decoration:none}
         <span id="detail-cat-emoji"></span>
         <span id="detail-cat-name"></span>
       </div>
-      <!-- Bouton tout télécharger centré -->
-      <!-- Bouton tout télécharger centré -->
-     <!-- <div style="text-align:center;margin-bottom:20px">
+      <!-- Bouton tout télécharger centré 
+      <div style="text-align:center;margin-bottom:20px">
         <button class="dl-all-btn" id="dlAllBtn" onclick="downloadAllPhotos()" style="display:none;margin:0 auto">⬇ Tout télécharger</button>
-      </div> -->
+      </div>-->
       <!-- Compteur + live -->
       <div class="g-hdr">
         <p class="g-count" id="detail-title"></p>
@@ -637,36 +634,6 @@ footer a{color:var(--gold);text-decoration:none}
 </div>
 
 <div class="dl-toast" id="dlToast"></div>
-
-    <img class="ios-photo-preview" id="iosPhotoPreview" src="" alt="">
-    <div class="ios-guide">
-      <h3>Enregistrer cette photo</h3>
-      <div class="ios-step">
-        <span class="ios-step-icon">👆</span>
-        <div class="ios-step-text">
-          <strong>Appuyez longuement sur la photo</strong>
-          Maintenez votre doigt appuyé sur l'image ci-dessus pendant 1 seconde
-        </div>
-      </div>
-      <div class="ios-step">
-        <span class="ios-step-icon">📥</span>
-        <div class="ios-step-text">
-          <strong>Choisissez "Enregistrer dans Photos"</strong>
-          Un menu apparaît — sélectionnez cette option pour sauvegarder dans votre galerie
-        </div>
-      </div>
-      <div class="ios-step">
-        <span class="ios-step-icon">✅</span>
-        <div class="ios-step-text">
-          <strong>La photo est dans votre galerie !</strong>
-          Retrouvez-la dans l'app Photos de votre iPhone
-        </div>
-      </div>
-    </div>
-    <button class="ios-close-btn" onclick="closeIosModal()">Fermer</button>
-  </div>
-</div>
-
 <!-- LIGHTBOX -->
 <div class="lb" id="lb" onclick="closeLB()">
   <button class="lb-x" onclick="closeLB()">✕</button>
@@ -1060,7 +1027,7 @@ async function doUpload() {
   if (errors.length) showToast('⚠️ '+errors.join(' | '), true);
 }
 
-// Recharger silencieusement allPhotos depuis Supabase SANS toucher à la vue
+// Recharger silencieusement allPhotos depuis Supabase
 async function refreshAllPhotos() {
   try {
     const res = await fetch(
@@ -1069,7 +1036,14 @@ async function refreshAllPhotos() {
     );
     if (!res.ok) return;
     allPhotos = await res.json();
-    // Ne jamais toucher à la vue ici — laisser l'utilisateur là où il est
+    // Si la galerie est visible et qu'une catégorie est ouverte, la rafraîchir
+    const galPanel  = document.getElementById('panel-gallery');
+    const catDetail = document.getElementById('gallery-detail');
+    if (galPanel && galPanel.classList.contains('on') &&
+        catDetail && catDetail.style.display !== 'none') {
+      const curCat = galPanel.dataset.currentCat;
+      if (curCat) openCategory(curCat);
+    }
   } catch(e) { console.warn('Refresh failed:', e); }
 }
 
@@ -1210,6 +1184,8 @@ async function openCategory(catId) {
       `<span style="color:var(--gold)">${photos.length}</span>&nbsp;photo${photos.length !== 1 ? 's' : ''}`;
 
     // Bouton tout télécharger
+    const dlAllBtn = document.getElementById('dlAllBtn');
+    if (dlAllBtn) dlAllBtn.style.display = photos.length > 0 ? 'inline-flex' : 'none';
 
     if (!photos.length) {
       grid.innerHTML = `<div class="gempty"><div class="ei">${cat.emoji}</div><p>Aucune photo dans cette catégorie<br>Soyez le premier à partager !</p></div>`;
@@ -1707,7 +1683,7 @@ async function downloadAllPhotos() {
   showDlToast(`✓ ${done} photo${done > 1 ? 's' : ''} téléchargée${done > 1 ? 's' : ''} !`);
 }
 
-function showDlToastfunction showDlToast(msg) {
+function showDlToast(msg) {
   const t = document.getElementById('dlToast');
   t.textContent = msg;
   t.classList.add('show');
