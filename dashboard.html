@@ -301,6 +301,7 @@ footer{text-align:center;padding:24px;font-size:10px;letter-spacing:.18em;color:
 }
 
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
 
@@ -573,10 +574,14 @@ async function refreshPhotos() {
     const res = await fetch(
       `${SB_URL}/rest/v1/photos?event_id=eq.${EVENT_ID}&order=uploaded_at.desc&select=*`,
       {
+        method: 'GET',
+        mode: 'cors',
+        credentials: 'omit',
         headers:{
-          'apikey': SB_KEY,
+          'apikey':        SB_KEY,
           'Authorization': `Bearer ${SB_KEY}`,
-          'Content-Type': 'application/json'
+          'Content-Type':  'application/json',
+          'Accept':        'application/json'
         }
       }
     );
@@ -665,7 +670,7 @@ function renderPhotos() {
     const date = new Date(p.uploaded_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'});
     return `
     <div class="photo-card" id="pc-${p.id}">
-      <img src="${p.public_url}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'">
+      <img src="${p.public_url}" alt="" loading="lazy" onerror="this.onerror=null;this.src=this.src">
       <div class="photo-card-actions">
         <button class="photo-action-btn photo-dl-btn" onclick="event.stopPropagation();dlPhoto('${p.public_url}','${p.storage_path}')" title="Télécharger">⬇</button>
         <button class="photo-action-btn photo-del-btn" onclick="event.stopPropagation();askDelete('${p.id}','${p.storage_path}')" title="Supprimer">🗑</button>
@@ -684,7 +689,7 @@ function renderPhotos() {
 async function dlPhoto(url, path) {
   try {
     toast('Téléchargement…');
-    const res  = await fetch(url);
+    const res  = await fetch(url, { method:'GET', mode:'cors', credentials:'omit' });
     const blob = await res.blob();
     const a    = document.createElement('a');
     const ext  = path.split('.').pop() || 'jpg';
@@ -707,57 +712,72 @@ async function downloadZip(catFilter) {
   const bar   = document.getElementById('zipBar');
   const label = document.getElementById('zipLabel');
   const pct   = document.getElementById('zipPct');
+  const btn   = document.getElementById('dlAllZipBtn');
 
   prog.classList.add('show');
-  document.getElementById('dlAllZipBtn').disabled = true;
+  if (btn) btn.disabled = true;
 
-  let done = 0;
-  for (const p of photos) {
-    try {
-      label.textContent = `Téléchargement ${done+1} / ${photos.length}…`;
-      
-      // Fetch avec timeout
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 30000);
-      const res = await fetch(p.public_url, { signal: controller.signal });
-      clearTimeout(timeout);
-      
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const blob = await res.blob();
-      
-      // Télécharger
-      const url = URL.createObjectURL(blob);
-      const a   = document.createElement('a');
-      const ext = (p.storage_path || 'photo.jpg').split('.').pop() || 'jpg';
-      a.href     = url;
-      a.download = `mementos-${p.category||'photo'}-${String(done+1).padStart(3,'0')}.${ext}`;
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      
-      // Libérer après délai suffisant
-      await new Promise(r => setTimeout(r, 1200));
-      URL.revokeObjectURL(url);
-      
-      done++;
-      const pct2 = Math.round((done / photos.length) * 100);
-      bar.style.width = pct2 + '%';
-      pct.textContent = pct2 + '%';
-      
-    } catch(e) {
-      console.warn('Download failed:', p.public_url, e.message);
-      // Continuer malgré l'erreur
-    }
-    
-    // Pause entre chaque fichier pour éviter le blocage navigateur
-    await new Promise(r => setTimeout(r, 800));
+  const zip  = new JSZip();
+  let done   = 0;
+  const total = photos.length;
+
+  // Télécharger toutes les photos en parallèle (par lots de 5)
+  const BATCH = 5;
+  for (let i = 0; i < photos.length; i += BATCH) {
+    const batch = photos.slice(i, i + BATCH);
+    await Promise.all(batch.map(async (p) => {
+      try {
+        label.textContent = `Chargement ${done + 1} / ${total}…`;
+        const res = await fetch(p.public_url, {
+          mode: 'cors',
+          credentials: 'omit'
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const blob = await res.blob();
+        const ext  = (p.storage_path || 'photo.jpg').split('.').pop() || 'jpg';
+        const cat  = p.category || 'photo';
+        const name = p.uploader_name ? `${p.uploader_name}` : 'Invité';
+        const filename = `${cat}/${String(done + 1).padStart(3,'0')}_${name}.${ext}`;
+        zip.file(filename, blob);
+        done++;
+        const pct2 = Math.round((done / total) * 100);
+        bar.style.width = pct2 + '%';
+        pct.textContent = pct2 + '%';
+      } catch(e) {
+        console.warn('Failed:', p.public_url, e.message);
+        done++;
+      }
+    }));
+  }
+
+  // Générer et télécharger le ZIP
+  label.textContent = 'Création du fichier ZIP…';
+  try {
+    const zipBlob = await zip.generateAsync({
+      type: 'blob',
+      compression: 'DEFLATE',
+      compressionOptions: { level: 6 }
+    }, (metadata) => {
+      bar.style.width = metadata.percent.toFixed(0) + '%';
+      pct.textContent = metadata.percent.toFixed(0) + '%';
+    });
+
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(zipBlob);
+    a.download = `mementos-${catFilter === 'all' ? 'toutes-categories' : catFilter}-${new Date().toLocaleDateString('fr-FR').replace(/\//g,'-')}.zip`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+
+    toast(`✓ ZIP de ${done} photos téléchargé !`);
+  } catch(e) {
+    toast('⚠️ Erreur ZIP : ' + e.message);
   }
 
   prog.classList.remove('show');
   bar.style.width = '0%';
-  document.getElementById('dlAllZipBtn').disabled = false;
-  toast(`✓ ${done} / ${photos.length} photos téléchargées !`);
+  if (btn) btn.disabled = false;
 }
 
 // ══════════════════════════════════════════
@@ -786,10 +806,14 @@ async function confirmDelete() {
   try {
     await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${path}`, {
       method:'DELETE',
+      mode:'cors',
+      credentials:'omit',
       headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json' }
     });
     await fetch(`${SB_URL}/rest/v1/photos?id=eq.${id}`, {
       method:'DELETE',
+      mode:'cors',
+      credentials:'omit',
       headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal' }
     });
 
