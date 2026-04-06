@@ -543,6 +543,7 @@ footer em{font-style:italic;font-family:'Playfair Display',serif;font-size:12px;
 }
 
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
 
@@ -844,6 +845,118 @@ async function doLogin() {
   }
 }
 
+
+// ══════════════════════════════════════════
+//  TÉLÉCHARGEMENT ZIP (JSZip)
+// ══════════════════════════════════════════
+async function downloadZipPhotos(photos, zipName) {
+  if (!photos.length) { showToast('Aucune photo à télécharger'); return; }
+
+  const prog  = document.getElementById('dlProg');
+  const fill  = document.getElementById('dlProgFill');
+  const lbl   = document.getElementById('dlProgLabel');
+  const pct   = document.getElementById('dlProgPct');
+
+  prog.classList.add('show');
+  lbl.textContent = 'Chargement des photos…';
+
+  const zip   = new JSZip();
+  let done    = 0;
+  const total = photos.length;
+
+  // Par lots de 5 en parallèle
+  const BATCH = 5;
+  for (let i = 0; i < photos.length; i += BATCH) {
+    const batch = photos.slice(i, i + BATCH);
+    await Promise.all(batch.map(async (p) => {
+      try {
+        const res = await fetch(p.public_url, { mode:'cors', credentials:'omit' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const blob = await res.blob();
+        const ext  = (p.storage_path || 'photo.jpg').split('.').pop() || 'jpg';
+        const cat  = p.category || 'photo';
+        const name = p.uploader_name || 'Invite';
+        zip.file(`${cat}/${String(i+1).padStart(3,'0')}_${name}.${ext}`, blob);
+        done++;
+        const p2 = Math.round((done / total) * 50); // 50% pour le chargement
+        fill.style.width = p2 + '%';
+        pct.textContent  = p2 + '%';
+        lbl.textContent  = `Chargement ${done} / ${total}…`;
+      } catch(e) {
+        console.warn('Failed:', p.public_url, e.message);
+        done++;
+      }
+    }));
+  }
+
+  // Générer le ZIP
+  lbl.textContent = 'Compression en cours…';
+  try {
+    const zipBlob = await zip.generateAsync({
+      type: 'blob',
+      compression: 'DEFLATE',
+      compressionOptions: { level: 6 }
+    }, (meta) => {
+      const p2 = 50 + Math.round(meta.percent / 2); // 50-100%
+      fill.style.width = p2 + '%';
+      pct.textContent  = p2 + '%';
+    });
+
+    const date = new Date().toLocaleDateString('fr-FR').replace(/\//g, '-');
+    const a    = document.createElement('a');
+    a.href     = URL.createObjectURL(zipBlob);
+    a.download = `mementos-${zipName}-${date}.zip`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+
+    showToast(`✓ ZIP de ${done} photos téléchargé !`);
+  } catch(e) {
+    showToast('⚠️ Erreur ZIP : ' + e.message);
+  }
+
+  prog.classList.remove('show');
+  fill.style.width = '0%';
+}
+
+async function downloadCat(catId) {
+  const photos = allPhotos.filter(p => p.category === catId);
+  if (!photos.length) { showToast('Aucune photo dans cette catégorie'); return; }
+  const card = document.getElementById('dlcard-' + catId);
+  if (card) card.classList.add('loading');
+  await downloadZipPhotos(photos, CATS[catId]?.name || catId);
+  if (card) card.classList.remove('loading');
+}
+
+async function downloadAll() {
+  if (!allPhotos.length) { showToast('Aucune photo disponible'); return; }
+  const btn = document.getElementById('dlAllBtn');
+  if (btn) btn.disabled = true;
+  await downloadZipPhotos(allPhotos, 'mariage-complet');
+  if (btn) btn.disabled = false;
+}
+
+
+
+async function dlOne(url, path, cat) {
+  try {
+    showToast('Téléchargement…');
+    const res  = await fetch(url, { mode:'cors', credentials:'omit' });
+    const blob = await res.blob();
+    const ext  = (path || 'photo.jpg').split('.').pop() || 'jpg';
+    const a    = document.createElement('a');
+    a.href     = URL.createObjectURL(blob);
+    a.download = `mementos-${cat||'photo'}-${Date.now()}.${ext}`;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    showToast('✓ Photo téléchargée !');
+  } catch(e) { window.open(url, '_blank'); }
+}
+
 function doLogout(){
   sessionStorage.removeItem('mementos_maries');
   location.reload();
@@ -875,13 +988,17 @@ async function initDashboard(){
 
 async function loadPhotos(){
   try{
-    const res=await fetch(
+    const res = await fetch(
       `${SB_URL}/rest/v1/photos?event_id=eq.${EVENT_ID}&order=uploaded_at.asc&select=*`,
       {
+        method: 'GET',
+        mode: 'cors',
+        credentials: 'omit',
         headers:{
-          'apikey': SB_KEY,
+          'apikey':        SB_KEY,
           'Authorization': `Bearer ${SB_KEY}`,
-          'Content-Type': 'application/json'
+          'Content-Type':  'application/json',
+          'Accept':        'application/json'
         }
       }
     );
@@ -889,12 +1006,12 @@ async function loadPhotos(){
       const errText = await res.text();
       throw new Error(`Supabase ${res.status}: ${errText}`);
     }
-    allPhotos=await res.json();
+    allPhotos = await res.json();
     updateUI();
     renderPhotos();
-  }catch(e){
+  } catch(e){
     console.error('Fetch error:', e);
-    showToast('⚠️ '+e.message);
+    showToast('⚠️ Erreur connexion : ' + e.message);
   }
 }
 
@@ -952,7 +1069,7 @@ function renderPhotos(){
     const time=new Date(p.uploaded_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
     return `
     <div class="photo-card" onclick="openLB('${p.public_url}')">
-      <img src="${p.public_url}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'">
+      <img src="${p.public_url}" alt="" loading="lazy" crossorigin="anonymous" onerror="this.src='${p.public_url}';this.removeAttribute('crossorigin')">
       <div class="photo-overlay">
         <button class="photo-dl-btn" onclick="event.stopPropagation();dlOne('${p.public_url}','${p.storage_path||''}','${p.category||''}')">⬇️</button>
       </div>
@@ -965,91 +1082,13 @@ function renderPhotos(){
 }
 
 // TÉLÉCHARGEMENT
-async function dlOne(url,path,cat){
-  try{
-    showToast('Téléchargement…');
-    const res=await fetch(url);
-    const blob=await res.blob();
-    const a=document.createElement('a');
-    const ext=(path||'photo.jpg').split('.').pop()||'jpg';
-    a.href=URL.createObjectURL(blob);
-    a.download=`mementos-${cat||'photo'}-${Date.now()}.${ext}`;
-    a.style.display='none';
-    document.body.appendChild(a);a.click();document.body.removeChild(a);
-    setTimeout(()=>URL.revokeObjectURL(a.href),2000);
-    showToast('✓ Photo téléchargée !');
-  }catch(e){window.open(url,'_blank');}
-}
 
-async function downloadCat(catId){
-  const photos=allPhotos.filter(p=>p.category===catId);
-  if(!photos.length){showToast('Aucune photo dans cette catégorie');return;}
-  const card=document.getElementById('dlcard-'+catId);
-  if(card)card.classList.add('loading');
-  await runDownload(photos,CATS[catId]?.name||catId);
-  if(card)card.classList.remove('loading');
-}
 
-async function downloadAll(){
-  if(!allPhotos.length){showToast('Aucune photo disponible');return;}
-  const btn=document.getElementById('dlAllBtn');
-  if(btn)btn.disabled=true;
-  await runDownload(allPhotos,'toutes-categories');
-  if(btn)btn.disabled=false;
-}
 
-async function runDownload(photos, label){
-  const prog = document.getElementById('dlProg');
-  const fill = document.getElementById('dlProgFill');
-  const lbl  = document.getElementById('dlProgLabel');
-  const pct  = document.getElementById('dlProgPct');
-  prog.classList.add('show');
-  let done = 0;
 
-  for (const p of photos) {
-    try {
-      lbl.textContent = `${label} — ${done+1} / ${photos.length}`;
 
-      // Fetch avec timeout 30s
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 30000);
-      const res = await fetch(p.public_url, { signal: controller.signal });
-      clearTimeout(timeout);
 
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const blob = await res.blob();
 
-      const url = URL.createObjectURL(blob);
-      const a   = document.createElement('a');
-      const ext = (p.storage_path || 'photo.jpg').split('.').pop() || 'jpg';
-      a.href     = url;
-      a.download = `mementos-${p.category||'photo'}-${String(done+1).padStart(3,'0')}.${ext}`;
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-
-      // Libérer après délai suffisant pour que le navigateur traite le DL
-      await new Promise(r => setTimeout(r, 1200));
-      URL.revokeObjectURL(url);
-
-      done++;
-      const p2 = Math.round((done / photos.length) * 100);
-      fill.style.width = p2 + '%';
-      pct.textContent  = p2 + '%';
-
-    } catch(e) {
-      console.warn('Download failed:', p.public_url, e.message);
-    }
-
-    // Pause entre chaque fichier
-    await new Promise(r => setTimeout(r, 800));
-  }
-
-  prog.classList.remove('show');
-  fill.style.width = '0%';
-  showToast(`✓ ${done} / ${photos.length} photos téléchargées !`);
-}
 
 // DIAPORAMA
 function startSlideshow(){
@@ -1067,12 +1106,19 @@ function ssShow(idx){
   img.style.transition = 'none';
   img.style.opacity    = '0';
   img.style.transform  = 'scale(1)';
+  img.crossOrigin = 'anonymous';
   img.src = p.public_url;
   img.onload = () => {
     img.style.transition = 'opacity 0.3s ease';
     img.style.opacity = '1';
   };
-  img.onerror = () => { ssNext(); }; // Passer à la suivante si erreur
+  img.onerror = () => {
+    // Retry sans crossOrigin si erreur CORS
+    img.removeAttribute('crossorigin');
+    img.src = p.public_url + '?t=' + Date.now();
+    img.onload = () => { img.style.opacity = '1'; };
+    img.onerror = () => { setTimeout(() => ssNext(), 500); };
+  };
 
   // Précharger la prochaine image en avance
   const nextIdx = (idx + 1) % ssPhotos.length;
