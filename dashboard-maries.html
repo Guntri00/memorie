@@ -858,67 +858,80 @@ async function downloadZipPhotos(photos, zipName) {
   const pct   = document.getElementById('dlProgPct');
 
   prog.classList.add('show');
-  lbl.textContent = 'Chargement des photos…';
+  lbl.textContent = `Chargement de ${photos.length} photos…`;
+  fill.style.width = '0%';
 
   const zip   = new JSZip();
   let done    = 0;
   const total = photos.length;
 
-  // Par lots de 5 en parallèle
-  const BATCH = 5;
-  for (let i = 0; i < photos.length; i += BATCH) {
-    const batch = photos.slice(i, i + BATCH);
-    await Promise.all(batch.map(async (p) => {
-      try {
-        const res = await fetch(p.public_url, { mode:'cors', credentials:'omit' });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const blob = await res.blob();
-        const ext  = (p.storage_path || 'photo.jpg').split('.').pop() || 'jpg';
-        const cat  = p.category || 'photo';
-        const name = p.uploader_name || 'Invite';
-        zip.file(`${cat}/${String(i+1).padStart(3,'0')}_${name}.${ext}`, blob);
-        done++;
-        const p2 = Math.round((done / total) * 50); // 50% pour le chargement
-        fill.style.width = p2 + '%';
-        pct.textContent  = p2 + '%';
-        lbl.textContent  = `Chargement ${done} / ${total}…`;
-      } catch(e) {
-        console.warn('Failed:', p.public_url, e.message);
-        done++;
-      }
-    }));
+  // Télécharger toutes les photos — séquentiellement pour fiabilité totale
+  for (let i = 0; i < photos.length; i++) {
+    const p = photos[i];
+    lbl.textContent = `Chargement ${i + 1} / ${total}…`;
+    try {
+      const controller = new AbortController();
+      const timeout    = setTimeout(() => controller.abort(), 30000);
+      const res = await fetch(p.public_url, {
+        mode: 'cors',
+        credentials: 'omit',
+        signal: controller.signal
+      });
+      clearTimeout(timeout);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const ext  = (p.storage_path || 'photo.jpg').split('.').pop().toLowerCase() || 'jpg';
+      const cat  = p.category || 'photo';
+      const name = (p.uploader_name || 'Invite').replace(/[^a-zA-Z0-9À-ž]/g, '_');
+      // Nom unique garanti : index global + nom
+      const filename = `${cat}/${String(i + 1).padStart(3, '0')}_${name}.${ext}`;
+      zip.file(filename, blob);
+      done++;
+    } catch(e) {
+      console.warn(`Photo ${i+1} échouée:`, e.message);
+      // On continue même si une photo échoue
+    }
+    // Mise à jour barre — phase 1 : 0→70%
+    const p1 = Math.round(((i + 1) / total) * 70);
+    fill.style.width = p1 + '%';
+    pct.textContent  = p1 + '%';
   }
 
   // Générer le ZIP
-  lbl.textContent = 'Compression en cours…';
+  lbl.textContent = `Compression de ${done} photos…`;
   try {
     const zipBlob = await zip.generateAsync({
       type: 'blob',
       compression: 'DEFLATE',
-      compressionOptions: { level: 6 }
+      compressionOptions: { level: 5 }
     }, (meta) => {
-      const p2 = 50 + Math.round(meta.percent / 2); // 50-100%
+      // Phase 2 : 70→100%
+      const p2 = 70 + Math.round(meta.percent * 0.3);
       fill.style.width = p2 + '%';
       pct.textContent  = p2 + '%';
+      lbl.textContent  = `Compression… ${meta.percent.toFixed(0)}%`;
     });
 
-    const date = new Date().toLocaleDateString('fr-FR').replace(/\//g, '-');
+    const date = new Date().toLocaleDateString('fr-FR').replace(/\/g, '-').replace(/\//g, '-');
     const a    = document.createElement('a');
     a.href     = URL.createObjectURL(zipBlob);
     a.download = `mementos-${zipName}-${date}.zip`;
+    a.style.display = 'none';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 
-    showToast(`✓ ZIP de ${done} photos téléchargé !`);
+    showToast(`✓ ZIP de ${done} / ${total} photos téléchargé !`);
   } catch(e) {
+    console.error('ZIP error:', e);
     showToast('⚠️ Erreur ZIP : ' + e.message);
   }
 
   prog.classList.remove('show');
   fill.style.width = '0%';
 }
+
 
 async function downloadCat(catId) {
   const photos = allPhotos.filter(p => p.category === catId);
