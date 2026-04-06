@@ -575,10 +575,10 @@ footer a{color:var(--gold);text-decoration:none}
         <span id="detail-cat-emoji"></span>
         <span id="detail-cat-name"></span>
       </div>
-      <!-- Bouton tout télécharger centré 
+      <!-- Bouton tout télécharger centré -->
       <div style="text-align:center;margin-bottom:20px">
         <button class="dl-all-btn" id="dlAllBtn" onclick="downloadAllPhotos()" style="display:none;margin:0 auto">⬇ Tout télécharger</button>
-      </div>-->
+      </div>
       <!-- Compteur + live -->
       <div class="g-hdr">
         <p class="g-count" id="detail-title"></p>
@@ -1000,6 +1000,8 @@ async function doUpload() {
 
       const uploadRes = await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${filename}`, {
         method:'POST',
+        mode:'cors',
+        credentials:'omit',
         headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':file.type||'image/jpeg','x-upsert':'true' },
         body:file
       });
@@ -1008,6 +1010,8 @@ async function doUpload() {
       const publicUrl = `${SB_URL}/storage/v1/object/public/${BUCKET}/${filename}`;
       await fetch(`${SB_URL}/rest/v1/photos`, {
         method:'POST',
+        mode:'cors',
+        credentials:'omit',
         headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal' },
         body:JSON.stringify({ event_id:EVENT_ID, uploader_name:uploaderName, category:selectedCategory.id, storage_path:filename, public_url:publicUrl, uploaded_at:new Date().toISOString() })
       });
@@ -1032,7 +1036,7 @@ async function refreshAllPhotos() {
   try {
     const res = await fetch(
       `${SB_URL}/rest/v1/photos?event_id=eq.${EVENT_ID}&order=uploaded_at.desc&select=*`,
-      { headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}` } }
+      { method:'GET', mode:'cors', credentials:'omit', headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Accept':'application/json' } }
     );
     if (!res.ok) return;
     allPhotos = await res.json();
@@ -1085,7 +1089,7 @@ async function loadGallery() {
   try {
     const res = await fetch(
       `${SB_URL}/rest/v1/photos?event_id=eq.${EVENT_ID}&order=uploaded_at.desc&select=*`,
-      { headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}` } }
+      { method:'GET', mode:'cors', credentials:'omit', headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Accept':'application/json' } }
     );
     if (!res.ok) throw new Error(await res.text());
     allPhotos = await res.json();
@@ -1171,7 +1175,7 @@ async function openCategory(catId) {
   try {
     const res = await fetch(
       `${SB_URL}/rest/v1/photos?event_id=eq.${EVENT_ID}&category=eq.${catId}&order=uploaded_at.desc&select=*`,
-      { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` } }
+      { method:'GET', mode:'cors', credentials:'omit', headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Accept': 'application/json' } }
     );
     if (!res.ok) throw new Error(await res.text());
     const photos = await res.json();
@@ -1240,6 +1244,8 @@ async function toggleLike(photoId, btn) {
   try {
     await fetch(`${SB_URL}/rest/v1/photos?id=eq.${photoId}`, {
       method: 'PATCH',
+      mode: 'cors',
+      credentials: 'omit',
       headers: {
         'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`,
         'Content-Type': 'application/json', 'Prefer': 'return=minimal'
@@ -1372,6 +1378,8 @@ async function confirmDelete() {
     // 1. Supprimer du Storage
     const storageRes = await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${path}`, {
       method: 'DELETE',
+      mode: 'cors',
+      credentials: 'omit',
       headers: {
         'apikey':        SB_KEY,
         'Authorization': `Bearer ${SB_KEY}`,
@@ -1383,6 +1391,8 @@ async function confirmDelete() {
     // 2. Supprimer de la DB
     const dbRes = await fetch(`${SB_URL}/rest/v1/photos?id=eq.${id}`, {
       method: 'DELETE',
+      mode: 'cors',
+      credentials: 'omit',
       headers: {
         'apikey':        SB_KEY,
         'Authorization': `Bearer ${SB_KEY}`,
@@ -1432,7 +1442,7 @@ async function checkNewPhotos() {
   try {
     const res = await fetch(
       `${SB_URL}/rest/v1/photos?event_id=eq.${EVENT_ID}&order=uploaded_at.desc&select=id,category,uploaded_at`,
-      { headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}` } }
+      { method:'GET', mode:'cors', credentials:'omit', headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Accept':'application/json' } }
     );
     if (!res.ok) return;
     const latest = await res.json();
@@ -1511,7 +1521,7 @@ async function startSlideshowAll() {
   try {
     const res = await fetch(
       `${SB_URL}/rest/v1/photos?event_id=eq.${EVENT_ID}&order=uploaded_at.asc&select=*`,
-      { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` } }
+      { method:'GET', mode:'cors', credentials:'omit', headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Accept': 'application/json' } }
     );
     if (!res.ok) throw new Error(await res.text());
     ssPhotos = await res.json();
@@ -1622,7 +1632,7 @@ function ssClose() {
 async function downloadPhoto(url, filename) {
   try {
     showDlToast('Téléchargement…');
-    const res  = await fetch(url);
+    const res  = await fetch(url, { mode:'cors', credentials:'omit' });
     const blob = await res.blob();
     const a    = document.createElement('a');
     a.href     = URL.createObjectURL(blob);
@@ -1662,7 +1672,7 @@ async function downloadAllPhotos() {
   let done = 0;
   for (const p of photos) {
     try {
-      const res  = await fetch(p.public_url);
+      const res  = await fetch(p.public_url, { mode:'cors', credentials:'omit' });
       const blob = await res.blob();
       const a    = document.createElement('a');
       const ext  = (p.storage_path || 'photo.jpg').split('.').pop() || 'jpg';
