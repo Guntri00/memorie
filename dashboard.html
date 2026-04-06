@@ -300,6 +300,54 @@ footer{text-align:center;padding:24px;font-size:10px;letter-spacing:.18em;color:
   .stats-grid { grid-template-columns: repeat(4, 1fr); }
 }
 
+
+/* ── SÉLECTION MULTIPLE ── */
+.photo-card{position:relative;cursor:pointer}
+.photo-select-cb{
+  position:absolute;top:8px;left:8px;
+  width:22px;height:22px;
+  background:rgba(255,255,255,.9);
+  border:2px solid rgba(28,23,18,.3);
+  border-radius:4px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;z-index:6;
+  transition:all .2s;cursor:pointer;
+  opacity:0;
+}
+.select-mode .photo-select-cb{opacity:1}
+.photo-card.selected-card .photo-select-cb{
+  background:var(--gold);border-color:var(--gold);color:#fff;
+  opacity:1;
+}
+.photo-card.selected-card{
+  outline:2px solid var(--gold);
+  outline-offset:2px;
+}
+.select-bar{
+  display:none;
+  position:sticky;top:68px;z-index:40;
+  background:var(--dark);color:var(--warm);
+  padding:12px 20px;
+  border-radius:6px;margin-bottom:16px;
+  align-items:center;justify-content:space-between;
+  gap:12px;flex-wrap:wrap;
+  box-shadow:0 4px 20px rgba(28,23,18,.3);
+}
+.select-bar.show{display:flex;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.select-bar-info{font-size:12px;letter-spacing:.1em}
+.select-bar-info strong{color:var(--gold)}
+.select-bar-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn-select-all{padding:7px 14px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:var(--warm);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;border-radius:2px;cursor:pointer;transition:all .2s}
+.btn-select-all:hover{background:rgba(255,255,255,.2)}
+.btn-delete-sel{padding:7px 14px;background:var(--red);border:none;color:#fff;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;border-radius:2px;cursor:pointer;transition:all .2s}
+.btn-delete-sel:hover{background:#A93226}
+.btn-cancel-sel{padding:7px 14px;background:none;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.6);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;border-radius:2px;cursor:pointer;transition:all .2s}
+.btn-cancel-sel:hover{color:var(--warm)}
+.btn-select-mode{padding:8px 16px;background:none;border:1px solid var(--gold-m);color:var(--charcoal);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;border-radius:2px;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-select-mode:hover{border-color:var(--gold);color:var(--gold)}
+.btn-select-mode.active{background:var(--gold);border-color:var(--gold);color:var(--warm)}
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
@@ -405,7 +453,21 @@ footer{text-align:center;padding:24px;font-size:10px;letter-spacing:.18em;color:
       <h2 class="section-title">Toutes les photos</h2>
       <div class="section-actions">
         <button class="btn btn-outline" onclick="refreshPhotos()">↻ Actualiser</button>
+        <button class="btn-select-mode" id="btnSelectMode" onclick="toggleSelectMode()">☑ Sélectionner</button>
         <button class="btn btn-dark" id="dlAllZipBtn" onclick="downloadZip('all')">⬇ ZIP complet</button>
+      </div>
+    </div>
+
+    <!-- Barre de sélection -->
+    <div class="select-bar" id="selectBar">
+      <div class="select-bar-info">
+        <strong id="selectCount">0</strong> photo(s) sélectionnée(s)
+      </div>
+      <div class="select-bar-actions">
+        <button class="btn-select-all" onclick="selectAll()">Tout sélectionner</button>
+        <button class="btn-select-all" onclick="deselectAll()">Tout désélectionner</button>
+        <button class="btn-delete-sel" onclick="deleteSelected()">🗑 Supprimer la sélection</button>
+        <button class="btn-cancel-sel" onclick="toggleSelectMode()">✕ Annuler</button>
       </div>
     </div>
 
@@ -496,6 +558,7 @@ const CATEGORIES = {
 // ══════════════════════════════════════════
 let allPhotos        = [];
 let currentFilter    = 'all';
+let currentFilter    = 'all';
 let pendingDeleteId  = null;
 let pendingDeletePath= null;
 
@@ -542,6 +605,107 @@ async function doLogin() {
     err.classList.add('show');
   }
 }
+
+
+// ══════════════════════════════════════════
+//  SÉLECTION MULTIPLE
+// ══════════════════════════════════════════
+let selectMode     = false;
+let selectedPhotos = new Set(); // IDs sélectionnés
+
+function toggleSelectMode() {
+  selectMode = !selectMode;
+  const btn = document.getElementById('btnSelectMode');
+  const bar = document.getElementById('selectBar');
+  if (selectMode) {
+    btn.classList.add('active');
+    btn.textContent = '☑ Mode sélection actif';
+    bar.classList.add('show');
+  } else {
+    btn.classList.remove('active');
+    btn.textContent = '☑ Sélectionner';
+    bar.classList.remove('show');
+    selectedPhotos.clear();
+  }
+  renderPhotos();
+}
+
+function handleCardClick(id, path, url) {
+  if (selectMode) toggleSelect(id);
+  else openLB(url);
+}
+
+function toggleSelect(id) {
+  if (selectedPhotos.has(id)) selectedPhotos.delete(id);
+  else selectedPhotos.add(id);
+  updateSelectUI();
+  // Mettre à jour la carte visuellement
+  const card = document.getElementById('pc-' + id);
+  if (card) {
+    card.classList.toggle('selected-card', selectedPhotos.has(id));
+    const cb = card.querySelector('.photo-select-cb');
+    if (cb) cb.textContent = selectedPhotos.has(id) ? '✓' : '';
+  }
+}
+
+function selectAll() {
+  const photos = currentFilter === 'all'
+    ? allPhotos
+    : allPhotos.filter(p => p.category === currentFilter);
+  photos.forEach(p => selectedPhotos.add(p.id));
+  updateSelectUI();
+  renderPhotos();
+}
+
+function deselectAll() {
+  selectedPhotos.clear();
+  updateSelectUI();
+  renderPhotos();
+}
+
+function updateSelectUI() {
+  document.getElementById('selectCount').textContent = selectedPhotos.size;
+}
+
+async function deleteSelected() {
+  if (!selectedPhotos.size) { toast('Aucune photo sélectionnée'); return; }
+  const count = selectedPhotos.size;
+  if (!confirm(`Supprimer définitivement ${count} photo${count>1?'s':''} ? Cette action est irréversible.`)) return;
+
+  const ids    = [...selectedPhotos];
+  const photos = allPhotos.filter(p => ids.includes(p.id));
+  let   done   = 0;
+
+  for (const p of photos) {
+    try {
+      // Supprimer du storage
+      await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${p.storage_path}`, {
+        method:'DELETE', mode:'cors', credentials:'omit',
+        headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json' }
+      });
+      // Supprimer de la DB
+      await fetch(`${SB_URL}/rest/v1/photos?id=eq.${p.id}`, {
+        method:'DELETE', mode:'cors', credentials:'omit',
+        headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal' }
+      });
+      // Retirer du DOM
+      const card = document.getElementById('pc-' + p.id);
+      if (card) card.remove();
+      done++;
+    } catch(e) {
+      console.warn('Delete failed:', p.id, e.message);
+    }
+  }
+
+  // Mettre à jour allPhotos
+  allPhotos = allPhotos.filter(p => !ids.includes(p.id));
+  selectedPhotos.clear();
+  updateStats();
+  updateSelectUI();
+  toggleSelectMode();
+  toast(`✓ ${done} photo${done>1?'s':''} supprimée${done>1?'s':''}`);
+}
+
 
 function doLogout() {
   sessionStorage.removeItem('mementos_auth');
@@ -647,6 +811,8 @@ function updateStats() {
 // ══════════════════════════════════════════
 function filterCat(cat, btn) {
   currentFilter = cat;
+  selectedPhotos.clear();
+  updateSelectUI();
   document.querySelectorAll('.cat-tab').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
   renderPhotos();
@@ -664,12 +830,18 @@ function renderPhotos() {
     return;
   }
 
+  const gridEl = document.getElementById('photoGrid');
+  if (selectMode) gridEl.classList.add('select-mode');
+  else gridEl.classList.remove('select-mode');
+
   grid.innerHTML = photos.map(p => {
     const cat  = CATEGORIES[p.category] || { emoji:'📷', name:'Autre' };
     const time = new Date(p.uploaded_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
     const date = new Date(p.uploaded_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'});
+    const sel  = selectedPhotos.has(p.id);
     return `
-    <div class="photo-card" id="pc-${p.id}">
+    <div class="photo-card ${sel?'selected-card':''}" id="pc-${p.id}" onclick="handleCardClick('${p.id}','${p.storage_path}','${p.public_url}')">
+      <div class="photo-select-cb" onclick="event.stopPropagation();toggleSelect('${p.id}')">${sel?'✓':''}</div>
       <img src="${p.public_url}" alt="" loading="lazy" onerror="this.onerror=null;this.src=this.src">
       <div class="photo-card-actions">
         <button class="photo-action-btn photo-dl-btn" onclick="event.stopPropagation();dlPhoto('${p.public_url}','${p.storage_path}')" title="Télécharger">⬇</button>
@@ -716,61 +888,60 @@ async function downloadZip(catFilter) {
 
   prog.classList.add('show');
   if (btn) btn.disabled = true;
+  label.textContent = `Chargement de ${photos.length} photos…`;
 
-  const zip  = new JSZip();
-  let done   = 0;
+  const zip   = new JSZip();
   const total = photos.length;
+  let   done  = 0;
 
-  // Télécharger toutes les photos en parallèle (par lots de 5)
-  const BATCH = 5;
-  for (let i = 0; i < photos.length; i += BATCH) {
-    const batch = photos.slice(i, i + BATCH);
-    await Promise.all(batch.map(async (p) => {
-      try {
-        label.textContent = `Chargement ${done + 1} / ${total}…`;
-        const res = await fetch(p.public_url, {
-          mode: 'cors',
-          credentials: 'omit'
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const blob = await res.blob();
-        const ext  = (p.storage_path || 'photo.jpg').split('.').pop() || 'jpg';
-        const cat  = p.category || 'photo';
-        const name = p.uploader_name ? `${p.uploader_name}` : 'Invité';
-        const filename = `${cat}/${String(done + 1).padStart(3,'0')}_${name}.${ext}`;
-        zip.file(filename, blob);
-        done++;
-        const pct2 = Math.round((done / total) * 100);
-        bar.style.width = pct2 + '%';
-        pct.textContent = pct2 + '%';
-      } catch(e) {
-        console.warn('Failed:', p.public_url, e.message);
-        done++;
-      }
-    }));
+  // Séquentiel pour fiabilité maximale
+  for (let i = 0; i < photos.length; i++) {
+    const p = photos[i];
+    label.textContent = `Chargement ${i+1} / ${total}…`;
+    try {
+      const controller = new AbortController();
+      const timeout    = setTimeout(() => controller.abort(), 30000);
+      const res = await fetch(p.public_url, {
+        mode: 'cors', credentials: 'omit', signal: controller.signal
+      });
+      clearTimeout(timeout);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const ext  = (p.storage_path || 'photo.jpg').split('.').pop().toLowerCase() || 'jpg';
+      const cat  = p.category || 'photo';
+      const name = (p.uploader_name || 'Invite').replace(/[^a-zA-Z0-9À-ž]/g, '_');
+      zip.file(`${cat}/${String(i+1).padStart(3,'0')}_${name}.${ext}`, blob);
+      done++;
+    } catch(e) {
+      console.warn(`Photo ${i+1} échouée:`, e.message);
+    }
+    const p1 = Math.round(((i+1) / total) * 70);
+    bar.style.width = p1 + '%';
+    pct.textContent = p1 + '%';
   }
 
-  // Générer et télécharger le ZIP
-  label.textContent = 'Création du fichier ZIP…';
+  label.textContent = `Compression de ${done} photos…`;
   try {
     const zipBlob = await zip.generateAsync({
       type: 'blob',
       compression: 'DEFLATE',
-      compressionOptions: { level: 6 }
-    }, (metadata) => {
-      bar.style.width = metadata.percent.toFixed(0) + '%';
-      pct.textContent = metadata.percent.toFixed(0) + '%';
+      compressionOptions: { level: 5 }
+    }, (meta) => {
+      const p2 = 70 + Math.round(meta.percent * 0.3);
+      bar.style.width = p2 + '%';
+      pct.textContent = p2 + '%';
     });
 
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(zipBlob);
-    a.download = `mementos-${catFilter === 'all' ? 'toutes-categories' : catFilter}-${new Date().toLocaleDateString('fr-FR').replace(/\//g,'-')}.zip`;
+    const date = new Date().toLocaleDateString('fr-FR').replace(/[/]/g, '-');
+    const a    = document.createElement('a');
+    a.href     = URL.createObjectURL(zipBlob);
+    a.download = `mementos-${catFilter === 'all' ? 'complet' : catFilter}-${date}.zip`;
+    a.style.display = 'none';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
-
-    toast(`✓ ZIP de ${done} photos téléchargé !`);
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    toast(`✓ ZIP de ${done} / ${total} photos téléchargé !`);
   } catch(e) {
     toast('⚠️ Erreur ZIP : ' + e.message);
   }
