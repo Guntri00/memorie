@@ -362,11 +362,11 @@ footer{text-align:center;padding:24px;font-size:10px;letter-spacing:.18em;color:
     </div>
     <div class="login-field">
       <label>Identifiant</label>
-      <input type="text" id="loginInput" placeholder="Votre identifiant" onkeydown="if(event.key==='Enter')doLogin()" autocomplete="username">
+      <input type="text" id="loginInput" placeholder="Votre identifiant" onkeydown="if(event.key==='Enter'){doLogin();}" autocomplete="username">
     </div>
     <div class="login-field">
       <label>Mot de passe</label>
-      <input type="password" id="pwdInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" autocomplete="current-password">
+      <input type="password" id="pwdInput" placeholder="••••••••" onkeydown="if(event.key==='Enter'){doLogin();}" autocomplete="current-password">
     </div>
     <button class="login-btn" onclick="doLogin()">Accéder au dashboard</button>
     <p class="login-err" id="loginErr">Identifiant ou mot de passe incorrect</p>
@@ -670,53 +670,21 @@ async function deleteSelected() {
 }
 
 
-// Hachage SHA-256 natif
-async function sha256(str) {
-  if (typeof crypto !== 'undefined' && crypto.subtle) {
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-  }
-  // Fallback si crypto.subtle indisponible
-  return btoa(str);
-}
-
-async function doLogin() {
-  const user = document.getElementById('loginInput').value.trim();
-  const pwd  = document.getElementById('pwdInput').value;
+function doLogin() {
+  const user = (document.getElementById('loginInput').value || '').trim();
+  const pwd  = (document.getElementById('pwdInput').value || '');
   const err  = document.getElementById('loginErr');
 
-  if (!user || !pwd) { err.classList.add('show'); return; }
-
-  // Vérification — fonctionne avec ou sans crypto.subtle
-  let valid = false;
-  try {
-    if (typeof crypto !== 'undefined' && crypto.subtle) {
-      const userHash = await sha256(user);
-      const pwdHash  = await sha256(pwd);
-      const lh = '5d6ada4655ef0223d6391f5aeac433c04fc9db4d6fe8b3055fc0f49092a2fdb4';
-      const ph = 'ad1f95a7db72b027a7ad4960a216ad4d4d9071c8e3ce367ec5538722ceceeb24';
-      valid = (userHash === lh && pwdHash === ph);
-    } else {
-      // Fallback base64
-      valid = (btoa(user) === 'R3VudHJp' && btoa(pwd) === 'RmVyaWVsMDEhIQ==');
-    }
-  } catch(e) {
-    // Fallback ultime
-    valid = (btoa(user) === 'R3VudHJp' && btoa(pwd) === 'RmVyaWVsMDEhIQ==');
-  }
-
-  if (valid) {
+  if (user === 'Guntri' && pwd === 'Feriel01!!') {
     sessionStorage.setItem('mementos_auth', '1');
-    const loginEl = document.getElementById('loginWrap');
-    const dashEl  = document.getElementById('dashboard');
-    if (loginEl) loginEl.style.display = 'none';
-    if (dashEl)  dashEl.style.display  = 'block';
+    document.getElementById('loginWrap').style.display = 'none';
+    document.getElementById('dashboard').style.display  = 'block';
     err.classList.remove('show');
-    if (typeof loadDashboard === 'function') loadDashboard();
+    loadDashboard();
   } else {
     err.classList.add('show');
     document.getElementById('pwdInput').value = '';
-    setTimeout(() => document.getElementById('loginInput').focus(), 100);
+    document.getElementById('loginInput').focus();
   }
 }
 
