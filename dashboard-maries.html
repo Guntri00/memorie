@@ -544,6 +544,7 @@ footer em{font-style:italic;font-family:'Playfair Display',serif;font-size:12px;
 
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💍</text></svg>">
 </head>
 <body>
 
@@ -858,7 +859,7 @@ async function downloadZipPhotos(photos, zipName) {
       try {
         const controller = new AbortController();
       const timeout    = setTimeout(() => controller.abort(), 30000);
-      const res = await fetch(p.public_url, { mode:'cors', credentials:'omit', signal: controller.signal });
+      const res = await fetch(getPhotoUrl(p), { mode:'cors', credentials:'omit', signal: controller.signal });
       clearTimeout(timeout);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const blob = await res.blob();
@@ -1046,6 +1047,15 @@ function filterCat(cat,btn){
   renderPhotos();
 }
 
+
+// Construire l'URL publique correcte depuis storage_path
+function getPhotoUrl(p) {
+  if (p.storage_path) {
+    return `${SB_URL}/storage/v1/object/public/${BUCKET}/${p.storage_path}`;
+  }
+  return p.public_url || '';
+}
+
 function renderPhotos(){
   const photos=currentFilter==='all'?allPhotos:allPhotos.filter(p=>p.category===currentFilter);
   const grid=document.getElementById('photoGrid');
@@ -1057,10 +1067,10 @@ function renderPhotos(){
     const cat=CATS[p.category]||{emoji:'📷',name:'Autre'};
     const time=new Date(p.uploaded_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
     return `
-    <div class="photo-card" onclick="openLB('${p.public_url}')">
-      <img src="${p.public_url}" alt="" loading="lazy" crossorigin="anonymous" onerror="this.src='${p.public_url}';this.removeAttribute('crossorigin')">
+    <div class="photo-card" onclick="openLB('${getPhotoUrl(p)}')">
+      <img src="${getPhotoUrl(p)}" alt="" loading="lazy" crossorigin="anonymous" onerror="this.src='${getPhotoUrl(p)}';this.removeAttribute('crossorigin')">
       <div class="photo-overlay">
-        <button class="photo-dl-btn" onclick="event.stopPropagation();dlOne('${p.public_url}','${p.storage_path||''}','${p.category||''}')">⬇️</button>
+        <button class="photo-dl-btn" onclick="event.stopPropagation();dlOne('${getPhotoUrl(p)}','${p.storage_path||''}','${p.category||''}')">⬇️</button>
       </div>
       <div class="photo-card-meta">
         <div class="photo-meta-name">${p.uploader_name||'Invité'} ${cat.emoji}</div>
