@@ -3,807 +3,505 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Mélodie & Thomas — Nos Souvenirs</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Lato:wght@300;400&display=swap" rel="stylesheet"/>
+<title>Mementos — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --rose:    #F2E8E4;
-  --rose-d:  #E8D5CC;
-  --blush:   #D4A5A0;
-  --rouge:   #B87878;
-  --gold:    #C9A96E;
-  --gold-l:  #DFC28F;
-  --gold-d:  #A8844A;
-  --dark:    #2C1810;
-  --brown:   #5C3D2E;
-  --stone:   #9A8880;
-  --cream:   #FDF8F5;
-  --warm:    #FFFCFA;
+  --cream:#F7F3EE;--warm:#FDFAF6;--gold:#B8935A;--gold-l:#D4AE7A;
+  --gold-m:#E8D5B7;--dark:#1C1712;--stone:#8A8078;--charcoal:#3A3530;
+  --red:#C0392B;--green:#27AE60;
 }
+body{background:var(--cream);font-family:'Jost',sans-serif;font-weight:300;color:var(--dark);min-height:100vh}
 
-html{scroll-behavior:smooth}
-body{
-  background:linear-gradient(160deg, var(--dark) 0%, var(--brown) 50%, #3D2218 100%);
-  background-attachment:fixed;
-  font-family:'Lato',sans-serif;font-weight:300;
-  color:var(--dark);min-height:100vh;
-  overflow-x:hidden;
-}
-
-/* Grain texture */
-body::after{
-  content:'';position:fixed;inset:0;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
-  pointer-events:none;z-index:9999;
-}
-
-/* ════════════════════════════════
-   LOGIN
-════════════════════════════════ */
-.login-page{
-  min-height:100vh;display:flex;
-  background:linear-gradient(160deg, var(--dark) 0%, var(--brown) 50%, #3D2218 100%);
+/* ── LOGIN ── */
+.login-wrap{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+  background:var(--dark);
   position:relative;overflow:hidden;
 }
-
-/* Pétales décoratifs */
-.petal{
-  position:absolute;font-size:20px;opacity:.12;
-  animation:drift linear infinite;
-}
-.petal:nth-child(1){left:5%;animation-duration:18s;animation-delay:0s;font-size:16px}
-.petal:nth-child(2){left:20%;animation-duration:22s;animation-delay:-5s}
-.petal:nth-child(3){left:40%;animation-duration:19s;animation-delay:-8s;font-size:24px}
-.petal:nth-child(4){left:60%;animation-duration:25s;animation-delay:-3s;font-size:14px}
-.petal:nth-child(5){left:75%;animation-duration:20s;animation-delay:-12s}
-.petal:nth-child(6){left:90%;animation-duration:17s;animation-delay:-6s;font-size:18px}
-@keyframes drift{
-  from{transform:translateY(-60px) rotate(0deg);opacity:0}
-  10%{opacity:.12}
-  90%{opacity:.12}
-  to{transform:translateY(110vh) rotate(360deg);opacity:0}
-}
-
-.login-content{
-  position:relative;z-index:1;
-  width:100%;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  padding:40px 24px;
-}
-
-.login-ornament{
-  text-align:center;margin-bottom:32px;
-  animation:fadeUp .8s ease both;
-}
-.login-ornament .ring{font-size:42px;display:block;margin-bottom:10px}
-.login-title{
-  font-family:'Playfair Display',serif;
-  font-size:clamp(32px,8vw,52px);font-weight:400;
-  color:var(--warm);line-height:1.1;
-  animation:fadeUp .8s ease .1s both;
-}
-.login-title em{font-style:italic;color:var(--gold)}
-.login-date{
-  font-size:11px;letter-spacing:.3em;text-transform:uppercase;
-  color:var(--blush);margin-top:8px;
-  animation:fadeUp .8s ease .2s both;
-}
-
-.login-divider{
-  display:flex;align-items:center;gap:12px;
-  margin:24px 0;width:100%;max-width:340px;
-  animation:fadeUp .8s ease .3s both;
-}
-.login-divider-line{flex:1;height:1px;background:rgba(201,169,110,.25)}
-.login-divider span{font-size:14px;color:var(--gold);opacity:.6}
-
-.login-box{
-  width:100%;max-width:340px;
-  animation:fadeUp .8s ease .4s both;
-}
-.login-field{margin-bottom:14px}
-.login-field label{
-  display:block;font-size:9px;letter-spacing:.28em;
-  text-transform:uppercase;color:var(--blush);margin-bottom:8px;
-}
-.login-field input{
-  width:100%;padding:14px 18px;
-  background:rgba(255,252,250,.07);
-  border:1px solid rgba(201,169,110,.25);
-  border-radius:3px;color:var(--warm);
-  font-family:'Lato',sans-serif;font-size:14px;font-weight:300;
-  outline:none;transition:all .3s;
-}
-.login-field input:focus{
-  border-color:rgba(201,169,110,.6);
-  background:rgba(255,252,250,.1);
-}
-.login-field input::placeholder{color:rgba(154,136,128,.4)}
-.login-submit{
-  width:100%;margin-top:6px;padding:15px;
-  background:linear-gradient(135deg,var(--gold),var(--gold-l));
-  color:var(--dark);font-family:'Lato',sans-serif;
-  font-size:11px;letter-spacing:.28em;text-transform:uppercase;
-  font-weight:400;border:none;border-radius:3px;cursor:pointer;
-  transition:all .3s;position:relative;overflow:hidden;
-}
-.login-submit::before{
+.login-wrap::before{
   content:'';position:absolute;inset:0;
-  background:rgba(255,255,255,0);transition:background .3s;
+  background:radial-gradient(ellipse at 30% 50%, rgba(184,147,90,.12) 0%, transparent 60%),
+             radial-gradient(ellipse at 70% 80%, rgba(184,147,90,.07) 0%, transparent 50%);
 }
-.login-submit:hover::before{background:rgba(255,255,255,.15)}
-.login-submit:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(201,169,110,.3)}
+.login-box{
+  position:relative;z-index:1;
+  width:100%;max-width:380px;
+  background:rgba(253,250,246,.04);
+  border:1px solid rgba(184,147,90,.2);
+  border-radius:8px;padding:48px 36px;
+  backdrop-filter:blur(10px);
+}
+.login-logo{
+  text-align:center;margin-bottom:36px;
+}
+.login-logo h1{
+  font-family:'Cormorant Garamond',serif;
+  font-size:32px;font-weight:300;color:var(--warm);
+  letter-spacing:.02em;
+}
+.login-logo h1 em{font-style:italic;color:var(--gold)}
+.login-logo p{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--stone);margin-top:6px}
+.login-field{margin-bottom:16px}
+.login-field label{display:block;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--stone);margin-bottom:8px}
+.login-field input{
+  width:100%;padding:13px 16px;
+  background:rgba(253,250,246,.06);
+  border:1px solid rgba(184,147,90,.25);
+  border-radius:3px;color:var(--warm);
+  font-family:'Jost',sans-serif;font-size:14px;font-weight:300;
+  outline:none;transition:border-color .25s;
+}
+.login-field input:focus{border-color:var(--gold)}
+.login-field input::placeholder{color:rgba(138,128,120,.5)}
+.login-btn{
+  width:100%;margin-top:8px;padding:14px;
+  background:var(--gold);color:var(--warm);
+  font-family:'Jost',sans-serif;font-size:11px;
+  letter-spacing:.25em;text-transform:uppercase;
+  border:none;border-radius:3px;cursor:pointer;
+  transition:all .25s;font-weight:400;
+}
+.login-btn:hover{background:var(--gold-l)}
 .login-err{
-  text-align:center;font-size:12px;color:#E8A0A0;
-  margin-top:12px;display:none;
+  margin-top:12px;text-align:center;
+  font-size:12px;color:#E74C3C;
+  display:none;
 }
-.login-err.show{display:block;animation:shake .4s ease}
-@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.login-err.show{display:block}
 
-/* ════════════════════════════════
-   DASHBOARD
-════════════════════════════════ */
+/* ── DASHBOARD ── */
 #dashboard{display:none}
 
-/* HERO HEADER */
-.hero{
-  background:transparent;
-  padding:0 24px 48px;position:relative;overflow:hidden;text-align:center;z-index:1;
-}
-.hero::after{
-  content:'';position:absolute;bottom:0;left:0;right:0;height:60px;
-  background:linear-gradient(transparent,rgba(44,24,16,.1));pointer-events:none;
-}
-
-/* Pétales hero */
-.hero-petal{
-  position:absolute;font-size:16px;opacity:.1;
-  animation:drift linear infinite;pointer-events:none;
-}
-
-.hero-topbar{
+.dash-header{
+  background:var(--dark);padding:18px 28px;
   display:flex;align-items:center;justify-content:space-between;
-  padding:16px 0 40px;position:relative;z-index:1;
+  position:sticky;top:0;z-index:50;
+  border-bottom:1px solid rgba(184,147,90,.15);
 }
-.hero-logo{
-  font-family:'Playfair Display',serif;font-size:16px;
-  font-weight:400;color:rgba(255,252,250,.5);font-style:italic;
+.dash-logo{
+  font-family:'Cormorant Garamond',serif;
+  font-size:22px;font-weight:300;color:var(--warm);
 }
-.hero-logout{
-  font-size:9px;letter-spacing:.2em;text-transform:uppercase;
-  color:rgba(154,136,128,.6);background:none;
-  border:1px solid rgba(154,136,128,.25);
-  padding:6px 14px;border-radius:2px;cursor:pointer;transition:all .2s;
-}
-.hero-logout:hover{color:var(--warm);border-color:rgba(201,169,110,.4)}
-
-.hero-content{position:relative;z-index:1}
-.hero-ring{font-size:44px;display:block;margin-bottom:16px;animation:floatRing 4s ease-in-out infinite}
-@keyframes floatRing{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-.hero-names{
-  font-family:'Playfair Display',serif;
-  font-size:clamp(38px,9vw,68px);font-weight:400;
-  color:var(--warm);line-height:1.05;margin-bottom:10px;
-}
-.hero-names em{font-style:italic;color:var(--gold)}
-.hero-date{
-  font-size:11px;letter-spacing:.3em;text-transform:uppercase;
-  color:var(--blush);margin-bottom:24px;
-}
-.hero-tagline{
-  font-size:14px;color:rgba(255,252,250,.6);
-  line-height:1.7;max-width:360px;margin:0 auto;
-}
-.hero-stats{
-  display:flex;align-items:center;justify-content:center;
-  gap:32px;margin-top:28px;flex-wrap:wrap;
-}
-.hero-stat{text-align:center}
-.hero-stat-val{
-  font-family:'Playfair Display',serif;
-  font-size:28px;font-weight:400;color:var(--gold);display:block;
-}
-.hero-stat-lbl{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--blush)}
-.hero-stat-sep{color:rgba(201,169,110,.3);font-size:20px}
-
-/* BODY */
-.body{max-width:900px;margin:0 auto;padding:40px 20px 80px;position:relative;z-index:1}
-
-/* SECTION TITLE */
-.sec-title{
-  font-family:'Playfair Display',serif;
-  font-size:24px;font-weight:400;color:rgba(253,248,245,.9);
-  margin-bottom:6px;
-}
-.sec-title em{font-style:italic;color:var(--gold-l)}
-.sec-sub{font-size:12px;color:var(--blush);margin-bottom:24px;letter-spacing:.05em;opacity:.8}
-.sec-divider{
-  display:flex;align-items:center;gap:14px;margin-bottom:28px;
-}
-.sec-divider-line{flex:1;height:1px;background:rgba(212,165,160,.2)}
-.sec-divider span{font-size:16px;opacity:.4}
-
-/* DIAPORAMA CARD */
-.ss-card{
-  background:linear-gradient(135deg,var(--dark),var(--brown));
-  border-radius:12px;padding:32px 28px;
-  display:flex;align-items:center;justify-content:space-between;
-  gap:20px;flex-wrap:wrap;margin-bottom:40px;
-  position:relative;overflow:hidden;
-  box-shadow:0 12px 40px rgba(44,24,16,.2);
-}
-.ss-card::before{
-  content:'';position:absolute;
-  top:-40px;right:-40px;width:180px;height:180px;
-  background:radial-gradient(circle,rgba(201,169,110,.15),transparent 70%);
-  border-radius:50%;
-}
-.ss-card-left .ss-card-icon{font-size:32px;margin-bottom:10px;display:block}
-.ss-card-left h3{
-  font-family:'Playfair Display',serif;
-  font-size:22px;font-weight:400;color:var(--warm);margin-bottom:6px;
-}
-.ss-card-left h3 em{font-style:italic;color:var(--gold)}
-.ss-card-left p{font-size:12px;color:var(--blush);line-height:1.6;max-width:320px}
-.ss-launch{
-  padding:14px 32px;
-  background:linear-gradient(135deg,var(--gold),var(--gold-l));
-  color:var(--dark);font-family:'Lato',sans-serif;
-  font-size:11px;letter-spacing:.22em;text-transform:uppercase;
-  border:none;border-radius:4px;cursor:pointer;transition:all .3s;
-  font-weight:400;white-space:nowrap;flex-shrink:0;
-}
-.ss-launch:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(201,169,110,.35)}
-.ss-launch:disabled{opacity:.4;cursor:not-allowed;transform:none}
-
-/* MESSAGE DU JOUR */
-.message-card{
-  background:rgba(253,248,245,.08);border:1px solid rgba(212,165,160,.2);
-  border-radius:12px;padding:28px;margin-bottom:40px;
-  text-align:center;position:relative;overflow:hidden;
-  backdrop-filter:blur(8px);
-}
-.message-card::before{
-  content:'"';
-  font-family:'Playfair Display',serif;font-size:120px;font-weight:400;
-  color:rgba(212,165,160,.15);position:absolute;top:-20px;left:16px;line-height:1;
-  pointer-events:none;
-}
-.message-card p{
-  font-family:'Playfair Display',serif;font-style:italic;
-  font-size:18px;color:rgba(253,248,245,.85);line-height:1.7;
-  position:relative;z-index:1;max-width:480px;margin:0 auto 12px;
-}
-.message-card cite{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--blush)}
-
-/* TÉLÉCHARGEMENT */
-.dl-grid{
-  display:grid;grid-template-columns:1fr 1fr;
-  gap:12px;margin-bottom:16px;
-}
-@media(min-width:580px){.dl-grid{grid-template-columns:repeat(4,1fr)}}
-.dl-card{
-  background:rgba(253,248,245,.07);border:1px solid rgba(212,165,160,.2);
-  border-radius:10px;padding:22px 16px 18px;
-  text-align:center;transition:all .3s;cursor:pointer;
-  position:relative;overflow:hidden;backdrop-filter:blur(8px);
-}
-.dl-card::after{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(135deg,rgba(201,169,110,.08),transparent);
-  pointer-events:none;
-}
-.dl-card:hover{
-  border-color:var(--gold);transform:translateY(-3px);
-  box-shadow:0 10px 30px rgba(201,169,110,.2);
-  background:rgba(253,248,245,.1);
-}
-.dl-card.loading{opacity:.6;pointer-events:none}
-.dl-card-emoji{font-size:30px;margin-bottom:10px;display:block}
-.dl-card-name{
-  font-family:'Playfair Display',serif;font-size:15px;
-  color:rgba(253,248,245,.9);margin-bottom:4px;
-}
-.dl-card-count{font-size:10px;color:var(--blush);margin-bottom:14px;letter-spacing:.08em;opacity:.8}
-.dl-card-btn{
-  width:100%;padding:9px;
-  background:linear-gradient(135deg,var(--gold),var(--gold-l));
-  color:var(--dark);font-family:'Lato',sans-serif;
-  font-size:9px;letter-spacing:.18em;text-transform:uppercase;
-  border:none;border-radius:3px;cursor:pointer;transition:all .25s;
-}
-.dl-card-btn:hover{opacity:.85}
-
-.dl-all{
-  background:rgba(201,169,110,.12);
-  border:1px solid rgba(201,169,110,.3);border-radius:10px;
-  padding:22px 24px;
-  display:flex;align-items:center;justify-content:space-between;
-  gap:16px;flex-wrap:wrap;margin-bottom:40px;cursor:pointer;transition:all .3s;
-  backdrop-filter:blur(8px);
-}
-.dl-all:hover{border-color:var(--gold);box-shadow:0 8px 24px rgba(201,169,110,.2)}
-.dl-all-info h3{font-family:'Playfair Display',serif;font-size:18px;color:rgba(253,248,245,.9);margin-bottom:3px}
-.dl-all-info p{font-size:12px;color:var(--blush);opacity:.8}
-.dl-all-btn{
-  padding:12px 26px;
-  background:linear-gradient(135deg,var(--rouge),var(--blush));
-  color:var(--warm);font-family:'Lato',sans-serif;
+.dash-logo em{font-style:italic;color:var(--gold)}
+.dash-logo span{font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--stone);display:block;margin-top:1px}
+.dash-actions{display:flex;align-items:center;gap:12px}
+.dash-logout{
   font-size:10px;letter-spacing:.2em;text-transform:uppercase;
-  border:none;border-radius:3px;cursor:pointer;transition:all .25s;
-  white-space:nowrap;flex-shrink:0;
+  color:var(--stone);background:none;border:1px solid rgba(138,128,120,.3);
+  padding:7px 14px;border-radius:2px;cursor:pointer;transition:all .2s;
 }
-.dl-all-btn:hover{opacity:.85}
+.dash-logout:hover{color:var(--warm);border-color:var(--stone)}
 
-/* PROGRESS */
-.dl-prog{
-  background:rgba(253,248,245,.08);border:1px solid rgba(212,165,160,.2);
-  border-radius:8px;padding:16px 20px;margin-bottom:20px;display:none;
-  backdrop-filter:blur(8px);
+.dash-body{max-width:1100px;margin:0 auto;padding:32px 24px 80px}
+
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:32px}
+@media(min-width:600px){.stats-grid{grid-template-columns:repeat(4,1fr)}}
+.stat-card{
+  background:var(--warm);border:1px solid var(--gold-m);
+  border-radius:6px;padding:20px 18px;
+  position:relative;overflow:hidden;
 }
-.dl-prog.show{display:block;animation:fadeUp .3s ease}
-.dl-prog-top{display:flex;justify-content:space-between;font-size:12px;color:var(--blush);margin-bottom:8px}
-.dl-prog-bar{height:3px;background:var(--rose-d);border-radius:2px;overflow:hidden}
-.dl-prog-fill{height:100%;background:linear-gradient(90deg,var(--rouge),var(--blush));width:0%;transition:width .3s;border-radius:2px}
+.stat-card::before{
+  content:'';position:absolute;top:0;right:0;
+  width:60px;height:60px;
+  background:linear-gradient(135deg,transparent,rgba(184,147,90,.06));
+  border-radius:0 6px 0 60px;
+}
+.stat-val{
+  font-family:'Cormorant Garamond',serif;
+  font-size:36px;font-weight:300;color:var(--dark);
+  line-height:1;margin-bottom:6px;
+}
+.stat-lbl{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--stone)}
+.stat-icon{font-size:20px;margin-bottom:8px;display:block}
 
-/* GALERIE */
-.cat-tabs{
-  display:flex;gap:6px;margin-bottom:20px;
+/* ── SECTION HEADER ── */
+.section-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:20px;padding-bottom:12px;
+  border-bottom:1px solid var(--gold-m);
+}
+.section-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:22px;font-weight:300;color:var(--dark);
+}
+.section-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ── BOUTONS ── */
+.btn{
+  padding:9px 18px;border-radius:2px;
+  font-family:'Jost',sans-serif;font-size:10px;
+  letter-spacing:.18em;text-transform:uppercase;
+  cursor:pointer;transition:all .25s;border:none;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.btn-gold{background:var(--gold);color:var(--warm)}
+.btn-gold:hover{background:var(--charcoal)}
+.btn-dark{background:var(--dark);color:var(--warm)}
+.btn-dark:hover{background:var(--gold)}
+.btn-outline{background:none;border:1px solid var(--gold-m);color:var(--charcoal)}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+.btn-red{background:var(--red);color:#fff}
+.btn-red:hover{background:#A93226}
+.btn-sm{padding:6px 12px;font-size:9px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ── TOGGLE UPLOAD ── */
+.toggle-bar{
+  background:var(--warm);border:1px solid var(--gold-m);
+  border-radius:6px;padding:18px 22px;margin-bottom:28px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
   flex-wrap:wrap;
 }
-.cat-tab{
-  padding:8px 14px;background:rgba(253,248,245,.08);
-  border:1px solid rgba(212,165,160,.2);border-radius:20px;
-  font-family:'Lato',sans-serif;font-size:10px;
-  letter-spacing:.12em;text-transform:uppercase;
-  color:var(--blush);cursor:pointer;transition:all .25s;
-  display:flex;align-items:center;gap:6px;backdrop-filter:blur(4px);
+.toggle-info h3{font-family:'Cormorant Garamond',serif;font-size:18px;margin-bottom:3px}
+.toggle-info p{font-size:12px;color:var(--stone);line-height:1.5}
+.toggle-switch{
+  position:relative;width:52px;height:28px;flex-shrink:0;
 }
-.cat-tab:hover{border-color:var(--blush);color:var(--warm)}
-.cat-tab.on{
-  background:linear-gradient(135deg,var(--rouge),var(--blush));
-  border-color:var(--rouge);color:var(--warm);
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{
+  position:absolute;inset:0;background:var(--gold-m);
+  border-radius:28px;cursor:pointer;transition:.3s;
 }
-.cat-tab .tc{
-  background:rgba(255,255,255,.25);
-  font-size:9px;padding:1px 6px;border-radius:8px;
+.toggle-slider::before{
+  content:'';position:absolute;height:20px;width:20px;
+  left:4px;bottom:4px;background:white;
+  border-radius:50%;transition:.3s;
+  box-shadow:0 2px 4px rgba(0,0,0,.15);
 }
-.cat-tab:not(.on) .tc{background:var(--rose);color:var(--stone)}
+.toggle-switch input:checked + .toggle-slider{background:var(--green)}
+.toggle-switch input:checked + .toggle-slider::before{transform:translateX(24px)}
+.toggle-status{font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-top:4px}
+.toggle-status.on{color:var(--green)}
+.toggle-status.off{color:var(--red)}
 
+/* ── CAT TABS ── */
+.cat-tabs{display:flex;gap:0;margin-bottom:24px;border:1px solid var(--gold-m);border-radius:4px;overflow:hidden;flex-wrap:wrap}
+.cat-tab{
+  flex:1;min-width:0;padding:10px 8px;background:none;border:none;
+  font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--stone);cursor:pointer;transition:all .2s;
+  white-space:nowrap;border-right:1px solid var(--gold-m);
+}
+.cat-tab:last-child{border-right:none}
+.cat-tab.on{background:var(--gold);color:var(--warm)}
+.cat-tab:not(.on):hover{background:var(--cream);color:var(--gold)}
+.cat-tab .tab-count{
+  display:inline-block;margin-left:4px;
+  background:rgba(184,147,90,.2);color:var(--gold);
+  font-size:9px;padding:1px 5px;border-radius:8px;
+}
+.cat-tab.on .tab-count{background:rgba(255,255,255,.25);color:#fff}
+
+/* ── PHOTO GRID ── */
 .photo-grid{
   display:grid;
-  grid-template-columns:repeat(2,1fr);
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
   gap:10px;
 }
-@media(min-width:480px){.photo-grid{grid-template-columns:repeat(3,1fr)}}
-@media(min-width:720px){.photo-grid{grid-template-columns:repeat(4,1fr)}}
+@media(min-width:600px){.photo-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}}
 
 .photo-card{
-  border-radius:8px;overflow:hidden;position:relative;
-  background:var(--rose);cursor:pointer;
-  transition:all .3s;
+  border-radius:4px;overflow:hidden;position:relative;
+  background:var(--gold-m);
+  border:1px solid transparent;
+  transition:all .25s;
 }
-.photo-card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(44,24,16,.15)}
-.photo-card img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.photo-card:hover{border-color:var(--gold);box-shadow:0 8px 24px rgba(184,147,90,.15)}
+.photo-card img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
 .photo-card-meta{
-  padding:8px 10px;background:rgba(44,24,16,.6);
-  border-top:1px solid rgba(212,165,160,.15);
+  padding:10px 12px;background:var(--warm);
+  border-top:1px solid var(--gold-m);
 }
-.photo-meta-name{font-size:11px;color:rgba(253,248,245,.9)}
-.photo-meta-time{font-size:10px;color:var(--blush)}
-.photo-overlay{
-  position:absolute;inset:0;
-  background:linear-gradient(transparent 50%,rgba(44,24,16,.6));
-  opacity:0;transition:opacity .25s;
-  display:flex;align-items:flex-end;justify-content:flex-end;
-  padding:10px;
+.photo-meta-name{font-size:12px;color:var(--dark);margin-bottom:2px}
+.photo-meta-time{font-size:10px;color:var(--stone);letter-spacing:.05em}
+.photo-card-actions{
+  position:absolute;top:8px;right:8px;
+  display:flex;gap:6px;opacity:0;
+  transition:opacity .2s;
 }
-.photo-card:hover .photo-overlay{opacity:1}
-.photo-dl-btn{
-  width:34px;height:34px;background:rgba(255,252,250,.9);
-  border:none;border-radius:50%;font-size:14px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;transition:all .2s;
+.photo-card:hover .photo-card-actions{opacity:1}
+.photo-action-btn{
+  width:30px;height:30px;border-radius:50%;border:none;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:13px;transition:all .2s;backdrop-filter:blur(4px);
 }
+.photo-dl-btn{background:rgba(28,23,18,.7);color:#fff}
 .photo-dl-btn:hover{background:var(--gold)}
+.photo-del-btn{background:rgba(192,57,43,.85);color:#fff}
+.photo-del-btn:hover{background:var(--red)}
 
 .photo-empty{
   grid-column:1/-1;text-align:center;
   padding:60px 20px;color:var(--stone);
 }
-.photo-empty .ei{font-size:36px;margin-bottom:12px;display:block;opacity:.4}
+.photo-empty .ei{font-size:36px;margin-bottom:12px;opacity:.4}
 
-/* LOADING */
-.loading-card{
-  border-radius:8px;background:var(--rose);
-  aspect-ratio:1;animation:shimmer 1.5s infinite;
+/* ── ZIP PROGRESS ── */
+.zip-progress{
+  margin-top:16px;padding:14px 18px;
+  background:var(--warm);border:1px solid var(--gold-m);
+  border-radius:4px;display:none;
 }
-@keyframes shimmer{0%,100%{opacity:.5}50%{opacity:.9}}
+.zip-progress.show{display:block}
+.zip-bar-wrap{height:3px;background:var(--gold-m);border-radius:2px;margin-top:10px;overflow:hidden}
+.zip-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-l));width:0%;transition:width .3s;border-radius:2px}
+.zip-label{font-size:12px;color:var(--stone);display:flex;justify-content:space-between}
 
-/* LIGHTBOX */
-.lb{
-  position:fixed;inset:0;background:rgba(44,24,16,.95);
-  z-index:200;display:none;align-items:center;justify-content:center;padding:20px;
-}
-.lb.open{display:flex;animation:fadeIn .3s ease}
-.lb img{max-width:100%;max-height:90vh;border-radius:6px;object-fit:contain}
-.lb-x{
-  position:absolute;top:20px;right:20px;
-  background:rgba(255,252,250,.1);border:1px solid rgba(255,252,250,.2);
-  color:var(--warm);width:42px;height:42px;border-radius:50%;
-  font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;
-  transition:all .2s;
-}
-.lb-x:hover{background:rgba(255,252,250,.2)}
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(28,23,18,.65);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal{background:var(--warm);border-radius:8px;padding:32px 28px;max-width:340px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(28,23,18,.25)}
+.modal-icon{font-size:40px;margin-bottom:16px}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:22px;margin-bottom:8px}
+.modal-text{font-size:13px;color:var(--stone);line-height:1.6;margin-bottom:24px}
+.modal-btns{display:flex;gap:10px}
+.modal-cancel{flex:1;padding:12px;background:none;border:1px solid var(--gold-m);border-radius:2px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;color:var(--stone);transition:all .2s}
+.modal-cancel:hover{border-color:var(--stone)}
+.modal-confirm{flex:1;padding:12px;background:var(--red);border:none;border-radius:2px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;color:#fff;transition:all .2s}
+.modal-confirm:hover{background:#A93226}
 
-/* DIAPORAMA */
-.ss-overlay{
-  position:fixed;inset:0;background:#1A0D08;
-  z-index:300;display:none;flex-direction:column;
-  align-items:center;justify-content:center;
-}
-.ss-overlay.open{display:flex}
-.ss-bar-top{position:absolute;top:0;left:0;right:0;height:3px;background:rgba(201,169,110,.2)}
-.ss-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-l));width:0%;transition:width linear}
-.ss-tag{
-  position:absolute;top:18px;left:18px;
-  background:rgba(201,169,110,.2);backdrop-filter:blur(8px);
-  color:var(--gold);font-size:10px;letter-spacing:.2em;text-transform:uppercase;
-  padding:5px 14px;border-radius:12px;font-family:'Lato',sans-serif;
-}
-.ss-num{
-  position:absolute;top:18px;right:18px;
-  background:rgba(44,24,16,.6);backdrop-filter:blur(8px);
-  color:rgba(255,252,250,.7);font-size:11px;padding:5px 14px;border-radius:12px;
-  font-family:'Lato',sans-serif;
-}
-.ss-img{
-  max-width:100vw;max-height:82vh;object-fit:contain;
-  transition:opacity .5s ease,transform .5s ease;
-}
-.ss-footer{
-  position:absolute;bottom:0;left:0;right:0;
-  padding:20px 24px 32px;
-  background:linear-gradient(transparent,rgba(26,13,8,.8));
-  display:flex;align-items:center;justify-content:space-between;
-}
-.ss-footer-info strong{
-  font-family:'Playfair Display',serif;font-size:18px;font-weight:400;
-  color:var(--warm);display:block;margin-bottom:3px;
-}
-.ss-footer-info span{font-size:11px;color:rgba(212,165,160,.8)}
-.ss-btns{display:flex;gap:10px;align-items:center}
-.ss-btn{
-  width:44px;height:44px;
-  background:rgba(255,252,250,.1);
-  border:1px solid rgba(255,252,250,.15);
-  color:var(--warm);border-radius:50%;font-size:20px;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  transition:all .2s;backdrop-filter:blur(4px);
-}
-.ss-btn:hover{background:rgba(255,252,250,.2)}
-
-/* TOAST */
-.toast{
-  position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+/* ── TOAST ── */
+.dash-toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
   background:var(--dark);color:var(--warm);
-  padding:12px 24px;border-radius:24px;
+  padding:11px 22px;border-radius:20px;
   font-size:12px;letter-spacing:.08em;
-  z-index:400;opacity:0;transition:opacity .3s;
-  white-space:nowrap;box-shadow:0 8px 32px rgba(44,24,16,.4);
-  pointer-events:none;border:1px solid rgba(201,169,110,.2);
+  z-index:300;opacity:0;transition:opacity .3s;
+  white-space:nowrap;box-shadow:0 8px 24px rgba(28,23,18,.3);
+  pointer-events:none;
 }
-.toast.show{opacity:1}
+.dash-toast.show{opacity:1}
 
-/* ANIMATIONS */
-@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-
-footer{
-  text-align:center;padding:28px;
-  font-size:10px;letter-spacing:.2em;
-  color:rgba(212,165,160,.6);text-transform:uppercase;
-  border-top:1px solid rgba(212,165,160,.15);
-  background:transparent;margin-top:40px;
-  position:relative;z-index:1;
+/* ── LOADING ── */
+.loading-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;
 }
-footer em{font-style:italic;font-family:'Playfair Display',serif;font-size:12px;color:var(--gold)}
+.loading-card{
+  border-radius:4px;background:var(--gold-m);
+  aspect-ratio:4/3;animation:shimmer 1.5s infinite;
+}
+@keyframes shimmer{0%,100%{opacity:.4}50%{opacity:.8}}
+
+footer{text-align:center;padding:24px;font-size:10px;letter-spacing:.18em;color:var(--gold-m);text-transform:uppercase}
 
 /* ══ RESPONSIVE DESKTOP ══ */
 @media (min-width: 768px) {
-  .body { padding: 48px 40px 100px; }
-  .dl-grid { grid-template-columns: repeat(4, 1fr); }
+  .dash-body { padding: 40px 40px 80px; }
+  .stats-grid { grid-template-columns: repeat(4, 1fr); }
   .photo-grid { grid-template-columns: repeat(4, 1fr); }
-  .hero-names { font-size: 72px; }
-  .ss-card { padding: 36px 40px; }
-  .welcome-banner { padding: 48px 40px; }
 }
 @media (min-width: 1200px) {
-  .body { max-width: 1100px; padding: 56px 48px 120px; }
+  .dash-body { max-width: 1300px; padding: 48px 60px 100px; }
   .photo-grid { grid-template-columns: repeat(5, 1fr); }
-  .hero-names { font-size: 86px; }
-}
-
-/* Diaporama plein écran desktop */
-.ss-overlay { background: #000; }
-.ss-img {
-  max-width: 100vw;
-  max-height: 100vh;
-  width: auto;
-  height: auto;
-  object-fit: contain;
-}
-@media (min-width: 768px) {
-  .ss-img { max-height: 88vh; }
-  .ss-footer { padding: 20px 40px 36px; }
-  .ss-footer-info strong { font-size: 22px; }
-  .ss-btn { width: 52px; height: 52px; font-size: 24px; }
-  .ss-num { font-size: 13px; padding: 6px 16px; }
-  .ss-tag { font-size: 11px; padding: 6px 16px; }
+  .stats-grid { grid-template-columns: repeat(4, 1fr); }
 }
 
 </style>
 </head>
 <body>
 
-<!-- PÉTALES LOGIN -->
-<div class="login-page" id="loginPage">
-  <span class="petal" style="top:-20px">🌸</span>
-  <span class="petal" style="top:-20px">🌺</span>
-  <span class="petal" style="top:-20px">🌸</span>
-  <span class="petal" style="top:-20px">🌷</span>
-  <span class="petal" style="top:-20px">🌸</span>
-  <span class="petal" style="top:-20px">🌺</span>
-
-  <div class="login-content">
-    <div class="login-ornament">
-      <span class="ring">💍</span>
-      <h1 class="login-title">Mélodie <em>&</em> Thomas</h1>
-      <p class="login-date">21 Juin 2025 · Château de Valmirande</p>
+<!-- ── LOGIN ── -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-box">
+    <div class="login-logo">
+      <h1>Memen<em>tos</em></h1>
+      <p>Espace organisateur</p>
     </div>
-
-    <div class="login-divider">
-      <div class="login-divider-line"></div>
-      <span>✦</span>
-      <div class="login-divider-line"></div>
+    <div class="login-field">
+      <label>Identifiant</label>
+      <input type="text" id="loginInput" placeholder="Votre identifiant" onkeydown="if(event.key==='Enter')doLogin()" autocomplete="username">
     </div>
-
-    <div class="login-box">
-      <div class="login-field">
-        <label>Identifiant</label>
-        <input type="text" id="loginInput" placeholder="Votre identifiant"
-          onkeydown="if(event.key==='Enter')doLogin()" autocomplete="username">
-      </div>
-      <div class="login-field">
-        <label>Mot de passe</label>
-        <input type="password" id="pwdInput" placeholder="••••••••"
-          onkeydown="if(event.key==='Enter')doLogin()" autocomplete="current-password">
-      </div>
-      <button class="login-submit" onclick="doLogin()">Accéder à nos souvenirs &nbsp;💛</button>
-      <p class="login-err" id="loginErr">Identifiant ou mot de passe incorrect</p>
+    <div class="login-field">
+      <label>Mot de passe</label>
+      <input type="password" id="pwdInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" autocomplete="current-password">
     </div>
+    <button class="login-btn" onclick="doLogin()">Accéder au dashboard</button>
+    <p class="login-err" id="loginErr">Identifiant ou mot de passe incorrect</p>
   </div>
 </div>
 
-<!-- DASHBOARD -->
+<!-- ── DASHBOARD ── -->
 <div id="dashboard">
-  <!-- Pétales animés sur toute la page -->
-  <div id="globalPetals" style="position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden">
-    <span style="position:absolute;left:3%;top:-20px;font-size:16px;opacity:.1;animation:drift 20s linear infinite">🌸</span>
-    <span style="position:absolute;left:12%;top:-20px;font-size:20px;opacity:.08;animation:drift 25s linear infinite;animation-delay:-8s">🌺</span>
-    <span style="position:absolute;left:23%;top:-20px;font-size:14px;opacity:.1;animation:drift 18s linear infinite;animation-delay:-3s">🌸</span>
-    <span style="position:absolute;left:35%;top:-20px;font-size:22px;opacity:.07;animation:drift 28s linear infinite;animation-delay:-14s">🌷</span>
-    <span style="position:absolute;left:48%;top:-20px;font-size:16px;opacity:.09;animation:drift 22s linear infinite;animation-delay:-6s">🌸</span>
-    <span style="position:absolute;left:58%;top:-20px;font-size:18px;opacity:.08;animation:drift 24s linear infinite;animation-delay:-11s">🌺</span>
-    <span style="position:absolute;left:70%;top:-20px;font-size:14px;opacity:.1;animation:drift 19s linear infinite;animation-delay:-2s">🌸</span>
-    <span style="position:absolute;left:80%;top:-20px;font-size:20px;opacity:.07;animation:drift 26s linear infinite;animation-delay:-17s">🌷</span>
-    <span style="position:absolute;left:90%;top:-20px;font-size:16px;opacity:.09;animation:drift 21s linear infinite;animation-delay:-9s">🌺</span>
-    <span style="position:absolute;left:96%;top:-20px;font-size:12px;opacity:.1;animation:drift 23s linear infinite;animation-delay:-4s">🌸</span>
-  </div>
 
-  <!-- HERO -->
-  <div class="hero">
-    <span class="hero-petal" style="left:8%;top:-10px;animation-duration:22s">🌸</span>
-    <span class="hero-petal" style="left:25%;top:-10px;animation-duration:18s;animation-delay:-7s">🌺</span>
-    <span class="hero-petal" style="left:65%;top:-10px;animation-duration:25s;animation-delay:-3s">🌷</span>
-    <span class="hero-petal" style="left:85%;top:-10px;animation-duration:20s;animation-delay:-11s">🌸</span>
-
-    <div class="hero-topbar">
-      <div class="hero-logo">Mementos</div>
-      <button class="hero-logout" onclick="doLogout()">Déconnexion</button>
+  <header class="dash-header">
+    <div class="dash-logo">
+      Memen<em>tos</em>
+      <span>Dashboard organisateur</span>
     </div>
+    <div class="dash-actions">
+      <a href="index.html" class="btn btn-outline btn-sm">← App invités</a>
+      <button class="dash-logout" onclick="doLogout()">Déconnexion</button>
+    </div>
+  </header>
 
-    <div class="hero-content">
-      <span class="hero-ring">💍</span>
-      <h1 class="hero-names">Mélodie <em>&</em> Thomas</h1>
-      <p class="hero-date">21 Juin 2025 · Château de Valmirande</p>
-      <p class="hero-tagline">Bienvenue dans votre espace personnel — retrouvez ici tous les souvenirs partagés par vos invités</p>
-      <div class="hero-stats">
-        <div class="hero-stat">
-          <span class="hero-stat-val" id="statTotal">—</span>
-          <span class="hero-stat-lbl">Photos</span>
-        </div>
-        <span class="hero-stat-sep">·</span>
-        <div class="hero-stat">
-          <span class="hero-stat-val" id="statGuests">—</span>
-          <span class="hero-stat-lbl">Invités</span>
-        </div>
-        <span class="hero-stat-sep">·</span>
-        <div class="hero-stat">
-          <span class="hero-stat-val" id="statLikes">—</span>
-          <span class="hero-stat-lbl">Likes</span>
-        </div>
+  <div class="dash-body">
+
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-icon">📸</span>
+        <div class="stat-val" id="statTotal">—</div>
+        <div class="stat-lbl">Photos totales</div>
       </div>
-    </div>
-  </div>
-
-  <div class="body">
-
-    <!-- CITATION DU JOUR -->
-    <div class="message-card">
-      <p id="quoteText">L'amour ne se regarde pas l'un l'autre, il regarde ensemble dans la même direction.</p>
-      <cite id="quoteAuthor">— Antoine de Saint-Exupéry</cite>
-    </div>
-
-    <!-- DIAPORAMA -->
-    <div class="sec-divider">
-      <div class="sec-divider-line"></div>
-      <span>🎬</span>
-      <div class="sec-divider-line"></div>
-    </div>
-    <h2 class="sec-title">Revivez <em>votre journée</em></h2>
-    <p class="sec-sub">Toutes vos photos défilent en plein écran avec la musique du souvenir</p>
-
-    <div class="ss-card">
-      <div class="ss-card-left">
-        <span class="ss-card-icon">✨</span>
-        <h3>Le diaporama <em>de votre vie</em></h3>
-        <p>Regardez défiler chaque instant capturé par vos proches — de la cérémonie jusqu'à la piste de danse</p>
+      <div class="stat-card">
+        <span class="stat-icon">👥</span>
+        <div class="stat-val" id="statGuests">—</div>
+        <div class="stat-lbl">Invités actifs</div>
       </div>
-      <button class="ss-launch" id="ssLaunchBtn" onclick="startSlideshow()">▶ &nbsp;Lancer</button>
-    </div>
-
-    <!-- TÉLÉCHARGEMENT -->
-    <div class="sec-divider">
-      <div class="sec-divider-line"></div>
-      <span>⬇</span>
-      <div class="sec-divider-line"></div>
-    </div>
-    <h2 class="sec-title">Télécharger <em>vos souvenirs</em></h2>
-    <p class="sec-sub">Par catégorie ou tout en une seule fois</p>
-
-    <div class="dl-prog" id="dlProg">
-      <div class="dl-prog-top">
-        <span id="dlProgLabel">Téléchargement…</span>
-        <span id="dlProgPct">0%</span>
+      <div class="stat-card">
+        <span class="stat-icon">💍</span>
+        <div class="stat-val" id="statCeremonie">—</div>
+        <div class="stat-lbl">Cérémonie</div>
       </div>
-      <div class="dl-prog-bar"><div class="dl-prog-fill" id="dlProgFill"></div></div>
-    </div>
-
-    <div class="dl-grid">
-      <div class="dl-card" id="dlcard-ceremonie">
-        <span class="dl-card-emoji">💍</span>
-        <div class="dl-card-name">Cérémonie</div>
-        <div class="dl-card-count" id="dlcount-ceremonie">—</div>
-        <button class="dl-card-btn" onclick="event.stopPropagation();downloadCat('ceremonie')">⬇ Télécharger</button>
+      <div class="stat-card">
+        <span class="stat-icon">🥂</span>
+        <div class="stat-val" id="statCocktail">—</div>
+        <div class="stat-lbl">Cocktail</div>
       </div>
-      <div class="dl-card" id="dlcard-cocktail">
-        <span class="dl-card-emoji">🥂</span>
-        <div class="dl-card-name">Cocktail</div>
-        <div class="dl-card-count" id="dlcount-cocktail">—</div>
-        <button class="dl-card-btn" onclick="event.stopPropagation();downloadCat('cocktail')">⬇ Télécharger</button>
+      <div class="stat-card">
+        <span class="stat-icon">🍽️</span>
+        <div class="stat-val" id="statDiner">—</div>
+        <div class="stat-lbl">Dîner / Soirée</div>
       </div>
-      <div class="dl-card" id="dlcard-diner">
-        <span class="dl-card-emoji">🍽️</span>
-        <div class="dl-card-name">Dîner / Soirée</div>
-        <div class="dl-card-count" id="dlcount-diner">—</div>
-        <button class="dl-card-btn" onclick="event.stopPropagation();downloadCat('diner')">⬇ Télécharger</button>
+      <div class="stat-card">
+        <span class="stat-icon">💃</span>
+        <div class="stat-val" id="statDanse">—</div>
+        <div class="stat-lbl">Piste de danse</div>
       </div>
-      <div class="dl-card" id="dlcard-danse">
-        <span class="dl-card-emoji">💃</span>
-        <div class="dl-card-name">Piste de danse</div>
-        <div class="dl-card-count" id="dlcount-danse">—</div>
-        <button class="dl-card-btn" onclick="event.stopPropagation();downloadCat('danse')">⬇ Télécharger</button>
+      <div class="stat-card">
+        <span class="stat-icon">⏱️</span>
+        <div class="stat-val" id="statLast">—</div>
+        <div class="stat-lbl">Dernière photo</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">❤️</span>
+        <div class="stat-val" id="statLikes">—</div>
+        <div class="stat-lbl">Likes totaux</div>
       </div>
     </div>
 
-    <div class="dl-all" onclick="downloadAll()">
-      <div class="dl-all-info">
-        <h3>💛 Tout télécharger d'un coup</h3>
-        <p id="dlAllCount">Toutes les catégories réunies</p>
+    <!-- TOGGLE UPLOAD -->
+    <div class="toggle-bar">
+      <div class="toggle-info">
+        <h3>Uploads invités</h3>
+        <p>Désactivez après l'événement pour verrouiller la galerie</p>
+        <div class="toggle-status on" id="toggleStatus">● Actif — les invités peuvent partager</div>
       </div>
-      <button class="dl-all-btn" id="dlAllBtn">Télécharger tout</button>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+        <label class="toggle-switch">
+          <input type="checkbox" id="uploadToggle" checked onchange="toggleUploads()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
     </div>
 
-    <!-- GALERIE -->
-    <div class="sec-divider">
-      <div class="sec-divider-line"></div>
-      <span>🖼️</span>
-      <div class="sec-divider-line"></div>
+    <!-- PHOTOS PAR CATÉGORIE -->
+    <div class="section-hdr">
+      <h2 class="section-title">Toutes les photos</h2>
+      <div class="section-actions">
+        <button class="btn btn-outline" onclick="refreshPhotos()">↻ Actualiser</button>
+        <button class="btn btn-dark" id="dlAllZipBtn" onclick="downloadZip('all')">⬇ ZIP complet</button>
+      </div>
     </div>
-    <h2 class="sec-title">Votre <em>galerie</em></h2>
-    <p class="sec-sub" style="margin-bottom:16px">Cliquez sur une photo pour l'agrandir · ⬇️ au survol pour télécharger</p>
 
+    <!-- ONGLETS CATÉGORIES -->
     <div class="cat-tabs">
-      <button class="cat-tab on" onclick="filterCat('all',this)">Toutes <span class="tc" id="tc-all">0</span></button>
-      <button class="cat-tab" onclick="filterCat('ceremonie',this)">💍 Cérémonie <span class="tc" id="tc-ceremonie">0</span></button>
-      <button class="cat-tab" onclick="filterCat('cocktail',this)">🥂 Cocktail <span class="tc" id="tc-cocktail">0</span></button>
-      <button class="cat-tab" onclick="filterCat('diner',this)">🍽️ Dîner <span class="tc" id="tc-diner">0</span></button>
-      <button class="cat-tab" onclick="filterCat('danse',this)">💃 Danse <span class="tc" id="tc-danse">0</span></button>
+      <button class="cat-tab on" onclick="filterCat('all',this)">
+        Toutes <span class="tab-count" id="tc-all">0</span>
+      </button>
+      <button class="cat-tab" onclick="filterCat('ceremonie',this)">
+        💍 Cérémonie <span class="tab-count" id="tc-ceremonie">0</span>
+      </button>
+      <button class="cat-tab" onclick="filterCat('cocktail',this)">
+        🥂 Cocktail <span class="tab-count" id="tc-cocktail">0</span>
+      </button>
+      <button class="cat-tab" onclick="filterCat('diner',this)">
+        🍽️ Dîner <span class="tab-count" id="tc-diner">0</span>
+      </button>
+      <button class="cat-tab" onclick="filterCat('danse',this)">
+        💃 Danse <span class="tab-count" id="tc-danse">0</span>
+      </button>
     </div>
 
+    <!-- ZIP PAR CAT -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">
+      <button class="btn btn-outline btn-sm" onclick="downloadZip('ceremonie')">⬇ ZIP Cérémonie</button>
+      <button class="btn btn-outline btn-sm" onclick="downloadZip('cocktail')">⬇ ZIP Cocktail</button>
+      <button class="btn btn-outline btn-sm" onclick="downloadZip('diner')">⬇ ZIP Dîner</button>
+      <button class="btn btn-outline btn-sm" onclick="downloadZip('danse')">⬇ ZIP Danse</button>
+    </div>
+
+    <!-- ZIP PROGRESS -->
+    <div class="zip-progress" id="zipProgress">
+      <div class="zip-label">
+        <span id="zipLabel">Préparation…</span>
+        <span id="zipPct">0%</span>
+      </div>
+      <div class="zip-bar-wrap"><div class="zip-bar-fill" id="zipBar"></div></div>
+    </div>
+
+    <!-- GRILLE PHOTOS -->
     <div class="photo-grid" id="photoGrid">
-      <div class="loading-card"></div><div class="loading-card"></div>
-      <div class="loading-card"></div><div class="loading-card"></div>
-      <div class="loading-card"></div><div class="loading-card"></div>
-      <div class="loading-card"></div><div class="loading-card"></div>
+      <div class="loading-grid" style="grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px">
+        <div class="loading-card"></div><div class="loading-card"></div>
+        <div class="loading-card"></div><div class="loading-card"></div>
+      </div>
     </div>
 
   </div>
 
-  <footer>
-    <em>Mélodie & Thomas</em> &nbsp;·&nbsp; 21 Juin 2025 &nbsp;·&nbsp; Mementos · Vos souvenirs, pour toujours 💛
-  </footer>
+  <footer>Mementos &nbsp;·&nbsp; Dashboard organisateur &nbsp;·&nbsp; Accès restreint</footer>
 </div>
 
-<!-- LIGHTBOX -->
-<div class="lb" id="lb" onclick="closeLB()">
-  <button class="lb-x" onclick="closeLB()">✕</button>
-  <img id="lbImg" src="" alt="">
-</div>
-
-<!-- DIAPORAMA -->
-<div class="ss-overlay" id="ssOverlay">
-  <div class="ss-bar-top"><div class="ss-bar-fill" id="ssBarFill"></div></div>
-  <div class="ss-tag" id="ssTag"></div>
-  <div class="ss-num" id="ssNum"></div>
-  <img class="ss-img" id="ssImg" src="" alt="">
-  <div class="ss-footer">
-    <div class="ss-footer-info">
-      <strong id="ssName"></strong>
-      <span id="ssTime"></span>
-    </div>
-    <div class="ss-btns">
-      <button class="ss-btn" onclick="ssPrev()">‹</button>
-      <button class="ss-btn" id="ssPlayBtn" onclick="ssToggle()">⏸</button>
-      <button class="ss-btn" onclick="ssNext()">›</button>
-      <button class="ss-btn" onclick="ssClose()">✕</button>
+<!-- MODAL SUPPRESSION -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <div class="modal-icon">🗑️</div>
+    <div class="modal-title">Supprimer cette photo ?</div>
+    <div class="modal-text">Action irréversible. La photo sera définitivement supprimée de la galerie et du stockage.</div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModal()">Annuler</button>
+      <button class="modal-confirm" onclick="confirmDelete()">Supprimer</button>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="dash-toast" id="dashToast"></div>
 
 <script>
-// CONFIG
+// ══════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════
 const SB_URL   = 'https://hmytqbgnjpugqeslnuvk.supabase.co';
 const SB_KEY   = 'sb_publishable_59uI3S3lCP0xyVtvrR6ZZA_vXsiF27o';
 const EVENT_ID = 'mariage-melodie-thomas-2025';
 const BUCKET   = 'photos';
-const LOGIN_H  = '504e02313e5e82e24e61527f47919c4a5413e793414500e37df18c22bab1114e'; // SHA-256
-const PWD_H    = 'a1cf06f27846209423f536f840c228016fd0527b8aa5b2f89c0bab9e96d53dda'; // SHA-256
-const CATS = {
-  ceremonie:{emoji:'💍',name:'Cérémonie'},
-  cocktail: {emoji:'🥂',name:'Cocktail'},
-  diner:    {emoji:'🍽️',name:'Dîner / Soirée'},
-  danse:    {emoji:'💃',name:'Piste de danse'},
+const LOGIN_H  = '5d6ada4655ef0223d6391f5aeac433c04fc9db4d6fe8b3055fc0f49092a2fdb4'; // SHA-256
+const PWD_H    = 'ad1f95a7db72b027a7ad4960a216ad4d4d9071c8e3ce367ec5538722ceceeb24'; // SHA-256
+
+const CATEGORIES = {
+  ceremonie: { emoji:'💍', name:'Cérémonie' },
+  cocktail:  { emoji:'🥂', name:'Cocktail' },
+  diner:     { emoji:'🍽️', name:'Dîner / Soirée' },
+  danse:     { emoji:'💃', name:'Piste de danse' },
 };
 
-// Citations romantiques
-const QUOTES = [
-  {text:"L'amour ne se regarde pas l'un l'autre, il regarde ensemble dans la même direction.", author:"Antoine de Saint-Exupéry"},
-  {text:"Un grand amour, c'est un espace où les deux amoureux peuvent grandir sans jamais se perdre.", author:"Simone de Beauvoir"},
-  {text:"Le bonheur, c'est d'être aimé pour ce que l'on est.", author:"Gustave Flaubert"},
-  {text:"Aimer, c'est trouver sa richesse hors de soi.", author:"Alain"},
-  {text:"Les plus belles histoires d'amour sont celles qui durent toute une vie.", author:"Proverbe"},
-];
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+let allPhotos        = [];
+let currentFilter    = 'all';
+let pendingDeleteId  = null;
+let pendingDeletePath= null;
 
-// STATE
-let allPhotos=[], currentFilter='all';
-let ssPhotos=[], ssIndex=0, ssPlaying=true, ssTimer=null;
-const SS_DUR=4000;
+// ══════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════
 
-// AUTH
 
 
 // Hachage SHA-256 natif
@@ -812,7 +510,7 @@ async function sha256(str) {
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
-async function doLogin() {
+async async function doLogin() {
   const user = document.getElementById('loginInput').value.trim();
   const pwd  = document.getElementById('pwdInput').value;
   const err  = document.getElementById('loginErr');
@@ -826,8 +524,8 @@ async function doLogin() {
     const userHash = await sha256(user);
     const pwdHash  = await sha256(pwd);
 
-    if (userHash === '504e02313e5e82e24e61527f47919c4a5413e793414500e37df18c22bab1114e' && pwdHash === 'a1cf06f27846209423f536f840c228016fd0527b8aa5b2f89c0bab9e96d53dda') {
-      sessionStorage.setItem('mementos_maries', '1');
+    if (userHash === '5d6ada4655ef0223d6391f5aeac433c04fc9db4d6fe8b3055fc0f49092a2fdb4' && pwdHash === 'ad1f95a7db72b027a7ad4960a216ad4d4d9071c8e3ce367ec5538722ceceeb24') {
+      sessionStorage.setItem('mementos_auth', '1');
       document.getElementById('loginPage') && (document.getElementById('loginPage').style.display = 'none');
       document.getElementById('loginWrap') && (document.getElementById('loginWrap').style.display = 'none');
       document.getElementById('dashboard').style.display = 'block';
@@ -844,39 +542,36 @@ async function doLogin() {
   }
 }
 
-function doLogout(){
-  sessionStorage.removeItem('mementos_maries');
-  location.reload();
+function doLogout() {
+  sessionStorage.removeItem('mementos_auth');
+  document.getElementById('loginWrap').style.display = 'flex';
+  document.getElementById('dashboard').style.display = 'none';
 }
-window.addEventListener('DOMContentLoaded',()=>{
-  // Citation aléatoire
-  const q=QUOTES[Math.floor(Math.random()*QUOTES.length)];
-  const qt=document.getElementById('quoteText');
-  const qa=document.getElementById('quoteAuthor');
-  if(qt)qt.textContent=q.text;
-  if(qa)qa.textContent='— '+q.author;
 
-  if(sessionStorage.getItem('mementos_maries')==='1'){
-    document.getElementById('loginPage').style.display='none';
-    document.getElementById('dashboard').style.display='block';
-    initDashboard();
-  } else {
-    document.getElementById('loginInput').focus();
+// Vérifier session au chargement
+window.addEventListener('DOMContentLoaded', () => {
+  if (sessionStorage.getItem('mementos_auth') === '1') {
+    document.getElementById('loginWrap').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadDashboard();
   }
+  document.getElementById('loginInput').focus();
 });
 
-// INIT
-async function initDashboard(){
-  console.log('Dashboard mariés: connexion Supabase', SB_URL);
+// ══════════════════════════════════════════
+//  CHARGEMENT
+// ══════════════════════════════════════════
+async function loadDashboard() {
+  console.log('Dashboard: connexion Supabase', SB_URL);
   console.log('EVENT_ID:', EVENT_ID);
-  await loadPhotos();
+  await refreshPhotos();
   startAutoRefresh();
 }
 
-async function loadPhotos(){
-  try{
-    const res=await fetch(
-      `${SB_URL}/rest/v1/photos?event_id=eq.${EVENT_ID}&order=uploaded_at.asc&select=*`,
+async function refreshPhotos() {
+  try {
+    const res = await fetch(
+      `${SB_URL}/rest/v1/photos?event_id=eq.${EVENT_ID}&order=uploaded_at.desc&select=*`,
       {
         headers:{
           'apikey': SB_KEY,
@@ -885,140 +580,152 @@ async function loadPhotos(){
         }
       }
     );
-    if(!res.ok){
+    if (!res.ok) {
       const errText = await res.text();
       throw new Error(`Supabase ${res.status}: ${errText}`);
     }
-    allPhotos=await res.json();
-    updateUI();
+    allPhotos = await res.json();
+    updateStats();
     renderPhotos();
-  }catch(e){
-    console.error('Fetch error:', e);
-    showToast('⚠️ '+e.message);
+    // Afficher le total dans le bouton refresh
+    const btn = document.querySelector('[onclick="refreshPhotos()"]');
+    if (btn) btn.textContent = `↻ Actualiser (${allPhotos.length})`;
+  } catch(err) {
+    console.error('Fetch error:', err);
+    toast('⚠️ ' + err.message);
   }
 }
 
 // Auto-refresh toutes les 15 secondes
 let autoRefreshInterval = null;
-function startAutoRefresh(){
-  if(autoRefreshInterval) clearInterval(autoRefreshInterval);
-  autoRefreshInterval = setInterval(()=>{ loadPhotos(); }, 15000);
+function startAutoRefresh() {
+  if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+  autoRefreshInterval = setInterval(() => {
+    refreshPhotos();
+  }, 15000);
 }
 
-function updateUI(){
-  const total=allPhotos.length;
-  const guests=new Set(allPhotos.map(p=>p.uploader_name||'Invité')).size;
-  const likes=allPhotos.reduce((s,p)=>s+(p.likes||0),0);
-  document.getElementById('statTotal').textContent=total;
-  document.getElementById('statGuests').textContent=guests;
-  document.getElementById('statLikes').textContent=likes;
+// ══════════════════════════════════════════
+//  STATS
+// ══════════════════════════════════════════
+function updateStats() {
+  const total   = allPhotos.length;
+  const guests  = new Set(allPhotos.map(p => p.uploader_name || 'Invité')).size;
+  const likes   = allPhotos.reduce((s,p) => s + (p.likes||0), 0);
 
-  Object.keys(CATS).forEach(cat=>{
-    const n=allPhotos.filter(p=>p.category===cat).length;
-    const el=document.getElementById('dlcount-'+cat);
-    if(el) el.textContent=n?`${n} photo${n>1?'s':''}`:'Aucune photo';
-  });
-  document.getElementById('tc-all').textContent=total;
-  document.getElementById('tc-ceremonie').textContent=allPhotos.filter(p=>p.category==='ceremonie').length;
-  document.getElementById('tc-cocktail').textContent=allPhotos.filter(p=>p.category==='cocktail').length;
-  document.getElementById('tc-diner').textContent=allPhotos.filter(p=>p.category==='diner').length;
-  document.getElementById('tc-danse').textContent=allPhotos.filter(p=>p.category==='danse').length;
-  const dlCount=document.getElementById('dlAllCount');
-  if(dlCount) dlCount.textContent=`${total} photo${total>1?'s':''} — toutes catégories réunies`;
-  const ssBtn=document.getElementById('ssLaunchBtn');
-  if(ssBtn){
-    ssBtn.disabled=total===0;
-    ssBtn.innerHTML=total>0?`▶ &nbsp;Lancer (${total} photos)`:'Aucune photo';
+  document.getElementById('statTotal').textContent    = total;
+  document.getElementById('statGuests').textContent   = guests;
+  document.getElementById('statLikes').textContent    = likes;
+  document.getElementById('statCeremonie').textContent = allPhotos.filter(p=>p.category==='ceremonie').length;
+  document.getElementById('statCocktail').textContent  = allPhotos.filter(p=>p.category==='cocktail').length;
+  document.getElementById('statDiner').textContent     = allPhotos.filter(p=>p.category==='diner').length;
+  document.getElementById('statDanse').textContent     = allPhotos.filter(p=>p.category==='danse').length;
+
+  // Dernière photo
+  if (allPhotos.length > 0) {
+    const last = new Date(allPhotos[0].uploaded_at);
+    const diff = Math.floor((Date.now() - last) / 60000);
+    document.getElementById('statLast').textContent =
+      diff < 1 ? 'À l\'instant' : diff < 60 ? `${diff}min` : `${Math.floor(diff/60)}h`;
   }
+
+  // Compteurs onglets
+  document.getElementById('tc-all').textContent       = total;
+  document.getElementById('tc-ceremonie').textContent  = allPhotos.filter(p=>p.category==='ceremonie').length;
+  document.getElementById('tc-cocktail').textContent   = allPhotos.filter(p=>p.category==='cocktail').length;
+  document.getElementById('tc-diner').textContent      = allPhotos.filter(p=>p.category==='diner').length;
+  document.getElementById('tc-danse').textContent      = allPhotos.filter(p=>p.category==='danse').length;
 }
 
-// GALERIE
-function filterCat(cat,btn){
-  currentFilter=cat;
-  document.querySelectorAll('.cat-tab').forEach(b=>b.classList.remove('on'));
+// ══════════════════════════════════════════
+//  GRILLE PHOTOS
+// ══════════════════════════════════════════
+function filterCat(cat, btn) {
+  currentFilter = cat;
+  document.querySelectorAll('.cat-tab').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
   renderPhotos();
 }
 
-function renderPhotos(){
-  const photos=currentFilter==='all'?allPhotos:allPhotos.filter(p=>p.category===currentFilter);
-  const grid=document.getElementById('photoGrid');
-  if(!photos.length){
-    grid.innerHTML=`<div class="photo-empty"><span class="ei">📷</span><p>Aucune photo dans cette catégorie</p></div>`;
+function renderPhotos() {
+  const photos = currentFilter === 'all'
+    ? allPhotos
+    : allPhotos.filter(p => p.category === currentFilter);
+
+  const grid = document.getElementById('photoGrid');
+
+  if (!photos.length) {
+    grid.innerHTML = `<div class="photo-empty"><div class="ei">📷</div><p>Aucune photo dans cette catégorie</p></div>`;
     return;
   }
-  grid.innerHTML=photos.map(p=>{
-    const cat=CATS[p.category]||{emoji:'📷',name:'Autre'};
-    const time=new Date(p.uploaded_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+
+  grid.innerHTML = photos.map(p => {
+    const cat  = CATEGORIES[p.category] || { emoji:'📷', name:'Autre' };
+    const time = new Date(p.uploaded_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    const date = new Date(p.uploaded_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'});
     return `
-    <div class="photo-card" onclick="openLB('${p.public_url}')">
+    <div class="photo-card" id="pc-${p.id}">
       <img src="${p.public_url}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'">
-      <div class="photo-overlay">
-        <button class="photo-dl-btn" onclick="event.stopPropagation();dlOne('${p.public_url}','${p.storage_path||''}','${p.category||''}')">⬇️</button>
+      <div class="photo-card-actions">
+        <button class="photo-action-btn photo-dl-btn" onclick="event.stopPropagation();dlPhoto('${p.public_url}','${p.storage_path}')" title="Télécharger">⬇</button>
+        <button class="photo-action-btn photo-del-btn" onclick="event.stopPropagation();askDelete('${p.id}','${p.storage_path}')" title="Supprimer">🗑</button>
       </div>
       <div class="photo-card-meta">
-        <div class="photo-meta-name">${p.uploader_name||'Invité'} ${cat.emoji}</div>
-        <div class="photo-meta-time">${time}</div>
+        <div class="photo-meta-name">${p.uploader_name || 'Invité'} &nbsp;<span style="color:var(--stone)">${cat.emoji}</span></div>
+        <div class="photo-meta-time">${date} à ${time} &nbsp;·&nbsp; ${p.likes||0} ❤️</div>
       </div>
     </div>`;
   }).join('');
 }
 
-// TÉLÉCHARGEMENT
-async function dlOne(url,path,cat){
-  try{
-    showToast('Téléchargement…');
-    const res=await fetch(url);
-    const blob=await res.blob();
-    const a=document.createElement('a');
-    const ext=(path||'photo.jpg').split('.').pop()||'jpg';
-    a.href=URL.createObjectURL(blob);
-    a.download=`mementos-${cat||'photo'}-${Date.now()}.${ext}`;
-    a.style.display='none';
-    document.body.appendChild(a);a.click();document.body.removeChild(a);
-    setTimeout(()=>URL.revokeObjectURL(a.href),2000);
-    showToast('✓ Photo téléchargée !');
-  }catch(e){window.open(url,'_blank');}
+// ══════════════════════════════════════════
+//  TÉLÉCHARGEMENT
+// ══════════════════════════════════════════
+async function dlPhoto(url, path) {
+  try {
+    toast('Téléchargement…');
+    const res  = await fetch(url);
+    const blob = await res.blob();
+    const a    = document.createElement('a');
+    const ext  = path.split('.').pop() || 'jpg';
+    a.href     = URL.createObjectURL(blob);
+    a.download = `mementos-${Date.now()}.${ext}`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast('✓ Photo téléchargée !');
+  } catch(e) { window.open(url,'_blank'); }
 }
 
-async function downloadCat(catId){
-  const photos=allPhotos.filter(p=>p.category===catId);
-  if(!photos.length){showToast('Aucune photo dans cette catégorie');return;}
-  const card=document.getElementById('dlcard-'+catId);
-  if(card)card.classList.add('loading');
-  await runDownload(photos,CATS[catId]?.name||catId);
-  if(card)card.classList.remove('loading');
-}
+async function downloadZip(catFilter) {
+  const photos = catFilter === 'all'
+    ? allPhotos
+    : allPhotos.filter(p => p.category === catFilter);
 
-async function downloadAll(){
-  if(!allPhotos.length){showToast('Aucune photo disponible');return;}
-  const btn=document.getElementById('dlAllBtn');
-  if(btn)btn.disabled=true;
-  await runDownload(allPhotos,'toutes-categories');
-  if(btn)btn.disabled=false;
-}
+  if (!photos.length) { toast('Aucune photo à télécharger'); return; }
 
-async function runDownload(photos, label){
-  const prog = document.getElementById('dlProg');
-  const fill = document.getElementById('dlProgFill');
-  const lbl  = document.getElementById('dlProgLabel');
-  const pct  = document.getElementById('dlProgPct');
+  const prog  = document.getElementById('zipProgress');
+  const bar   = document.getElementById('zipBar');
+  const label = document.getElementById('zipLabel');
+  const pct   = document.getElementById('zipPct');
+
   prog.classList.add('show');
-  let done = 0;
+  document.getElementById('dlAllZipBtn').disabled = true;
 
+  let done = 0;
   for (const p of photos) {
     try {
-      lbl.textContent = `${label} — ${done+1} / ${photos.length}`;
-
-      // Fetch avec timeout 30s
+      label.textContent = `Téléchargement ${done+1} / ${photos.length}…`;
+      
+      // Fetch avec timeout
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 30000);
       const res = await fetch(p.public_url, { signal: controller.signal });
       clearTimeout(timeout);
-
+      
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const blob = await res.blob();
-
+      
+      // Télécharger
       const url = URL.createObjectURL(blob);
       const a   = document.createElement('a');
       const ext = (p.storage_path || 'photo.jpg').split('.').pop() || 'jpg';
@@ -1028,104 +735,106 @@ async function runDownload(photos, label){
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-
-      // Libérer après délai suffisant pour que le navigateur traite le DL
+      
+      // Libérer après délai suffisant
       await new Promise(r => setTimeout(r, 1200));
       URL.revokeObjectURL(url);
-
+      
       done++;
-      const p2 = Math.round((done / photos.length) * 100);
-      fill.style.width = p2 + '%';
-      pct.textContent  = p2 + '%';
-
+      const pct2 = Math.round((done / photos.length) * 100);
+      bar.style.width = pct2 + '%';
+      pct.textContent = pct2 + '%';
+      
     } catch(e) {
       console.warn('Download failed:', p.public_url, e.message);
+      // Continuer malgré l'erreur
     }
-
-    // Pause entre chaque fichier
+    
+    // Pause entre chaque fichier pour éviter le blocage navigateur
     await new Promise(r => setTimeout(r, 800));
   }
 
   prog.classList.remove('show');
-  fill.style.width = '0%';
-  showToast(`✓ ${done} / ${photos.length} photos téléchargées !`);
-}
-
-// DIAPORAMA
-function startSlideshow(){
-  if(!allPhotos.length)return;
-  ssPhotos=[...allPhotos];ssIndex=0;ssPlaying=true;
-  document.getElementById('ssOverlay').classList.add('open');
-  document.body.style.overflow='hidden';
-  ssShow(0);ssStartTimer();
-}
-function ssShow(idx){
-  const p   = ssPhotos[idx];
-  const img = document.getElementById('ssImg');
-
-  // Afficher immédiatement sans animation de fade si image déjà en cache
-  img.style.transition = 'none';
-  img.style.opacity    = '0';
-  img.style.transform  = 'scale(1)';
-  img.src = p.public_url;
-  img.onload = () => {
-    img.style.transition = 'opacity 0.3s ease';
-    img.style.opacity = '1';
-  };
-  img.onerror = () => { ssNext(); }; // Passer à la suivante si erreur
-
-  // Précharger la prochaine image en avance
-  const nextIdx = (idx + 1) % ssPhotos.length;
-  const preload = new Image();
-  preload.src   = ssPhotos[nextIdx].public_url;
-
-  const cat = CATS[p.category] || {emoji:'📷', name:''};
-  document.getElementById('ssTag').textContent  = `${cat.emoji} ${cat.name}`;
-  document.getElementById('ssNum').textContent  = `${idx+1} / ${ssPhotos.length}`;
-  document.getElementById('ssName').textContent = `par ${p.uploader_name||'Invité'}`;
-  document.getElementById('ssTime').textContent = new Date(p.uploaded_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-
-  const bar = document.getElementById('ssBarFill');
-  bar.style.transition = 'none';
   bar.style.width = '0%';
-  requestAnimationFrame(() => {
-    bar.style.transition = `width ${SS_DUR}ms linear`;
-    bar.style.width = '100%';
-  });
-}
-function ssStartTimer(){clearTimeout(ssTimer);if(!ssPlaying)return;ssTimer=setTimeout(ssNext,SS_DUR);}
-function ssNext(){ssIndex=(ssIndex+1)%ssPhotos.length;ssShow(ssIndex);ssStartTimer();}
-function ssPrev(){ssIndex=(ssIndex-1+ssPhotos.length)%ssPhotos.length;ssShow(ssIndex);ssStartTimer();}
-function ssToggle(){
-  ssPlaying=!ssPlaying;
-  document.getElementById('ssPlayBtn').textContent=ssPlaying?'⏸':'▶';
-  if(ssPlaying)ssStartTimer();else clearTimeout(ssTimer);
-}
-function ssClose(){
-  clearTimeout(ssTimer);
-  document.getElementById('ssOverlay').classList.remove('open');
-  document.body.style.overflow='';
+  document.getElementById('dlAllZipBtn').disabled = false;
+  toast(`✓ ${done} / ${photos.length} photos téléchargées !`);
 }
 
-// LIGHTBOX
-function openLB(src){document.getElementById('lbImg').src=src;document.getElementById('lb').classList.add('open');}
-function closeLB(){document.getElementById('lb').classList.remove('open');}
-
-// TOAST
-let toastT=null;
-function showToast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.classList.add('show');
-  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2500);
+// ══════════════════════════════════════════
+//  SUPPRESSION (sans limite de temps)
+// ══════════════════════════════════════════
+function askDelete(photoId, storagePath) {
+  pendingDeleteId   = photoId;
+  pendingDeletePath = storagePath;
+  document.getElementById('modalBg').classList.add('open');
 }
 
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeLB();ssClose();}
-  if(document.getElementById('ssOverlay').classList.contains('open')){
-    if(e.key==='ArrowRight')ssNext();
-    if(e.key==='ArrowLeft')ssPrev();
-    if(e.key===' '){e.preventDefault();ssToggle();}
+function closeModal() {
+  document.getElementById('modalBg').classList.remove('open');
+  pendingDeleteId = null; pendingDeletePath = null;
+}
+
+async function confirmDelete() {
+  if (!pendingDeleteId) return;
+  const id   = pendingDeleteId;
+  const path = pendingDeletePath;
+  closeModal();
+
+  const card = document.getElementById('pc-' + id);
+  if (card) card.style.opacity = '0.4';
+
+  try {
+    await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${path}`, {
+      method:'DELETE',
+      headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json' }
+    });
+    await fetch(`${SB_URL}/rest/v1/photos?id=eq.${id}`, {
+      method:'DELETE',
+      headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal' }
+    });
+
+    allPhotos = allPhotos.filter(p => p.id !== id);
+    if (card) card.remove();
+    updateStats();
+    toast('✓ Photo supprimée');
+  } catch(err) {
+    if (card) card.style.opacity = '1';
+    toast('⚠️ Erreur suppression : ' + err.message);
   }
+}
+
+// ══════════════════════════════════════════
+//  TOGGLE UPLOADS
+// ══════════════════════════════════════════
+function toggleUploads() {
+  const enabled = document.getElementById('uploadToggle').checked;
+  const status  = document.getElementById('toggleStatus');
+  status.textContent = enabled
+    ? '● Actif — les invités peuvent partager'
+    : '● Désactivé — galerie verrouillée';
+  status.className = 'toggle-status ' + (enabled ? 'on' : 'off');
+  try {
+    localStorage.setItem('mementos_uploads_enabled', enabled ? '1' : '0');
+  } catch(e) {}
+  toast(enabled ? '✓ Uploads activés' : '✓ Uploads désactivés');
+}
+
+// ══════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════
+let toastTimer = null;
+function toast(msg) {
+  const t = document.getElementById('dashToast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// Fermer modal avec Echap
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+  if (e.key === 'Enter' && document.getElementById('loginWrap').style.display !== 'none') doLogin();
 });
 </script>
 </body>
