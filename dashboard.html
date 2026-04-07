@@ -1,1017 +1,163 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Mementos — Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"/>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --cream:#F7F3EE;--warm:#FDFAF6;--gold:#B8935A;--gold-l:#D4AE7A;
-  --gold-m:#E8D5B7;--dark:#1C1712;--stone:#8A8078;--charcoal:#3A3530;
-  --red:#C0392B;--green:#27AE60;
-}
-body{background:var(--cream);font-family:'Jost',sans-serif;font-weight:300;color:var(--dark);min-height:100vh}
+  <title>Dashboard</title>
+  <style>
+    body {
+      font-family: Arial;
+      margin: 20px;
+    }
 
-/* ── LOGIN ── */
-.login-wrap{
-  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
-  background:var(--dark);
-  position:relative;overflow:hidden;
-}
-.login-wrap::before{
-  content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse at 30% 50%, rgba(184,147,90,.12) 0%, transparent 60%),
-             radial-gradient(ellipse at 70% 80%, rgba(184,147,90,.07) 0%, transparent 50%);
-}
-.login-box{
-  position:relative;z-index:1;
-  width:100%;max-width:380px;
-  background:rgba(253,250,246,.04);
-  border:1px solid rgba(184,147,90,.2);
-  border-radius:8px;padding:48px 36px;
-  backdrop-filter:blur(10px);
-}
-.login-logo{
-  text-align:center;margin-bottom:36px;
-}
-.login-logo h1{
-  font-family:'Cormorant Garamond',serif;
-  font-size:32px;font-weight:300;color:var(--warm);
-  letter-spacing:.02em;
-}
-.login-logo h1 em{font-style:italic;color:var(--gold)}
-.login-logo p{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--stone);margin-top:6px}
-.login-field{margin-bottom:16px}
-.login-field label{display:block;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--stone);margin-bottom:8px}
-.login-field input{
-  width:100%;padding:13px 16px;
-  background:rgba(253,250,246,.06);
-  border:1px solid rgba(184,147,90,.25);
-  border-radius:3px;color:var(--warm);
-  font-family:'Jost',sans-serif;font-size:14px;font-weight:300;
-  outline:none;transition:border-color .25s;
-}
-.login-field input:focus{border-color:var(--gold)}
-.login-field input::placeholder{color:rgba(138,128,120,.5)}
-.login-btn{
-  width:100%;margin-top:8px;padding:14px;
-  background:var(--gold);color:var(--warm);
-  font-family:'Jost',sans-serif;font-size:11px;
-  letter-spacing:.25em;text-transform:uppercase;
-  border:none;border-radius:3px;cursor:pointer;
-  transition:all .25s;font-weight:400;
-}
-.login-btn:hover{background:var(--gold-l)}
-.login-err{
-  margin-top:12px;text-align:center;
-  font-size:12px;color:#E74C3C;
-  display:none;
-}
-.login-err.show{display:block}
+    h2 {
+      margin-top: 40px;
+    }
 
-/* ── DASHBOARD ── */
-#dashboard{display:none}
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+    }
 
-.dash-header{
-  background:var(--dark);padding:18px 28px;
-  display:flex;align-items:center;justify-content:space-between;
-  position:sticky;top:0;z-index:50;
-  border-bottom:1px solid rgba(184,147,90,.15);
-}
-.dash-logo{
-  font-family:'Cormorant Garamond',serif;
-  font-size:22px;font-weight:300;color:var(--warm);
-}
-.dash-logo em{font-style:italic;color:var(--gold)}
-.dash-logo span{font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--stone);display:block;margin-top:1px}
-.dash-actions{display:flex;align-items:center;gap:12px}
-.dash-logout{
-  font-size:10px;letter-spacing:.2em;text-transform:uppercase;
-  color:var(--stone);background:none;border:1px solid rgba(138,128,120,.3);
-  padding:7px 14px;border-radius:2px;cursor:pointer;transition:all .2s;
-}
-.dash-logout:hover{color:var(--warm);border-color:var(--stone)}
+    .grid img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
 
-.dash-body{max-width:1100px;margin:0 auto;padding:32px 24px 80px}
+    button {
+      padding: 10px 15px;
+      margin: 10px 5px;
+      cursor: pointer;
+    }
 
-/* ── STATS ── */
-.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:32px}
-@media(min-width:600px){.stats-grid{grid-template-columns:repeat(4,1fr)}}
-.stat-card{
-  background:var(--warm);border:1px solid var(--gold-m);
-  border-radius:6px;padding:20px 18px;
-  position:relative;overflow:hidden;
-}
-.stat-card::before{
-  content:'';position:absolute;top:0;right:0;
-  width:60px;height:60px;
-  background:linear-gradient(135deg,transparent,rgba(184,147,90,.06));
-  border-radius:0 6px 0 60px;
-}
-.stat-val{
-  font-family:'Cormorant Garamond',serif;
-  font-size:36px;font-weight:300;color:var(--dark);
-  line-height:1;margin-bottom:6px;
-}
-.stat-lbl{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--stone)}
-.stat-icon{font-size:20px;margin-bottom:8px;display:block}
+    #slideshow {
+      margin-top: 30px;
+      text-align: center;
+    }
 
-/* ── SECTION HEADER ── */
-.section-hdr{
-  display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:20px;padding-bottom:12px;
-  border-bottom:1px solid var(--gold-m);
-}
-.section-title{
-  font-family:'Cormorant Garamond',serif;
-  font-size:22px;font-weight:300;color:var(--dark);
-}
-.section-actions{display:flex;gap:8px;flex-wrap:wrap}
-
-/* ── BOUTONS ── */
-.btn{
-  padding:9px 18px;border-radius:2px;
-  font-family:'Jost',sans-serif;font-size:10px;
-  letter-spacing:.18em;text-transform:uppercase;
-  cursor:pointer;transition:all .25s;border:none;
-  display:inline-flex;align-items:center;gap:6px;
-}
-.btn-gold{background:var(--gold);color:var(--warm)}
-.btn-gold:hover{background:var(--charcoal)}
-.btn-dark{background:var(--dark);color:var(--warm)}
-.btn-dark:hover{background:var(--gold)}
-.btn-outline{background:none;border:1px solid var(--gold-m);color:var(--charcoal)}
-.btn-outline:hover{border-color:var(--gold);color:var(--gold)}
-.btn-red{background:var(--red);color:#fff}
-.btn-red:hover{background:#A93226}
-.btn-sm{padding:6px 12px;font-size:9px}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-
-/* ── TOGGLE UPLOAD ── */
-.toggle-bar{
-  background:var(--warm);border:1px solid var(--gold-m);
-  border-radius:6px;padding:18px 22px;margin-bottom:28px;
-  display:flex;align-items:center;justify-content:space-between;gap:16px;
-  flex-wrap:wrap;
-}
-.toggle-info h3{font-family:'Cormorant Garamond',serif;font-size:18px;margin-bottom:3px}
-.toggle-info p{font-size:12px;color:var(--stone);line-height:1.5}
-.toggle-switch{
-  position:relative;width:52px;height:28px;flex-shrink:0;
-}
-.toggle-switch input{opacity:0;width:0;height:0}
-.toggle-slider{
-  position:absolute;inset:0;background:var(--gold-m);
-  border-radius:28px;cursor:pointer;transition:.3s;
-}
-.toggle-slider::before{
-  content:'';position:absolute;height:20px;width:20px;
-  left:4px;bottom:4px;background:white;
-  border-radius:50%;transition:.3s;
-  box-shadow:0 2px 4px rgba(0,0,0,.15);
-}
-.toggle-switch input:checked + .toggle-slider{background:var(--green)}
-.toggle-switch input:checked + .toggle-slider::before{transform:translateX(24px)}
-.toggle-status{font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-top:4px}
-.toggle-status.on{color:var(--green)}
-.toggle-status.off{color:var(--red)}
-
-/* ── CAT TABS ── */
-.cat-tabs{display:flex;gap:0;margin-bottom:24px;border:1px solid var(--gold-m);border-radius:4px;overflow:hidden;flex-wrap:wrap}
-.cat-tab{
-  flex:1;min-width:0;padding:10px 8px;background:none;border:none;
-  font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.12em;
-  text-transform:uppercase;color:var(--stone);cursor:pointer;transition:all .2s;
-  white-space:nowrap;border-right:1px solid var(--gold-m);
-}
-.cat-tab:last-child{border-right:none}
-.cat-tab.on{background:var(--gold);color:var(--warm)}
-.cat-tab:not(.on):hover{background:var(--cream);color:var(--gold)}
-.cat-tab .tab-count{
-  display:inline-block;margin-left:4px;
-  background:rgba(184,147,90,.2);color:var(--gold);
-  font-size:9px;padding:1px 5px;border-radius:8px;
-}
-.cat-tab.on .tab-count{background:rgba(255,255,255,.25);color:#fff}
-
-/* ── PHOTO GRID ── */
-.photo-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
-  gap:10px;
-}
-@media(min-width:600px){.photo-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}}
-
-.photo-card{
-  border-radius:4px;overflow:hidden;position:relative;
-  background:var(--gold-m);
-  border:1px solid transparent;
-  transition:all .25s;
-}
-.photo-card:hover{border-color:var(--gold);box-shadow:0 8px 24px rgba(184,147,90,.15)}
-.photo-card img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
-.photo-card-meta{
-  padding:10px 12px;background:var(--warm);
-  border-top:1px solid var(--gold-m);
-}
-.photo-meta-name{font-size:12px;color:var(--dark);margin-bottom:2px}
-.photo-meta-time{font-size:10px;color:var(--stone);letter-spacing:.05em}
-.photo-card-actions{
-  position:absolute;top:8px;right:8px;
-  display:flex;gap:6px;opacity:0;
-  transition:opacity .2s;
-}
-.photo-card:hover .photo-card-actions{opacity:1}
-.photo-action-btn{
-  width:30px;height:30px;border-radius:50%;border:none;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  font-size:13px;transition:all .2s;backdrop-filter:blur(4px);
-}
-.photo-dl-btn{background:rgba(28,23,18,.7);color:#fff}
-.photo-dl-btn:hover{background:var(--gold)}
-.photo-del-btn{background:rgba(192,57,43,.85);color:#fff}
-.photo-del-btn:hover{background:var(--red)}
-
-.photo-empty{
-  grid-column:1/-1;text-align:center;
-  padding:60px 20px;color:var(--stone);
-}
-.photo-empty .ei{font-size:36px;margin-bottom:12px;opacity:.4}
-
-/* ── ZIP PROGRESS ── */
-.zip-progress{
-  margin-top:16px;padding:14px 18px;
-  background:var(--warm);border:1px solid var(--gold-m);
-  border-radius:4px;display:none;
-}
-.zip-progress.show{display:block}
-.zip-bar-wrap{height:3px;background:var(--gold-m);border-radius:2px;margin-top:10px;overflow:hidden}
-.zip-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-l));width:0%;transition:width .3s;border-radius:2px}
-.zip-label{font-size:12px;color:var(--stone);display:flex;justify-content:space-between}
-
-/* ── MODAL ── */
-.modal-bg{position:fixed;inset:0;background:rgba(28,23,18,.65);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
-.modal-bg.open{display:flex}
-.modal{background:var(--warm);border-radius:8px;padding:32px 28px;max-width:340px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(28,23,18,.25)}
-.modal-icon{font-size:40px;margin-bottom:16px}
-.modal-title{font-family:'Cormorant Garamond',serif;font-size:22px;margin-bottom:8px}
-.modal-text{font-size:13px;color:var(--stone);line-height:1.6;margin-bottom:24px}
-.modal-btns{display:flex;gap:10px}
-.modal-cancel{flex:1;padding:12px;background:none;border:1px solid var(--gold-m);border-radius:2px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;color:var(--stone);transition:all .2s}
-.modal-cancel:hover{border-color:var(--stone)}
-.modal-confirm{flex:1;padding:12px;background:var(--red);border:none;border-radius:2px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;color:#fff;transition:all .2s}
-.modal-confirm:hover{background:#A93226}
-
-/* ── TOAST ── */
-.dash-toast{
-  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
-  background:var(--dark);color:var(--warm);
-  padding:11px 22px;border-radius:20px;
-  font-size:12px;letter-spacing:.08em;
-  z-index:300;opacity:0;transition:opacity .3s;
-  white-space:nowrap;box-shadow:0 8px 24px rgba(28,23,18,.3);
-  pointer-events:none;
-}
-.dash-toast.show{opacity:1}
-
-/* ── LOADING ── */
-.loading-grid{
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;
-}
-.loading-card{
-  border-radius:4px;background:var(--gold-m);
-  aspect-ratio:4/3;animation:shimmer 1.5s infinite;
-}
-@keyframes shimmer{0%,100%{opacity:.4}50%{opacity:.8}}
-
-footer{text-align:center;padding:24px;font-size:10px;letter-spacing:.18em;color:var(--gold-m);text-transform:uppercase}
-
-/* ══ RESPONSIVE DESKTOP ══ */
-@media (min-width: 768px) {
-  .dash-body { padding: 40px 40px 80px; }
-  .stats-grid { grid-template-columns: repeat(4, 1fr); }
-  .photo-grid { grid-template-columns: repeat(4, 1fr); }
-}
-@media (min-width: 1200px) {
-  .dash-body { max-width: 1300px; padding: 48px 60px 100px; }
-  .photo-grid { grid-template-columns: repeat(5, 1fr); }
-  .stats-grid { grid-template-columns: repeat(4, 1fr); }
-}
-
-
-/* ── SÉLECTION MULTIPLE ── */
-.photo-card{position:relative;cursor:pointer}
-.photo-select-cb{
-  position:absolute;top:8px;left:8px;
-  width:22px;height:22px;
-  background:rgba(255,255,255,.9);
-  border:2px solid rgba(28,23,18,.3);
-  border-radius:4px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:13px;z-index:6;
-  transition:all .2s;cursor:pointer;
-  opacity:0;
-}
-.select-mode .photo-select-cb{opacity:1}
-.photo-card.selected-card .photo-select-cb{
-  background:var(--gold);border-color:var(--gold);color:#fff;
-  opacity:1;
-}
-.photo-card.selected-card{
-  outline:2px solid var(--gold);
-  outline-offset:2px;
-}
-.select-bar{
-  display:none;
-  position:sticky;top:68px;z-index:40;
-  background:var(--dark);color:var(--warm);
-  padding:12px 20px;
-  border-radius:6px;margin-bottom:16px;
-  align-items:center;justify-content:space-between;
-  gap:12px;flex-wrap:wrap;
-  box-shadow:0 4px 20px rgba(28,23,18,.3);
-}
-.select-bar.show{display:flex;animation:fadeUp .3s ease}
-@keyframes fadeUp{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
-.select-bar-info{font-size:12px;letter-spacing:.1em}
-.select-bar-info strong{color:var(--gold)}
-.select-bar-actions{display:flex;gap:8px;flex-wrap:wrap}
-.btn-select-all{padding:7px 14px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:var(--warm);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;border-radius:2px;cursor:pointer;transition:all .2s}
-.btn-select-all:hover{background:rgba(255,255,255,.2)}
-.btn-delete-sel{padding:7px 14px;background:var(--red);border:none;color:#fff;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;border-radius:2px;cursor:pointer;transition:all .2s}
-.btn-delete-sel:hover{background:#A93226}
-.btn-cancel-sel{padding:7px 14px;background:none;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.6);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;border-radius:2px;cursor:pointer;transition:all .2s}
-.btn-cancel-sel:hover{color:var(--warm)}
-.btn-select-mode{padding:8px 16px;background:none;border:1px solid var(--gold-m);color:var(--charcoal);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;border-radius:2px;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
-.btn-select-mode:hover{border-color:var(--gold);color:var(--gold)}
-.btn-select-mode.active{background:var(--gold);border-color:var(--gold);color:var(--warm)}
-
-</style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    #slideshow img {
+      max-width: 600px;
+      width: 100%;
+      border-radius: 10px;
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- ── LOGIN ── -->
-<div class="login-wrap" id="loginWrap">
-  <div class="login-box">
-    <div class="login-logo">
-      <h1>Memen<em>tos</em></h1>
-      <p>Espace organisateur</p>
-    </div>
-    <div class="login-field">
-      <label>Identifiant</label>
-      <input type="text" id="loginInput" placeholder="Votre identifiant" onkeydown="if(event.key==='Enter'){doLogin();}" autocomplete="username">
-    </div>
-    <div class="login-field">
-      <label>Mot de passe</label>
-      <input type="password" id="pwdInput" placeholder="••••••••" onkeydown="if(event.key==='Enter'){doLogin();}" autocomplete="current-password">
-    </div>
-    <button class="login-btn" onclick="doLogin()">Accéder au dashboard</button>
-    <p class="login-err" id="loginErr">Identifiant ou mot de passe incorrect</p>
-  </div>
+<h1>📸 Dashboard Mariage</h1>
+
+<button onclick="downloadAll()">⬇️ Télécharger toutes les photos</button>
+
+<div id="categories"></div>
+
+<div id="slideshow">
+  <h2>🎞️ Diaporama</h2>
+  <img id="slideImage" src="" />
 </div>
 
-<!-- ── DASHBOARD ── -->
-<div id="dashboard">
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
+import JSZip from "https://cdn.jsdelivr.net/npm/jszip/+esm"
 
-  <header class="dash-header">
-    <div class="dash-logo">
-      Memen<em>tos</em>
-      <span>Dashboard organisateur</span>
-    </div>
-    <div class="dash-actions">
-      <a href="index.html" class="btn btn-outline btn-sm">← App invités</a>
-      <button class="dash-logout" onclick="doLogout()">Déconnexion</button>
-    </div>
-  </header>
+const supabase = createClient(
+  "https://TON-PROJET.supabase.co",
+  "TON-ANON-KEY"
+)
 
-  <div class="dash-body">
+let allPhotos = []
+let currentSlide = 0
 
-    <!-- STATS -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <span class="stat-icon">📸</span>
-        <div class="stat-val" id="statTotal">—</div>
-        <div class="stat-lbl">Photos totales</div>
-      </div>
-      <div class="stat-card">
-        <span class="stat-icon">👥</span>
-        <div class="stat-val" id="statGuests">—</div>
-        <div class="stat-lbl">Invités actifs</div>
-      </div>
-      <div class="stat-card">
-        <span class="stat-icon">💍</span>
-        <div class="stat-val" id="statCeremonie">—</div>
-        <div class="stat-lbl">Cérémonie</div>
-      </div>
-      <div class="stat-card">
-        <span class="stat-icon">🥂</span>
-        <div class="stat-val" id="statCocktail">—</div>
-        <div class="stat-lbl">Cocktail</div>
-      </div>
-      <div class="stat-card">
-        <span class="stat-icon">🍽️</span>
-        <div class="stat-val" id="statDiner">—</div>
-        <div class="stat-lbl">Dîner / Soirée</div>
-      </div>
-      <div class="stat-card">
-        <span class="stat-icon">💃</span>
-        <div class="stat-val" id="statDanse">—</div>
-        <div class="stat-lbl">Piste de danse</div>
-      </div>
-      <div class="stat-card">
-        <span class="stat-icon">⏱️</span>
-        <div class="stat-val" id="statLast">—</div>
-        <div class="stat-lbl">Dernière photo</div>
-      </div>
-      <div class="stat-card">
-        <span class="stat-icon">❤️</span>
-        <div class="stat-val" id="statLikes">—</div>
-        <div class="stat-lbl">Likes totaux</div>
-      </div>
-    </div>
+async function loadPhotos() {
+  const { data } = await supabase
+    .from("photos")
+    .select("*")
 
-    <!-- TOGGLE UPLOAD -->
-    <div class="toggle-bar">
-      <div class="toggle-info">
-        <h3>Uploads invités</h3>
-        <p>Désactivez après l'événement pour verrouiller la galerie</p>
-        <div class="toggle-status on" id="toggleStatus">● Actif — les invités peuvent partager</div>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-        <label class="toggle-switch">
-          <input type="checkbox" id="uploadToggle" checked onchange="toggleUploads()">
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-    </div>
+  allPhotos = data
 
-    <!-- PHOTOS PAR CATÉGORIE -->
-    <div class="section-hdr">
-      <h2 class="section-title">Toutes les photos</h2>
-      <div class="section-actions">
-        <button class="btn btn-outline" onclick="refreshPhotos()">↻ Actualiser</button>
-        <button class="btn-select-mode" id="btnSelectMode" onclick="toggleSelectMode()">☑ Sélectionner</button>
-        <button class="btn btn-dark" id="dlAllZipBtn" onclick="downloadZip('all')">⬇ ZIP complet</button>
-      </div>
-    </div>
+  displayCategories()
+  startSlideshow()
+}
 
-    <!-- Barre de sélection -->
-    <div class="select-bar" id="selectBar">
-      <div class="select-bar-info">
-        <strong id="selectCount">0</strong> photo(s) sélectionnée(s)
-      </div>
-      <div class="select-bar-actions">
-        <button class="btn-select-all" onclick="selectAll()">Tout sélectionner</button>
-        <button class="btn-select-all" onclick="deselectAll()">Tout désélectionner</button>
-        <button class="btn-delete-sel" onclick="deleteSelected()">🗑 Supprimer la sélection</button>
-        <button class="btn-cancel-sel" onclick="toggleSelectMode()">✕ Annuler</button>
-      </div>
-    </div>
+function displayCategories() {
+  const container = document.getElementById("categories")
+  container.innerHTML = ""
 
-    <!-- ONGLETS CATÉGORIES -->
-    <div class="cat-tabs">
-      <button class="cat-tab on" onclick="filterCat('all',this)">
-        Toutes <span class="tab-count" id="tc-all">0</span>
+  const categories = {}
+
+  allPhotos.forEach(p => {
+    if (!categories[p.event_id]) categories[p.event_id] = []
+    categories[p.event_id].push(p)
+  })
+
+  for (let cat in categories) {
+    const div = document.createElement("div")
+
+    div.innerHTML = `
+      <h2>${cat}</h2>
+      <button onclick="downloadCategory('${cat}')">
+        Télécharger ${cat}
       </button>
-      <button class="cat-tab" onclick="filterCat('ceremonie',this)">
-        💍 Cérémonie <span class="tab-count" id="tc-ceremonie">0</span>
-      </button>
-      <button class="cat-tab" onclick="filterCat('cocktail',this)">
-        🥂 Cocktail <span class="tab-count" id="tc-cocktail">0</span>
-      </button>
-      <button class="cat-tab" onclick="filterCat('diner',this)">
-        🍽️ Dîner <span class="tab-count" id="tc-diner">0</span>
-      </button>
-      <button class="cat-tab" onclick="filterCat('danse',this)">
-        💃 Danse <span class="tab-count" id="tc-danse">0</span>
-      </button>
-    </div>
-
-    <!-- ZIP PAR CAT -->
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">
-      <button class="btn btn-outline btn-sm" onclick="downloadZip('ceremonie')">⬇ ZIP Cérémonie</button>
-      <button class="btn btn-outline btn-sm" onclick="downloadZip('cocktail')">⬇ ZIP Cocktail</button>
-      <button class="btn btn-outline btn-sm" onclick="downloadZip('diner')">⬇ ZIP Dîner</button>
-      <button class="btn btn-outline btn-sm" onclick="downloadZip('danse')">⬇ ZIP Danse</button>
-    </div>
-
-    <!-- ZIP PROGRESS -->
-    <div class="zip-progress" id="zipProgress">
-      <div class="zip-label">
-        <span id="zipLabel">Préparation…</span>
-        <span id="zipPct">0%</span>
+      <div class="grid">
+        ${categories[cat].map(p => `
+          <img src="${p.image_url}" />
+        `).join("")}
       </div>
-      <div class="zip-bar-wrap"><div class="zip-bar-fill" id="zipBar"></div></div>
-    </div>
+    `
 
-    <!-- GRILLE PHOTOS -->
-    <div class="photo-grid" id="photoGrid">
-      <div class="loading-grid" style="grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px">
-        <div class="loading-card"></div><div class="loading-card"></div>
-        <div class="loading-card"></div><div class="loading-card"></div>
-      </div>
-    </div>
-
-  </div>
-
-  <footer>Mementos &nbsp;·&nbsp; Dashboard organisateur &nbsp;·&nbsp; Accès restreint</footer>
-</div>
-
-<!-- MODAL SUPPRESSION -->
-<div class="modal-bg" id="modalBg">
-  <div class="modal">
-    <div class="modal-icon">🗑️</div>
-    <div class="modal-title">Supprimer cette photo ?</div>
-    <div class="modal-text">Action irréversible. La photo sera définitivement supprimée de la galerie et du stockage.</div>
-    <div class="modal-btns">
-      <button class="modal-cancel" onclick="closeModal()">Annuler</button>
-      <button class="modal-confirm" onclick="confirmDelete()">Supprimer</button>
-    </div>
-  </div>
-</div>
-
-<div class="dash-toast" id="dashToast"></div>
-
-<script>
-// ══════════════════════════════════════════
-//  CONFIG
-// ══════════════════════════════════════════
-const SB_URL   = 'https://hmytqbgnjpugqeslnuvk.supabase.co';
-const SB_KEY   = 'sb_publishable_59uI3S3lCP0xyVtvrR6ZZA_vXsiF27o';
-const EVENT_ID = 'mariage-melodie-thomas-2025';
-const BUCKET   = 'photos';
-const LOGIN_H  = '5d6ada4655ef0223d6391f5aeac433c04fc9db4d6fe8b3055fc0f49092a2fdb4'; // SHA-256
-const PWD_H    = 'ad1f95a7db72b027a7ad4960a216ad4d4d9071c8e3ce367ec5538722ceceeb24'; // SHA-256
-
-const CATEGORIES = {
-  ceremonie: { emoji:'💍', name:'Cérémonie' },
-  cocktail:  { emoji:'🥂', name:'Cocktail' },
-  diner:     { emoji:'🍽️', name:'Dîner / Soirée' },
-  danse:     { emoji:'💃', name:'Piste de danse' },
-};
-
-// ══════════════════════════════════════════
-//  STATE
-// ══════════════════════════════════════════
-let allPhotos        = [];
-let currentFilter    = 'all';
-let currentFilter    = 'all';
-let pendingDeleteId  = null;
-let pendingDeletePath= null;
-
-// ══════════════════════════════════════════
-//  AUTH
-// ══════════════════════════════════════════
-
-
-
-
-
-// ══════════════════════════════════════════
-//  SÉLECTION MULTIPLE
-// ══════════════════════════════════════════
-let selectMode     = false;
-let selectedPhotos = new Set(); // IDs sélectionnés
-
-function toggleSelectMode() {
-  selectMode = !selectMode;
-  const btn = document.getElementById('btnSelectMode');
-  const bar = document.getElementById('selectBar');
-  if (selectMode) {
-    btn.classList.add('active');
-    btn.textContent = '☑ Mode sélection actif';
-    bar.classList.add('show');
-  } else {
-    btn.classList.remove('active');
-    btn.textContent = '☑ Sélectionner';
-    bar.classList.remove('show');
-    selectedPhotos.clear();
-  }
-  renderPhotos();
-}
-
-function handleCardClick(id, path, url) {
-  if (selectMode) toggleSelect(id);
-  else openLB(url);
-}
-
-function toggleSelect(id) {
-  if (selectedPhotos.has(id)) selectedPhotos.delete(id);
-  else selectedPhotos.add(id);
-  updateSelectUI();
-  // Mettre à jour la carte visuellement
-  const card = document.getElementById('pc-' + id);
-  if (card) {
-    card.classList.toggle('selected-card', selectedPhotos.has(id));
-    const cb = card.querySelector('.photo-select-cb');
-    if (cb) cb.textContent = selectedPhotos.has(id) ? '✓' : '';
+    container.appendChild(div)
   }
 }
 
-function selectAll() {
-  const photos = currentFilter === 'all'
-    ? allPhotos
-    : allPhotos.filter(p => p.category === currentFilter);
-  photos.forEach(p => selectedPhotos.add(p.id));
-  updateSelectUI();
-  renderPhotos();
-}
+window.downloadAll = async function () {
+  const zip = new JSZip()
 
-function deselectAll() {
-  selectedPhotos.clear();
-  updateSelectUI();
-  renderPhotos();
-}
-
-function updateSelectUI() {
-  document.getElementById('selectCount').textContent = selectedPhotos.size;
-}
-
-async function deleteSelected() {
-  if (!selectedPhotos.size) { toast('Aucune photo sélectionnée'); return; }
-  const count = selectedPhotos.size;
-  if (!confirm(`Supprimer définitivement ${count} photo${count>1?'s':''} ? Cette action est irréversible.`)) return;
-
-  const ids    = [...selectedPhotos];
-  const photos = allPhotos.filter(p => ids.includes(p.id));
-  let   done   = 0;
-
-  for (const p of photos) {
-    try {
-      // Supprimer du storage
-      await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${p.storage_path}`, {
-        method:'DELETE', mode:'cors', credentials:'omit',
-        headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json' }
-      });
-      // Supprimer de la DB
-      await fetch(`${SB_URL}/rest/v1/photos?id=eq.${p.id}`, {
-        method:'DELETE', mode:'cors', credentials:'omit',
-        headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal' }
-      });
-      // Retirer du DOM
-      const card = document.getElementById('pc-' + p.id);
-      if (card) card.remove();
-      done++;
-    } catch(e) {
-      console.warn('Delete failed:', p.id, e.message);
-    }
+  for (let photo of allPhotos) {
+    const response = await fetch(photo.image_url)
+    const blob = await response.blob()
+    zip.file(photo.id + ".jpg", blob)
   }
 
-  // Mettre à jour allPhotos
-  allPhotos = allPhotos.filter(p => !ids.includes(p.id));
-  selectedPhotos.clear();
-  updateStats();
-  updateSelectUI();
-  toggleSelectMode();
-  toast(`✓ ${done} photo${done>1?'s':''} supprimée${done>1?'s':''}`);
+  const content = await zip.generateAsync({ type: "blob" })
+  const link = document.createElement("a")
+  link.href = URL.createObjectURL(content)
+  link.download = "all-photos.zip"
+  link.click()
 }
 
+window.downloadCategory = async function (category) {
+  const zip = new JSZip()
 
-function doLogin() {
-  const user = (document.getElementById('loginInput').value || '').trim();
-  const pwd  = (document.getElementById('pwdInput').value || '');
-  const err  = document.getElementById('loginErr');
+  const photos = allPhotos.filter(p => p.event_id === category)
 
-  if (user === 'Guntri' && pwd === 'Feriel01!!') {
-    sessionStorage.setItem('mementos_auth', '1');
-    document.getElementById('loginWrap').style.display = 'none';
-    document.getElementById('dashboard').style.display  = 'block';
-    err.classList.remove('show');
-    loadDashboard();
-  } else {
-    err.classList.add('show');
-    document.getElementById('pwdInput').value = '';
-    document.getElementById('loginInput').focus();
-  }
-}
-
-function doLogout() {
-  sessionStorage.removeItem('mementos_auth');
-  document.getElementById('loginWrap').style.display = 'flex';
-  document.getElementById('dashboard').style.display = 'none';
-}
-
-// Vérifier session au chargement
-window.addEventListener('DOMContentLoaded', () => {
-  if (sessionStorage.getItem('mementos_auth') === '1') {
-    document.getElementById('loginWrap').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
-    loadDashboard();
-  }
-  document.getElementById('loginInput').focus();
-});
-
-// ══════════════════════════════════════════
-//  CHARGEMENT
-// ══════════════════════════════════════════
-async function loadDashboard() {
-  console.log('Dashboard: connexion Supabase', SB_URL);
-  console.log('EVENT_ID:', EVENT_ID);
-  await refreshPhotos();
-  startAutoRefresh();
-}
-
-async function refreshPhotos() {
-  try {
-    const res = await fetch(
-      `${SB_URL}/rest/v1/photos?event_id=eq.${EVENT_ID}&order=uploaded_at.desc&select=*`,
-      {
-        method: 'GET',
-        mode: 'cors',
-        credentials: 'omit',
-        headers:{
-          'apikey':        SB_KEY,
-          'Authorization': `Bearer ${SB_KEY}`,
-          'Content-Type':  'application/json',
-          'Accept':        'application/json'
-        }
-      }
-    );
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`Supabase ${res.status}: ${errText}`);
-    }
-    allPhotos = await res.json();
-    updateStats();
-    renderPhotos();
-    // Afficher le total dans le bouton refresh
-    const btn = document.querySelector('[onclick="refreshPhotos()"]');
-    if (btn) btn.textContent = `↻ Actualiser (${allPhotos.length})`;
-  } catch(err) {
-    console.error('Fetch error:', err);
-    toast('⚠️ ' + err.message);
-  }
-}
-
-// Auto-refresh toutes les 15 secondes
-let autoRefreshInterval = null;
-function startAutoRefresh() {
-  if (autoRefreshInterval) clearInterval(autoRefreshInterval);
-  autoRefreshInterval = setInterval(() => {
-    refreshPhotos();
-  }, 15000);
-}
-
-// ══════════════════════════════════════════
-//  STATS
-// ══════════════════════════════════════════
-function updateStats() {
-  const total   = allPhotos.length;
-  const guests  = new Set(allPhotos.map(p => p.uploader_name || 'Invité')).size;
-  const likes   = allPhotos.reduce((s,p) => s + (p.likes||0), 0);
-
-  document.getElementById('statTotal').textContent    = total;
-  document.getElementById('statGuests').textContent   = guests;
-  document.getElementById('statLikes').textContent    = likes;
-  document.getElementById('statCeremonie').textContent = allPhotos.filter(p=>p.category==='ceremonie').length;
-  document.getElementById('statCocktail').textContent  = allPhotos.filter(p=>p.category==='cocktail').length;
-  document.getElementById('statDiner').textContent     = allPhotos.filter(p=>p.category==='diner').length;
-  document.getElementById('statDanse').textContent     = allPhotos.filter(p=>p.category==='danse').length;
-
-  // Dernière photo
-  if (allPhotos.length > 0) {
-    const last = new Date(allPhotos[0].uploaded_at);
-    const diff = Math.floor((Date.now() - last) / 60000);
-    document.getElementById('statLast').textContent =
-      diff < 1 ? 'À l\'instant' : diff < 60 ? `${diff}min` : `${Math.floor(diff/60)}h`;
+  for (let photo of photos) {
+    const response = await fetch(photo.image_url)
+    const blob = await response.blob()
+    zip.file(photo.id + ".jpg", blob)
   }
 
-  // Compteurs onglets
-  document.getElementById('tc-all').textContent       = total;
-  document.getElementById('tc-ceremonie').textContent  = allPhotos.filter(p=>p.category==='ceremonie').length;
-  document.getElementById('tc-cocktail').textContent   = allPhotos.filter(p=>p.category==='cocktail').length;
-  document.getElementById('tc-diner').textContent      = allPhotos.filter(p=>p.category==='diner').length;
-  document.getElementById('tc-danse').textContent      = allPhotos.filter(p=>p.category==='danse').length;
+  const content = await zip.generateAsync({ type: "blob" })
+  const link = document.createElement("a")
+  link.href = URL.createObjectURL(content)
+  link.download = category + ".zip"
+  link.click()
 }
 
-// ══════════════════════════════════════════
-//  GRILLE PHOTOS
-// ══════════════════════════════════════════
-function filterCat(cat, btn) {
-  currentFilter = cat;
-  selectedPhotos.clear();
-  updateSelectUI();
-  document.querySelectorAll('.cat-tab').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-  renderPhotos();
+function startSlideshow() {
+  if (allPhotos.length === 0) return
+
+  setInterval(() => {
+    const img = document.getElementById("slideImage")
+    img.src = allPhotos[currentSlide].image_url
+
+    currentSlide = (currentSlide + 1) % allPhotos.length
+  }, 2000)
 }
 
-function renderPhotos() {
-  const photos = currentFilter === 'all'
-    ? allPhotos
-    : allPhotos.filter(p => p.category === currentFilter);
+loadPhotos()
 
-  const grid = document.getElementById('photoGrid');
-
-  if (!photos.length) {
-    grid.innerHTML = `<div class="photo-empty"><div class="ei">📷</div><p>Aucune photo dans cette catégorie</p></div>`;
-    return;
-  }
-
-  const gridEl = document.getElementById('photoGrid');
-  if (selectMode) gridEl.classList.add('select-mode');
-  else gridEl.classList.remove('select-mode');
-
-  grid.innerHTML = photos.map(p => {
-    const cat  = CATEGORIES[p.category] || { emoji:'📷', name:'Autre' };
-    const time = new Date(p.uploaded_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-    const date = new Date(p.uploaded_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'});
-    const sel  = selectedPhotos.has(p.id);
-    return `
-    <div class="photo-card ${sel?'selected-card':''}" id="pc-${p.id}" onclick="handleCardClick('${p.id}','${p.storage_path}','${p.public_url}')">
-      <div class="photo-select-cb" onclick="event.stopPropagation();toggleSelect('${p.id}')">${sel?'✓':''}</div>
-      <img src="${p.public_url}" alt="" loading="lazy" onerror="this.onerror=null;this.src=this.src">
-      <div class="photo-card-actions">
-        <button class="photo-action-btn photo-dl-btn" onclick="event.stopPropagation();dlPhoto('${p.public_url}','${p.storage_path}')" title="Télécharger">⬇</button>
-        <button class="photo-action-btn photo-del-btn" onclick="event.stopPropagation();askDelete('${p.id}','${p.storage_path}')" title="Supprimer">🗑</button>
-      </div>
-      <div class="photo-card-meta">
-        <div class="photo-meta-name">${p.uploader_name || 'Invité'} &nbsp;<span style="color:var(--stone)">${cat.emoji}</span></div>
-        <div class="photo-meta-time">${date} à ${time} &nbsp;·&nbsp; ${p.likes||0} ❤️</div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-// ══════════════════════════════════════════
-//  TÉLÉCHARGEMENT
-// ══════════════════════════════════════════
-async function dlPhoto(url, path) {
-  try {
-    toast('Téléchargement…');
-    const res  = await fetch(url, { method:'GET', mode:'cors', credentials:'omit' });
-    const blob = await res.blob();
-    const a    = document.createElement('a');
-    const ext  = path.split('.').pop() || 'jpg';
-    a.href     = URL.createObjectURL(blob);
-    a.download = `mementos-${Date.now()}.${ext}`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-    toast('✓ Photo téléchargée !');
-  } catch(e) { window.open(url,'_blank'); }
-}
-
-async function downloadZip(catFilter) {
-  const photos = catFilter === 'all'
-    ? allPhotos
-    : allPhotos.filter(p => p.category === catFilter);
-
-  if (!photos.length) { toast('Aucune photo à télécharger'); return; }
-
-  const prog  = document.getElementById('zipProgress');
-  const bar   = document.getElementById('zipBar');
-  const label = document.getElementById('zipLabel');
-  const pct   = document.getElementById('zipPct');
-  const btn   = document.getElementById('dlAllZipBtn');
-
-  prog.classList.add('show');
-  if (btn) btn.disabled = true;
-  label.textContent = `Chargement de ${photos.length} photos…`;
-
-  const zip   = new JSZip();
-  const total = photos.length;
-  let   done  = 0;
-
-  // Séquentiel pour fiabilité maximale
-  for (let i = 0; i < photos.length; i++) {
-    const p = photos[i];
-    label.textContent = `Chargement ${i+1} / ${total}…`;
-    try {
-      const controller = new AbortController();
-      const timeout    = setTimeout(() => controller.abort(), 30000);
-      const res = await fetch(p.public_url, {
-        mode: 'cors', credentials: 'omit', signal: controller.signal
-      });
-      clearTimeout(timeout);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const blob = await res.blob();
-      const ext  = (p.storage_path || 'photo.jpg').split('.').pop().toLowerCase() || 'jpg';
-      const cat  = p.category || 'photo';
-      const name = (p.uploader_name || 'Invite').replace(/[^a-zA-Z0-9À-ž]/g, '_');
-      zip.file(`${cat}/${String(i+1).padStart(3,'0')}_${name}.${ext}`, blob);
-      done++;
-    } catch(e) {
-      console.warn(`Photo ${i+1} échouée:`, e.message);
-    }
-    const p1 = Math.round(((i+1) / total) * 70);
-    bar.style.width = p1 + '%';
-    pct.textContent = p1 + '%';
-  }
-
-  label.textContent = `Compression de ${done} photos…`;
-  try {
-    const zipBlob = await zip.generateAsync({
-      type: 'blob',
-      compression: 'DEFLATE',
-      compressionOptions: { level: 5 }
-    }, (meta) => {
-      const p2 = 70 + Math.round(meta.percent * 0.3);
-      bar.style.width = p2 + '%';
-      pct.textContent = p2 + '%';
-    });
-
-    const date = new Date().toLocaleDateString('fr-FR').replace(/[/]/g, '-');
-    const a    = document.createElement('a');
-    a.href     = URL.createObjectURL(zipBlob);
-    a.download = `mementos-${catFilter === 'all' ? 'complet' : catFilter}-${date}.zip`;
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-    toast(`✓ ZIP de ${done} / ${total} photos téléchargé !`);
-  } catch(e) {
-    toast('⚠️ Erreur ZIP : ' + e.message);
-  }
-
-  prog.classList.remove('show');
-  bar.style.width = '0%';
-  if (btn) btn.disabled = false;
-}
-
-// ══════════════════════════════════════════
-//  SUPPRESSION (sans limite de temps)
-// ══════════════════════════════════════════
-function askDelete(photoId, storagePath) {
-  pendingDeleteId   = photoId;
-  pendingDeletePath = storagePath;
-  document.getElementById('modalBg').classList.add('open');
-}
-
-function closeModal() {
-  document.getElementById('modalBg').classList.remove('open');
-  pendingDeleteId = null; pendingDeletePath = null;
-}
-
-async function confirmDelete() {
-  if (!pendingDeleteId) return;
-  const id   = pendingDeleteId;
-  const path = pendingDeletePath;
-  closeModal();
-
-  const card = document.getElementById('pc-' + id);
-  if (card) card.style.opacity = '0.4';
-
-  try {
-    await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${path}`, {
-      method:'DELETE',
-      mode:'cors',
-      credentials:'omit',
-      headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json' }
-    });
-    await fetch(`${SB_URL}/rest/v1/photos?id=eq.${id}`, {
-      method:'DELETE',
-      mode:'cors',
-      credentials:'omit',
-      headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal' }
-    });
-
-    allPhotos = allPhotos.filter(p => p.id !== id);
-    if (card) card.remove();
-    updateStats();
-    toast('✓ Photo supprimée');
-  } catch(err) {
-    if (card) card.style.opacity = '1';
-    toast('⚠️ Erreur suppression : ' + err.message);
-  }
-}
-
-// ══════════════════════════════════════════
-//  TOGGLE UPLOADS
-// ══════════════════════════════════════════
-function toggleUploads() {
-  const enabled = document.getElementById('uploadToggle').checked;
-  const status  = document.getElementById('toggleStatus');
-  status.textContent = enabled
-    ? '● Actif — les invités peuvent partager'
-    : '● Désactivé — galerie verrouillée';
-  status.className = 'toggle-status ' + (enabled ? 'on' : 'off');
-  try {
-    localStorage.setItem('mementos_uploads_enabled', enabled ? '1' : '0');
-  } catch(e) {}
-  toast(enabled ? '✓ Uploads activés' : '✓ Uploads désactivés');
-}
-
-// ══════════════════════════════════════════
-//  TOAST
-// ══════════════════════════════════════════
-let toastTimer = null;
-function toast(msg) {
-  const t = document.getElementById('dashToast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
-}
-
-// Fermer modal avec Echap
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeModal();
-  if (e.key === 'Enter' && document.getElementById('loginWrap').style.display !== 'none') doLogin();
-});
 </script>
+
 </body>
 </html>
