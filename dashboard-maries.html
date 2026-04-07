@@ -807,20 +807,7 @@ const SS_DUR=4000;
 // AUTH
 
 
-// Hachage SHA-256 natif
-async function sha256(str) {
-  // Utilise crypto.subtle si disponible (HTTPS), sinon fallback btoa
-  try {
-    if (window.crypto && window.crypto.subtle) {
-      const buf = await window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-    }
-  } catch(e) {}
-  // Fallback : ne jamais bloquer
-  return '__FALLBACK__' + str;
-}
-
-async function doLogin() {
+function doLogin() {
   const user = document.getElementById('loginInput').value.trim();
   const pwd  = document.getElementById('pwdInput').value;
   const err  = document.getElementById('loginErr');
