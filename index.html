@@ -431,37 +431,62 @@ footer a{color:var(--gold);text-decoration:none}
 .modal-confirm{flex:1;padding:12px;background:#C0392B;border:none;border-radius:2px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;color:#fff;transition:all .2s}
 .modal-confirm:hover{background:#A93226}
 
-/* ─── SKELETON LOADER ─── */
-.cw-thumb{position:relative;overflow:hidden;background:var(--cream);flex-shrink:0;width:143px;height:143px}
+
+
+
+/* ─── SLIDER PERFORMANCE ─── */
+.cw-slider{overflow:hidden;height:143px;contain:strict}
+.cw-track{display:flex;will-change:transform;height:143px}
+.cw-thumb{
+  flex-shrink:0;width:143px;height:143px;
+  overflow:hidden;position:relative;
+  background:linear-gradient(135deg,#f0ebe3,#e8e2d9);
+}
 .cw-thumb::before{
   content:'';position:absolute;inset:0;
-  background:linear-gradient(90deg,var(--cream) 25%,rgba(184,147,90,.15) 50%,var(--cream) 75%);
+  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.4) 50%,transparent 100%);
   background-size:200% 100%;
-  animation:shimmer 1.5s infinite;
-  z-index:1;
+  animation:shimmer 1.2s ease-in-out infinite;
+  z-index:1;pointer-events:none;
 }
-.cw-thumb.loaded::before{display:none}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-
-/* ─── FADE-IN IMAGE ─── */
+.cw-thumb.loaded::before{animation:none;display:none}
 .cw-thumb img{
-  width:100%;height:100%;object-fit:cover;
-  opacity:0;transition:opacity .4s ease;
-  position:relative;z-index:2;
+  width:100%;height:100%;
+  object-fit:cover;object-position:center;
+  opacity:0;transition:opacity .3s ease;
+  display:block;position:relative;z-index:2;
 }
 .cw-thumb.loaded img{opacity:1}
+@keyframes shimmer{
+  0%{background-position:-200% 0}
+  100%{background-position:200% 0}
+}
 
-/* ─── GALERIE DETAIL ─── */
-.gitem{position:relative;overflow:hidden;background:var(--cream)}
+/* ─── GALERIE DETAIL PERFORMANCE ─── */
+.g-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+  gap:4px;contain:layout;
+}
+.gitem{
+  position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#f0ebe3,#e8e2d9);
+  aspect-ratio:1;
+}
 .gitem::before{
   content:'';position:absolute;inset:0;
-  background:linear-gradient(90deg,var(--cream) 25%,rgba(184,147,90,.12) 50%,var(--cream) 75%);
+  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.4) 50%,transparent 100%);
   background-size:200% 100%;
-  animation:shimmer 1.5s infinite;
-  z-index:1;
+  animation:shimmer 1.2s ease-in-out infinite;
+  z-index:1;pointer-events:none;
 }
-.gitem.loaded::before{display:none}
-.gitem img{opacity:0;transition:opacity .35s ease;position:relative;z-index:2}
+.gitem.loaded::before{animation:none;display:none}
+.gitem img{
+  width:100%;height:100%;
+  object-fit:cover;object-position:center;
+  opacity:0;transition:opacity .3s ease;
+  display:block;position:relative;z-index:2;
+}
 .gitem.loaded img{opacity:1}
 
 </style>
@@ -1093,12 +1118,57 @@ async function doUpload() {
       const ext      = (file.name.split('.').pop()||'jpg').toLowerCase();
       const filename = `${EVENT_ID}/${selectedCategory.id}/${Date.now()}-${Math.random().toString(36).substr(2,6)}.${ext}`;
 
+
+// ══════════════════════════════════════════
+//  COMPRESSION IMAGE AVANT UPLOAD
+// ══════════════════════════════════════════
+async function compressImage(file) {
+  const MAX_W   = 1600;  // largeur max px
+  const QUALITY = 0.78;  // qualité JPEG
+  
+  return new Promise((resolve) => {
+    const img  = new Image();
+    const burl = URL.createObjectURL(file);
+    
+    img.onload = () => {
+      URL.revokeObjectURL(burl);
+      let { width, height } = img;
+      
+      // Réduire si trop grand
+      if (width > MAX_W) {
+        height = Math.round(height * MAX_W / width);
+        width  = MAX_W;
+      }
+      
+      const canvas = document.createElement('canvas');
+      canvas.width  = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      
+      canvas.toBlob((blob) => {
+        if (!blob || blob.size >= file.size) {
+          resolve(file); // Garder original si pas de gain
+        } else {
+          console.log(`🗜️ ${file.name}: ${(file.size/1048576).toFixed(1)}Mo → ${(blob.size/1048576).toFixed(1)}Mo`);
+          resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
+            type: 'image/jpeg', lastModified: Date.now()
+          }));
+        }
+      }, 'image/jpeg', QUALITY);
+    };
+    img.onerror = () => { URL.revokeObjectURL(burl); resolve(file); };
+    img.src = burl;
+  });
+}
+
+      // Compresser avant envoi
+      const fileToUpload = await compressImage(file);
       const uploadRes = await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${filename}`, {
         method:'POST',
         mode:'cors',
         credentials:'omit',
-        headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':file.type||'image/jpeg','x-upsert':'true' },
-        body:file
+        headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'image/jpeg','x-upsert':'true' },
+        body:fileToUpload
       });
       if (!uploadRes.ok) throw new Error(`Storage ${uploadRes.status}: ${await uploadRes.text()}`);
 
@@ -1580,26 +1650,10 @@ function clearCategoryBadge(catId) {
 
 // Optimiser URL image selon le contexte (thumb ou full)
 
-// Précharger les N premières images d'une liste
-function preloadImages(photos, n) {
-  photos.slice(0, n).forEach(p => {
-    const img = new Image();
-    img.src = imgUrl(p, 'thumb');
-  });
-}
 
 function imgUrl(p, size) {
-  // URL directe — fonctionne avec Pexels et Supabase Storage
-  let url = p.public_url || '';
-  if (!url && p.storage_path) {
-    url = `${SB_URL}/storage/v1/object/public/${BUCKET}/${p.storage_path}`;
-  }
-  // Pexels : optimiser la résolution selon le contexte
-  if (url.includes('pexels.com')) {
-    const w = size === 'thumb' ? 300 : 800;
-    return url.split('?')[0] + `?auto=compress&cs=tinysrgb&w=${w}&fit=crop`;
-  }
-  return url;
+  // Les photos sont déjà compressées à l'upload — URL directe
+  return p.public_url || '';
 }
 
 function showWidgets() {
