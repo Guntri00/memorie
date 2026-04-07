@@ -813,7 +813,7 @@ async function sha256(str) {
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
-async function doLogin() {
+async async function doLogin() {
   const user = document.getElementById('loginInput').value.trim();
   const pwd  = document.getElementById('pwdInput').value;
   const err  = document.getElementById('loginErr');
@@ -833,7 +833,7 @@ async function doLogin() {
       document.getElementById('loginWrap') && (document.getElementById('loginWrap').style.display = 'none');
       document.getElementById('dashboard').style.display = 'block';
       err.classList.remove('show');
-      typeof loadDashboard === 'function' ? loadDashboard() : typeof initDashboard === 'function' ? initDashboard() : null;
+      initDashboard();
     } else {
       err.classList.add('show');
       document.getElementById('pwdInput').value = '';
@@ -870,7 +870,10 @@ async function downloadZipPhotos(photos, zipName) {
     const batch = photos.slice(i, i + BATCH);
     await Promise.all(batch.map(async (p) => {
       try {
-        const res = await fetch(p.public_url, { mode:'cors', credentials:'omit' });
+        const controller = new AbortController();
+      const timeout    = setTimeout(() => controller.abort(), 30000);
+      const res = await fetch(p.public_url, { mode:'cors', credentials:'omit', signal: controller.signal });
+      clearTimeout(timeout);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const blob = await res.blob();
         const ext  = (p.storage_path || 'photo.jpg').split('.').pop() || 'jpg';
