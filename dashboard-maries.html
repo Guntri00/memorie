@@ -834,11 +834,10 @@ async function doLogin() {
 
     if (userHash === '504e02313e5e82e24e61527f47919c4a5413e793414500e37df18c22bab1114e' && pwdHash === 'a1cf06f27846209423f536f840c228016fd0527b8aa5b2f89c0bab9e96d53dda') {
       sessionStorage.setItem('mementos_maries', '1');
-      document.getElementById('loginPage') && (document.getElementById('loginPage').style.display = 'none');
-      document.getElementById('loginWrap') && (document.getElementById('loginWrap').style.display = 'none');
+      document.getElementById('loginPage').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
       err.classList.remove('show');
-      typeof loadDashboard === 'function' ? loadDashboard() : typeof initDashboard === 'function' ? initDashboard() : null;
+      initDashboard();
     } else {
       err.classList.add('show');
       document.getElementById('pwdInput').value = '';
