@@ -807,6 +807,43 @@ const SS_DUR=4000;
 // AUTH
 
 
+// Hachage SHA-256 natif
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function doLogin() {
+  const user = document.getElementById('loginInput').value.trim();
+  const pwd  = document.getElementById('pwdInput').value;
+  const err  = document.getElementById('loginErr');
+
+  if (!user || !pwd) {
+    err.classList.add('show');
+    return;
+  }
+
+  try {
+    const userHash = await sha256(user);
+    const pwdHash  = await sha256(pwd);
+
+    if (userHash === '504e02313e5e82e24e61527f47919c4a5413e793414500e37df18c22bab1114e' && pwdHash === 'a1cf06f27846209423f536f840c228016fd0527b8aa5b2f89c0bab9e96d53dda') {
+      sessionStorage.setItem('mementos_maries', '1');
+      document.getElementById('loginPage') && (document.getElementById('loginPage').style.display = 'none');
+      document.getElementById('loginWrap') && (document.getElementById('loginWrap').style.display = 'none');
+      document.getElementById('dashboard').style.display = 'block';
+      err.classList.remove('show');
+      typeof loadDashboard === 'function' ? loadDashboard() : typeof initDashboard === 'function' ? initDashboard() : null;
+    } else {
+      err.classList.add('show');
+      document.getElementById('pwdInput').value = '';
+      document.getElementById('loginInput').focus();
+    }
+  } catch(e) {
+    console.error('Login error:', e);
+    err.classList.add('show');
+  }
+}
 
 
 // ══════════════════════════════════════════
@@ -931,56 +968,6 @@ async function dlOne(url, path, cat) {
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
     showToast('✓ Photo téléchargée !');
   } catch(e) { window.open(url, '_blank'); }
-}
-
-// Hachage SHA-256 natif
-async function sha256(str) {
-  if (typeof crypto !== 'undefined' && crypto.subtle) {
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-  }
-  // Fallback si crypto.subtle indisponible
-  return btoa(str);
-}
-
-async function doLogin() {
-  const user = document.getElementById('loginInput').value.trim();
-  const pwd  = document.getElementById('pwdInput').value;
-  const err  = document.getElementById('loginErr');
-
-  if (!user || !pwd) { err.classList.add('show'); return; }
-
-  // Vérification — fonctionne avec ou sans crypto.subtle
-  let valid = false;
-  try {
-    if (typeof crypto !== 'undefined' && crypto.subtle) {
-      const userHash = await sha256(user);
-      const pwdHash  = await sha256(pwd);
-      const lh = '504e02313e5e82e24e61527f47919c4a5413e793414500e37df18c22bab1114e';
-      const ph = 'a1cf06f27846209423f536f840c228016fd0527b8aa5b2f89c0bab9e96d53dda';
-      valid = (userHash === lh && pwdHash === ph);
-    } else {
-      // Fallback base64
-      valid = (btoa(user) === 'bWFyaWVy' && btoa(pwd) === 'cG91cnRvdWpvdXJzMDAwMCEh');
-    }
-  } catch(e) {
-    // Fallback ultime
-    valid = (btoa(user) === 'bWFyaWVy' && btoa(pwd) === 'cG91cnRvdWpvdXJzMDAwMCEh');
-  }
-
-  if (valid) {
-    sessionStorage.setItem('mementos_maries', '1');
-    const loginEl = document.getElementById('loginPage');
-    const dashEl  = document.getElementById('dashboard');
-    if (loginEl) loginEl.style.display = 'none';
-    if (dashEl)  dashEl.style.display  = 'block';
-    err.classList.remove('show');
-    if (typeof initDashboard === 'function') initDashboard();
-  } else {
-    err.classList.add('show');
-    document.getElementById('pwdInput').value = '';
-    setTimeout(() => document.getElementById('loginInput').focus(), 100);
-  }
 }
 
 function doLogout(){
