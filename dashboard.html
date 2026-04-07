@@ -324,6 +324,7 @@ footer{text-align:center;padding:24px;font-size:10px;letter-spacing:.18em;color:
 
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💍</text></svg>">
 </head>
 <body>
 
@@ -537,13 +538,7 @@ let pendingDeletePath= null;
 
 
 
-// Hachage SHA-256 natif
-async function sha256(str) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-}
-
-async async function doLogin() {
+function doLogin() {
   const user = document.getElementById('loginInput').value.trim();
   const pwd  = document.getElementById('pwdInput').value;
   const err  = document.getElementById('loginErr');
@@ -553,25 +548,17 @@ async async function doLogin() {
     return;
   }
 
-  try {
-    const userHash = await sha256(user);
-    const pwdHash  = await sha256(pwd);
-
-    if (userHash === '5d6ada4655ef0223d6391f5aeac433c04fc9db4d6fe8b3055fc0f49092a2fdb4' && pwdHash === 'ad1f95a7db72b027a7ad4960a216ad4d4d9071c8e3ce367ec5538722ceceeb24') {
-      sessionStorage.setItem('mementos_auth', '1');
-      document.getElementById('loginPage') && (document.getElementById('loginPage').style.display = 'none');
-      document.getElementById('loginWrap') && (document.getElementById('loginWrap').style.display = 'none');
-      document.getElementById('dashboard').style.display = 'block';
-      err.classList.remove('show');
-      typeof loadDashboard === 'function' ? loadDashboard() : typeof initDashboard === 'function' ? initDashboard() : null;
-    } else {
-      err.classList.add('show');
-      document.getElementById('pwdInput').value = '';
-      document.getElementById('loginInput').focus();
-    }
-  } catch(e) {
-    console.error('Login error:', e);
+  // Comparaison directe — fiable partout
+  if (user === 'Guntri' && pwd === 'Feriel01!!') {
+    sessionStorage.setItem('mementos_auth', '1');
+    document.getElementById('loginWrap').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    err.classList.remove('show');
+    loadDashboard();
+  } else {
     err.classList.add('show');
+    document.getElementById('pwdInput').value = '';
+    document.getElementById('loginInput').focus();
   }
 }
 
@@ -761,6 +748,15 @@ function filterCat(cat, btn) {
   renderPhotos();
 }
 
+
+// Construire l'URL publique correcte depuis storage_path
+function getPhotoUrl(p) {
+  if (p.storage_path) {
+    return `${SB_URL}/storage/v1/object/public/${BUCKET}/${p.storage_path}`;
+  }
+  return p.public_url || '';
+}
+
 function renderPhotos() {
   const photos = currentFilter === 'all'
     ? allPhotos
@@ -779,10 +775,10 @@ function renderPhotos() {
     const time = new Date(p.uploaded_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
     const date = new Date(p.uploaded_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'});
     return `
-    <div class="photo-card ${selectedPhotos.has(p.id)?'selected-card':''}" id="pc-${p.id}" onclick="handleCardClick('${p.id}','${p.public_url}')">
-      <img src="${p.public_url}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'">
+    <div class="photo-card ${selectedPhotos.has(p.id)?'selected-card':''}" id="pc-${p.id}" onclick="handleCardClick('${p.id}','${getPhotoUrl(p)}')">
+      <img src="${getPhotoUrl(p)}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'">
       <div class="photo-card-actions">
-        <button class="photo-action-btn photo-dl-btn" onclick="event.stopPropagation();dlPhoto('${p.public_url}','${p.storage_path}')" title="Télécharger">⬇</button>
+        <button class="photo-action-btn photo-dl-btn" onclick="event.stopPropagation();dlPhoto('${getPhotoUrl(p)}','${p.storage_path}')" title="Télécharger">⬇</button>
         <button class="photo-action-btn photo-del-btn" onclick="event.stopPropagation();askDelete('${p.id}','${p.storage_path}')" title="Supprimer">🗑</button>
       </div>
       <div class="photo-card-meta">
@@ -837,7 +833,7 @@ async function downloadZip(catFilter) {
     try {
       const controller = new AbortController();
       const timeout    = setTimeout(() => controller.abort(), 30000);
-      const res = await fetch(p.public_url, { mode:'cors', credentials:'omit', signal: controller.signal });
+      const res = await fetch(getPhotoUrl(p), { mode:'cors', credentials:'omit', signal: controller.signal });
       clearTimeout(timeout);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const blob = await res.blob();
