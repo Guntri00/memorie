@@ -577,6 +577,10 @@ footer a{color:var(--gold);text-decoration:none}
         </div>
       </div>
       <div class="previews" id="previews"></div>
+      <div class="dup-alert" id="dupAlert">
+        <strong>⚠️ Photos en double détectées</strong>
+        <span id="dupMsg"></span>
+      </div>
       <div class="nfield">
         <label>Votre prénom (optionnel)</label>
         <input id="uname" type="text" placeholder="ex : Sophie" oninput="saveName(this.value)">
@@ -1002,9 +1006,65 @@ function onDrop(e) {
   addFiles(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')));
 }
 function addFiles(files) {
-  selectedFiles = [...selectedFiles, ...files];
+  const alert   = document.getElementById('dupAlert');
+  const alertMsg = document.getElementById('dupMsg');
+  alert.classList.remove('show');
+
+  // ─── Détection des doublons ───────────────────────────
+  // Clé unique : nom + taille + date de modification
+  const existingKeys = new Set(
+    selectedFiles.map(f => f.name + '_' + f.size + '_' + f.lastModified)
+  );
+
+  const duplicates = [];
+  const newFiles   = [];
+
+  files.forEach(f => {
+    const key = f.name + '_' + f.size + '_' + f.lastModified;
+    if (existingKeys.has(key)) {
+      duplicates.push(f.name);
+    } else {
+      existingKeys.add(key); // Évite aussi les doublons dans la sélection courante
+      newFiles.push(f);
+    }
+  });
+
+  // ─── Doublons dans la sélection courante ─────────────
+  const internalDups = [];
+  const seenInBatch  = new Set();
+  const dedupedFiles = [];
+  newFiles.forEach(f => {
+    const key = f.name + '_' + f.size + '_' + f.lastModified;
+    if (seenInBatch.has(key)) {
+      internalDups.push(f.name);
+    } else {
+      seenInBatch.add(key);
+      dedupedFiles.push(f);
+    }
+  });
+
+  const allDups = [...duplicates, ...internalDups];
+
+  if (allDups.length > 0) {
+    // Afficher le message d'alerte
+    const names = allDups.map(n => `• ${n}`).join('\n');
+    alertMsg.innerHTML = `Les photos suivantes sont en double et ont été ignorées :<br>
+      <ul>${allDups.map(n => `<li><strong>${n}</strong></li>`).join('')}</ul>`;
+    alert.classList.add('show');
+    // Faire défiler jusqu'à l'alerte
+    setTimeout(() => alert.scrollIntoView({ behavior:'smooth', block:'center' }), 100);
+  }
+
+  // Ajouter uniquement les fichiers non-dupliqués
+  selectedFiles = [...selectedFiles, ...dedupedFiles];
   renderPreviews();
   document.getElementById('toast').style.display = 'none';
+
+  // Cacher l'alerte après 8 secondes
+  if (allDups.length > 0) {
+    clearTimeout(window._dupTimer);
+    window._dupTimer = setTimeout(() => alert.classList.remove('show'), 8000);
+  }
 }
 function removeFile(i) { selectedFiles.splice(i,1); renderPreviews(); }
 function renderPreviews() {
@@ -1529,13 +1589,16 @@ function preloadImages(photos, n) {
 }
 
 function imgUrl(p, size) {
-  const url = getPhotoUrl(p);
-  // Pour Pexels, réduire la taille
+  // URL directe — fonctionne avec Pexels et Supabase Storage
+  let url = p.public_url || '';
+  if (!url && p.storage_path) {
+    url = `${SB_URL}/storage/v1/object/public/${BUCKET}/${p.storage_path}`;
+  }
+  // Pexels : optimiser la résolution selon le contexte
   if (url.includes('pexels.com')) {
     const w = size === 'thumb' ? 300 : 800;
     return url.split('?')[0] + `?auto=compress&cs=tinysrgb&w=${w}&fit=crop`;
   }
-  // Pour Supabase Storage, utiliser l'URL directe
   return url;
 }
 
