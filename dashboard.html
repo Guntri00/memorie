@@ -568,43 +568,6 @@ let pendingDeletePath= null;
 
 
 
-// Hachage SHA-256 natif
-async function sha256(str) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-}
-
-async function doLogin() {
-  const user = document.getElementById('loginInput').value.trim();
-  const pwd  = document.getElementById('pwdInput').value;
-  const err  = document.getElementById('loginErr');
-
-  if (!user || !pwd) {
-    err.classList.add('show');
-    return;
-  }
-
-  try {
-    const userHash = await sha256(user);
-    const pwdHash  = await sha256(pwd);
-
-    if (userHash === '5d6ada4655ef0223d6391f5aeac433c04fc9db4d6fe8b3055fc0f49092a2fdb4' && pwdHash === 'ad1f95a7db72b027a7ad4960a216ad4d4d9071c8e3ce367ec5538722ceceeb24') {
-      sessionStorage.setItem('mementos_auth', '1');
-      document.getElementById('loginPage') && (document.getElementById('loginPage').style.display = 'none');
-      document.getElementById('loginWrap') && (document.getElementById('loginWrap').style.display = 'none');
-      document.getElementById('dashboard').style.display = 'block';
-      err.classList.remove('show');
-      typeof loadDashboard === 'function' ? loadDashboard() : typeof initDashboard === 'function' ? initDashboard() : null;
-    } else {
-      err.classList.add('show');
-      document.getElementById('pwdInput').value = '';
-      document.getElementById('loginInput').focus();
-    }
-  } catch(e) {
-    console.error('Login error:', e);
-    err.classList.add('show');
-  }
-}
 
 
 // ══════════════════════════════════════════
@@ -706,6 +669,56 @@ async function deleteSelected() {
   toast(`✓ ${done} photo${done>1?'s':''} supprimée${done>1?'s':''}`);
 }
 
+
+// Hachage SHA-256 natif
+async function sha256(str) {
+  if (typeof crypto !== 'undefined' && crypto.subtle) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+  // Fallback si crypto.subtle indisponible
+  return btoa(str);
+}
+
+async function doLogin() {
+  const user = document.getElementById('loginInput').value.trim();
+  const pwd  = document.getElementById('pwdInput').value;
+  const err  = document.getElementById('loginErr');
+
+  if (!user || !pwd) { err.classList.add('show'); return; }
+
+  // Vérification — fonctionne avec ou sans crypto.subtle
+  let valid = false;
+  try {
+    if (typeof crypto !== 'undefined' && crypto.subtle) {
+      const userHash = await sha256(user);
+      const pwdHash  = await sha256(pwd);
+      const lh = '5d6ada4655ef0223d6391f5aeac433c04fc9db4d6fe8b3055fc0f49092a2fdb4';
+      const ph = 'ad1f95a7db72b027a7ad4960a216ad4d4d9071c8e3ce367ec5538722ceceeb24';
+      valid = (userHash === lh && pwdHash === ph);
+    } else {
+      // Fallback base64
+      valid = (btoa(user) === 'R3VudHJp' && btoa(pwd) === 'RmVyaWVsMDEhIQ==');
+    }
+  } catch(e) {
+    // Fallback ultime
+    valid = (btoa(user) === 'R3VudHJp' && btoa(pwd) === 'RmVyaWVsMDEhIQ==');
+  }
+
+  if (valid) {
+    sessionStorage.setItem('mementos_auth', '1');
+    const loginEl = document.getElementById('loginWrap');
+    const dashEl  = document.getElementById('dashboard');
+    if (loginEl) loginEl.style.display = 'none';
+    if (dashEl)  dashEl.style.display  = 'block';
+    err.classList.remove('show');
+    if (typeof loadDashboard === 'function') loadDashboard();
+  } else {
+    err.classList.add('show');
+    document.getElementById('pwdInput').value = '';
+    setTimeout(() => document.getElementById('loginInput').focus(), 100);
+  }
+}
 
 function doLogout() {
   sessionStorage.removeItem('mementos_auth');
