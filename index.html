@@ -430,6 +430,40 @@ footer a{color:var(--gold);text-decoration:none}
 .modal-cancel:hover{border-color:var(--stone);color:var(--dark)}
 .modal-confirm{flex:1;padding:12px;background:#C0392B;border:none;border-radius:2px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;color:#fff;transition:all .2s}
 .modal-confirm:hover{background:#A93226}
+
+/* ─── SKELETON LOADER ─── */
+.cw-thumb{position:relative;overflow:hidden;background:var(--cream);flex-shrink:0;width:143px;height:143px}
+.cw-thumb::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,var(--cream) 25%,rgba(184,147,90,.15) 50%,var(--cream) 75%);
+  background-size:200% 100%;
+  animation:shimmer 1.5s infinite;
+  z-index:1;
+}
+.cw-thumb.loaded::before{display:none}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ─── FADE-IN IMAGE ─── */
+.cw-thumb img{
+  width:100%;height:100%;object-fit:cover;
+  opacity:0;transition:opacity .4s ease;
+  position:relative;z-index:2;
+}
+.cw-thumb.loaded img{opacity:1}
+
+/* ─── GALERIE DETAIL ─── */
+.gitem{position:relative;overflow:hidden;background:var(--cream)}
+.gitem::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,var(--cream) 25%,rgba(184,147,90,.12) 50%,var(--cream) 75%);
+  background-size:200% 100%;
+  animation:shimmer 1.5s infinite;
+  z-index:1;
+}
+.gitem.loaded::before{display:none}
+.gitem img{opacity:0;transition:opacity .35s ease;position:relative;z-index:2}
+.gitem.loaded img{opacity:1}
+
 </style>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💍</text></svg>">
 </head>
@@ -1109,8 +1143,13 @@ async function loadGallery() {
 
       const loop = photos.length===1?[...photos,...photos,...photos]:photos.length===2?[...photos,...photos]:photos;
       document.getElementById('track-'+cat.id).innerHTML = loop.map(p => `
-        <div class="cw-thumb"><img src="${p.public_url}" alt="" loading="lazy"
-          onerror="this.parentElement.style.background='var(--cream)';this.style.display='none'"></div>`).join('');
+        <div class="cw-thumb" id="th-${p.id}"><img
+            src="${imgUrl(p,'thumb')}"
+            alt=""
+            loading="lazy"
+            onload="this.parentElement.classList.add('loaded')"
+            onerror="this.parentElement.classList.add('loaded');this.style.display='none'">
+          </div>`).join('');
 
       const names = [...new Set(photos.map(p=>p.uploader_name||'Invité'))].slice(0,4);
       document.getElementById('names-'+cat.id).textContent =
@@ -1125,6 +1164,11 @@ async function loadGallery() {
   }
   // Démarrer le polling temps réel
   startRealtime();
+  // Précharger les premières images de chaque catégorie
+  CATEGORIES.forEach(cat => {
+    const photos = allPhotos.filter(p => p.category === cat.id);
+    preloadImages(photos, 5);
+  });
 }
 
 function startSlider(catId, total) {
@@ -1288,8 +1332,11 @@ function buildPhotoItem(p) {
 
   return `
     <div class="gitem" id="photo-${p.id}" onclick="openLB('${p.public_url}')">
-      <img src="${p.public_url}" alt="Photo de ${p.uploader_name||'Invité'}" loading="lazy"
-           onerror="this.parentElement.style.display='none'">
+      <img src="${imgUrl(p,'full')}"
+           alt="Photo de ${p.uploader_name||'Invité'}"
+           loading="lazy"
+           onload="this.parentElement.classList.add('loaded')"
+           onerror="this.parentElement.classList.add('loaded');this.parentElement.style.display='none'">
       <div class="gmeta">par ${p.uploader_name||'Invité'}</div>
       <button class="dl-btn" onclick="event.stopPropagation();downloadPhoto('${p.public_url}','mementos-${p.category}-${p.id.substr(0,6)}.jpg')" title="Télécharger cette photo">⬇️</button>
       <div class="reactions">
@@ -1468,6 +1515,28 @@ function clearCategoryBadge(catId) {
   const badge = document.getElementById('badge-' + catId);
   if (badge) badge.classList.remove('show');
   newPhotoCounts[catId] = 0;
+}
+
+
+// Optimiser URL image selon le contexte (thumb ou full)
+
+// Précharger les N premières images d'une liste
+function preloadImages(photos, n) {
+  photos.slice(0, n).forEach(p => {
+    const img = new Image();
+    img.src = imgUrl(p, 'thumb');
+  });
+}
+
+function imgUrl(p, size) {
+  const url = getPhotoUrl(p);
+  // Pour Pexels, réduire la taille
+  if (url.includes('pexels.com')) {
+    const w = size === 'thumb' ? 300 : 800;
+    return url.split('?')[0] + `?auto=compress&cs=tinysrgb&w=${w}&fit=crop`;
+  }
+  // Pour Supabase Storage, utiliser l'URL directe
+  return url;
 }
 
 function showWidgets() {
@@ -1702,6 +1771,27 @@ function showDlToast(msg) {
   window._dlToastTimer = setTimeout(() => t.classList.remove('show'), 2500);
 }
 
+
+
+// Intersection Observer pour images hors écran
+(function() {
+  if (!('IntersectionObserver' in window)) return;
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const img = entry.target.querySelector('img[data-src]');
+        if (img) {
+          img.src = img.dataset.src;
+          delete img.dataset.src;
+          observer.unobserve(entry.target);
+        }
+      }
+    });
+  }, { rootMargin: '200px 0px' });
+
+  // Observer toutes les nouvelles thumbs
+  window._observeThumb = (el) => observer.observe(el);
+})();
 
 </script>
 </body>
