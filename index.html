@@ -489,10 +489,183 @@ footer a{color:var(--gold);text-decoration:none}
 }
 .gitem.loaded img{opacity:1}
 
+
+
+/* ═══════════════════════════════════════
+   INTRO ANIMATION PREMIUM
+═══════════════════════════════════════ */
+#introScreen {
+  position:fixed;inset:0;
+  background:#0d0b08;
+  z-index:9999;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  cursor:pointer;overflow:hidden;
+}
+#introScreen.fade-out {
+  animation:introOut 1.1s cubic-bezier(0.55,0,1,0.45) forwards;
+}
+@keyframes introOut {
+  0%   { opacity:1; transform:scale(1);    filter:blur(0px)   brightness(1);   }
+  20%  { opacity:1; transform:scale(1.3);  filter:blur(0px)   brightness(1.1); }
+  50%  { opacity:1; transform:scale(2.4);  filter:blur(1px)   brightness(1.5); }
+  75%  { opacity:.5; transform:scale(4);   filter:blur(4px)   brightness(2.5); }
+  100% { opacity:0; transform:scale(7);    filter:blur(10px)  brightness(4);   }
+}
+  25%  { opacity:1; transform:scale(1.4) translateZ(0); filter:brightness(1.05); }
+  55%  { opacity:1; transform:scale(2.2) translateZ(0); filter:brightness(1.3) blur(0px); }
+  75%  { opacity:.6; transform:scale(3.5) translateZ(0); filter:brightness(2) blur(2px); }
+  100% { opacity:0; transform:scale(6) translateZ(0); filter:brightness(3) blur(8px); }
+}
+.ibg-glow{
+  position:absolute;border-radius:50%;
+  background:radial-gradient(circle,rgba(184,147,90,.1) 0%,transparent 70%);
+  width:420px;height:420px;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  animation:iglow 4s ease-in-out infinite;pointer-events:none;
+}
+@keyframes iglow{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.6}50%{transform:translate(-50%,-50%) scale(1.18);opacity:1}}
+.ipt{
+  position:absolute;border-radius:50%;background:#c9a55a;opacity:0;
+  animation:iFloat var(--d,3s) ease-in-out var(--dl,0s) infinite;
+}
+.ipt.cross{background:transparent}
+.ipt.cross::before,.ipt.cross::after{content:'';position:absolute;background:#c9a55a;border-radius:1px}
+.ipt.cross::before{width:1px;height:8px;left:50%;top:50%;transform:translate(-50%,-50%)}
+.ipt.cross::after{width:8px;height:1px;left:50%;top:50%;transform:translate(-50%,-50%)}
+@keyframes iFloat{0%{opacity:0;transform:translateY(0) scale(0) rotate(0deg)}30%{opacity:.9}70%{opacity:.3}100%{opacity:0;transform:translateY(-28px) scale(1.3) rotate(180deg)}}
+.iring-shadow{
+  position:absolute;width:140px;height:18px;
+  background:radial-gradient(ellipse,rgba(184,147,90,.16) 0%,transparent 70%);
+  bottom:calc(50% - 128px);border-radius:50%;
+  animation:ishadow 3s ease-in-out infinite;pointer-events:none;
+}
+@keyframes ishadow{0%,100%{transform:scaleX(1);opacity:.6}50%{transform:scaleX(1.12);opacity:1}}
+#iRingWrap{
+  position:relative;
+  animation:iDrop 1.4s cubic-bezier(0.34,1.4,0.64,1) .1s both;
+  filter:drop-shadow(0 8px 40px rgba(184,147,90,.35)) drop-shadow(0 2px 8px rgba(0,0,0,.8));
+  transition:filter .4s ease;
+}
+#iRingWrap:hover{filter:drop-shadow(0 12px 55px rgba(184,147,90,.6)) drop-shadow(0 2px 8px rgba(0,0,0,.8))}
+
+@keyframes iRingFloat {
+  0%,100% { transform: translateY(0) rotate(-2deg); }
+  50%      { transform: translateY(-10px) rotate(2deg); }
+}
+@keyframes iDrop{0%{opacity:0;transform:translateY(-40px) scale(.6) rotate(-15deg)}100%{opacity:1;transform:translateY(0) scale(1) rotate(0deg)}}
+.ihalo{
+  position:absolute;border-radius:50%;
+  border:1px solid rgba(184,147,90,var(--op,.18));
+  animation:iHalo var(--hd,3s) ease-in-out var(--hdl,0s) infinite;pointer-events:none;
+  left:50%;top:50%;transform:translate(-50%,-50%);
+}
+@keyframes iHalo{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.5}50%{transform:translate(-50%,-50%) scale(1.08);opacity:1}}
+#iTxt{text-align:center;margin-top:28px}
+#iTitleEl{
+  color:#F2E9D8;font-family:'Cormorant Garamond',serif;
+  font-size:clamp(22px,5vw,30px);font-weight:300;letter-spacing:.35em;text-transform:uppercase;
+  opacity:0;animation:iFadeUp 1.1s ease 1.2s forwards;
+}
+#iSepEl{
+  display:flex;align-items:center;gap:12px;margin:12px auto;width:fit-content;
+  opacity:0;animation:iFadeUp 1.1s ease 1.5s forwards;
+}
+.isep-line{width:50px;height:1px;background:linear-gradient(90deg,transparent,#B8935A)}
+.isep-line.r{background:linear-gradient(90deg,#B8935A,transparent)}
+.isep-diamond{width:5px;height:5px;background:#B8935A;transform:rotate(45deg)}
+#iSubEl{
+  color:#B8935A;font-family:'Jost',sans-serif;
+  font-size:10px;font-weight:300;letter-spacing:.45em;text-transform:uppercase;
+  opacity:0;animation:iFadeUp 1.1s ease 1.6s forwards;
+}
+#iTapEl{
+  color:rgba(242,233,216,.3);font-family:'Jost',sans-serif;
+  font-size:10px;font-weight:200;letter-spacing:.25em;text-transform:uppercase;
+  margin-top:28px;opacity:0;animation:iTap 2s ease 2.2s infinite;
+}
+@keyframes iFadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes iTap{0%,100%{opacity:0}40%,60%{opacity:.45}}
+
 </style>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💍</text></svg>">
 </head>
 <body>
+
+<!-- ══ ANIMATION D'INTRO PREMIUM ══ -->
+<div id="introScreen" onclick="closeIntro()">
+  <div class="ibg-glow"></div>
+  <div class="ipt cross" style="width:10px;height:10px;top:18%;left:14%;--d:3.5s;--dl:.3s"></div>
+  <div class="ipt" style="width:3px;height:3px;top:25%;left:78%;--d:2.8s;--dl:.9s"></div>
+  <div class="ipt cross" style="width:8px;height:8px;top:70%;left:20%;--d:4s;--dl:1.4s"></div>
+  <div class="ipt" style="width:2px;height:2px;top:78%;left:72%;--d:3.2s;--dl:.5s"></div>
+  <div class="ipt cross" style="width:7px;height:7px;top:12%;left:60%;--d:3.8s;--dl:1.8s"></div>
+  <div class="ipt" style="width:4px;height:4px;top:62%;left:8%;--d:2.6s;--dl:.7s"></div>
+  <div class="ipt" style="width:2px;height:2px;top:40%;left:88%;--d:3.1s;--dl:1.1s"></div>
+  <div class="ipt cross" style="width:6px;height:6px;top:85%;left:50%;--d:3.6s;--dl:.2s"></div>
+  <div class="ipt" style="width:3px;height:3px;top:10%;left:35%;--d:2.9s;--dl:2s"></div>
+
+  <div id="iRingWrap">
+    <div class="ihalo" style="width:280px;height:280px;--op:.12;--hd:3.5s;--hdl:0s"></div>
+    <div class="ihalo" style="width:340px;height:340px;--op:.05;--hd:3.5s;--hdl:.8s"></div>
+    <img 
+    id="iRingImg"
+    onerror="this.style.display='none';document.getElementById('iRingFallback').style.display='block'"
+    src="https://export-download.canva.com/FlYYA/DAHGNHFlYYA/-1/0/0001-7984255643635055985.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUH5AO7UJ26%2F20260407%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260407T084841Z&X-Amz-Expires=44948&X-Amz-Signature=29d0359c596296940977f0178c5a538963957d344ff41b60a2e8577011e0c2e7&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Tue%2C+07+Apr+2026+21%3A17%3A49+GMT"
+    alt="Bague de mariage"
+    style="width:260px;height:260px;object-fit:contain;mix-blend-mode:lighten;filter:drop-shadow(0 0 50px rgba(184,147,90,.55)) drop-shadow(0 12px 30px rgba(0,0,0,.95)) brightness(1.08);">
+    <!-- Fallback SVG si Canva ne charge pas -->
+    <svg id="iRingFallback" style="display:none;width:200px;height:200px" viewBox="0 0 200 200" fill="none">
+      <defs>
+        <linearGradient id="fg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5E0A0"/><stop offset="40%" stop-color="#C09030"/><stop offset="100%" stop-color="#E8C870"/></linearGradient>
+        <radialGradient id="fg2" cx="35%" cy="25%"><stop offset="0%" stop-color="white" stop-opacity=".9"/><stop offset="100%" stop-color="white" stop-opacity="0"/></radialGradient>
+        <linearGradient id="fg3" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#E0F0FA"/><stop offset="100%" stop-color="#80B8D8"/></linearGradient>
+      </defs>
+      <ellipse cx="100" cy="140" rx="50" ry="50" stroke="url(#fg1)" stroke-width="14" fill="none"/>
+      <ellipse cx="100" cy="140" rx="50" ry="50" stroke="rgba(255,255,255,.15)" stroke-width="6" fill="none" stroke-dasharray="50 180" stroke-dashoffset="-30"/>
+      <path d="M 76 88 L 79 66 L 100 55 L 121 66 L 124 88 L 100 92 Z" fill="url(#fg1)" stroke="#8A6010" stroke-width="1.5"/>
+      <path d="M 80 70 L 74 62 L 78 60 L 82 70 Z" fill="#D4A84B"/><path d="M 120 70 L 126 62 L 122 60 L 118 70 Z" fill="#D4A84B"/>
+      <path d="M 77 83 L 70 79 L 71 75 L 78 81 Z" fill="#D4A84B"/><path d="M 123 83 L 130 79 L 129 75 L 122 81 Z" fill="#D4A84B"/>
+      <polygon points="100,57 117,72 100,80 83,72" fill="url(#fg3)" stroke="#B8935A" stroke-width=".8"/>
+      <polygon points="100,57 117,72 100,76" fill="rgba(255,255,255,.65)"/>
+      <polygon points="100,57 83,72 100,76" fill="rgba(200,230,240,.4)"/>
+      <polygon points="100,57 117,72 100,80 83,72" fill="url(#fg2)" opacity="0"><animate attributeName="opacity" values="0;0;.9;0" dur="2.5s" begin="2s" repeatCount="indefinite"/></polygon>
+      <circle cx="97" cy="65" r="2.5" fill="white" opacity=".9"/>
+    </svg>
+  </div>
+  <div class="iring-shadow"></div>
+  <div id="iTxt">
+    <div id="iTitleEl">Mementos</div>
+    <div id="iSepEl"><div class="isep-line"></div><div class="isep-diamond"></div><div class="isep-line r"></div></div>
+    <div id="iSubEl">Vos souvenirs en partage</div>
+    <div id="iTapEl">✦ &nbsp; Appuyer pour entrer &nbsp; ✦</div>
+  </div>
+</div>
+<script>
+function closeIntro() {
+  const s = document.getElementById('introScreen');
+  if (!s || s.classList.contains('fade-out')) return;
+
+  // Centrer le zoom exactement sur la bague (effet caméra)
+  const ring = document.getElementById('iRingImg') || document.getElementById('iRingFallback');
+  if (ring) {
+    const r  = ring.getBoundingClientRect();
+    const cx = r.left + r.width  / 2;
+    const cy = r.top  + r.height / 2;
+    s.style.transformOrigin = cx + 'px ' + cy + 'px';
+  }
+  s.classList.add('fade-out');
+  setTimeout(() => {
+    s.style.display = 'none';
+    document.body.style.overflow = '';
+  }, 1200);
+}
+setTimeout(closeIntro, 7000);
+document.body.style.overflow = 'hidden';
+</script>
+
+
+
+
 
 <header>
   <div style="text-align:right;padding:12px 20px 0">
