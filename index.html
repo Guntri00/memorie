@@ -727,7 +727,7 @@ const SB_URL   = 'https://hmytqbgnjpugqeslnuvk.supabase.co';
 const SB_KEY   = 'sb_publishable_59uI3S3lCP0xyVtvrR6ZZA_vXsiF27o';
 const EVENT_ID = 'mariage-melodie-thomas-2025';
 const BUCKET   = 'photos';
-const DELETE_WINDOW_MS = 60 * 1000; // 1 minute
+const DELETE_WINDOW_MS = 120 * 1000; // 2 minutes
 
 // Prénom mémorisé
 function saveName(v){ try{ localStorage.setItem('mementos_name', v); }catch(e){} }
@@ -1294,11 +1294,7 @@ async function loadGallery() {
   }
   // Démarrer le polling temps réel
   startRealtime();
-  // Précharger les premières images de chaque catégorie
-  CATEGORIES.forEach(cat => {
-    const photos = allPhotos.filter(p => p.category === cat.id);
-    preloadImages(photos, 5);
-  });
+
 }
 
 function startSlider(catId, total) {
