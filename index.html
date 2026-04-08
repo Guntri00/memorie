@@ -878,6 +878,12 @@ const SB_URL   = 'https://hmytqbgnjpugqeslnuvk.supabase.co';
 const SB_KEY   = 'sb_publishable_59uI3S3lCP0xyVtvrR6ZZA_vXsiF27o';
 const EVENT_ID = 'mariage-melodie-thomas-2025';
 const BUCKET   = 'photos';
+
+// Retourner l'URL publique de la photo
+function imgUrl(p, size) {
+  return p.public_url || '';
+}
+
 const DELETE_WINDOW_MS = 120 * 1000; // 2 minutes
 
 // Prénom mémorisé
