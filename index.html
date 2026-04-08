@@ -609,6 +609,19 @@ to{opacity:1;transform:translateY(0)}}
 </style>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💍</text></svg>">
 <link rel="preload" as="image" href="/ring-intro.png">
+
+  <!-- ══ PWA ══ -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#B8935A">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mementos">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512.png">
+  <meta name="msapplication-TileImage" content="/icons/icon-192.png">
+  <meta name="msapplication-TileColor" content="#1C1712">
 </head>
 <body>
 
@@ -2060,6 +2073,100 @@ function showDlToast(msg) {
   window._observeThumb = (el) => observer.observe(el);
 })();
 
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js')
+      .then(function(reg) {
+        console.log('[PWA] Service Worker enregistré:', reg.scope);
+
+        // Vérifier les mises à jour
+        reg.addEventListener('updatefound', function() {
+          const newWorker = reg.installing;
+          newWorker.addEventListener('statechange', function() {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('[PWA] Mise à jour disponible');
+            }
+          });
+        });
+      })
+      .catch(function(err) {
+        console.warn('[PWA] Erreur Service Worker:', err);
+      });
+  });
+}
+
+// ── Bannière d'installation PWA ──────────────────────────────────
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  deferredPrompt = e;
+
+  // Afficher la bannière d'installation après 30 secondes
+  // (si l'utilisateur n'a pas encore installé)
+  setTimeout(showInstallBanner, 30000);
+});
+
+function showInstallBanner() {
+  if (!deferredPrompt) return;
+
+  const banner = document.createElement('div');
+  banner.id = 'installBanner';
+  banner.style.cssText = [
+    'position:fixed;bottom:80px;left:50%;transform:translateX(-50%)',
+    'background:#1C1712;border:1px solid #B8935A;border-radius:12px',
+    'padding:14px 20px;display:flex;align-items:center;gap:14px',
+    'z-index:8888;box-shadow:0 8px 32px rgba(0,0,0,.5)',
+    'font-family:Jost,sans-serif;max-width:320px;width:calc(100% - 40px)',
+    'animation:slideUp .4s ease'
+  ].join(';');
+
+  banner.innerHTML = [
+    '<img src="/icons/icon-192.png" style="width:40px;height:40px;border-radius:8px;flex-shrink:0">',
+    '<div style="flex:1;min-width:0">',
+    '  <div style="color:#F2E9D8;font-size:13px;font-weight:500">Installer Mementos</div>',
+    '  <div style="color:#B8935A;font-size:11px;letter-spacing:.05em">Accès rapide sur votre écran d'accueil</div>',
+    '</div>',
+    '<button onclick="installPWA()" style="background:#B8935A;color:#1C1712;border:none;border-radius:8px;padding:8px 14px;font-family:Jost,sans-serif;font-size:12px;font-weight:500;cursor:pointer;flex-shrink:0">Installer</button>',
+    '<button onclick="dismissInstall()" style="background:none;border:none;color:rgba(242,233,216,.4);cursor:pointer;font-size:18px;padding:4px;flex-shrink:0;line-height:1">×</button>'
+  ].join('');
+
+  // Ajouter l'animation CSS
+  if (!document.getElementById('pwaStyle')) {
+    const style = document.createElement('style');
+    style.id = 'pwaStyle';
+    style.textContent = '@keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}';
+    document.head.appendChild(style);
+  }
+
+  document.body.appendChild(banner);
+}
+
+async function installPWA() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  console.log('[PWA] Installation:', outcome);
+  deferredPrompt = null;
+  dismissInstall();
+}
+
+function dismissInstall() {
+  const b = document.getElementById('installBanner');
+  if (b) b.remove();
+  deferredPrompt = null;
+  // Ne plus proposer pendant 7 jours
+  try { localStorage.setItem('pwa_dismissed', Date.now()); } catch(e) {}
+}
+
+// Vérifier si déjà installé ou refusé récemment
+window.addEventListener('appinstalled', function() {
+  console.log('[PWA] App installée !');
+  dismissInstall();
+});
 </script>
 </body>
 </html>
