@@ -611,7 +611,6 @@ to{opacity:1;transform:translateY(0)}}
 <link rel="preload" as="image" href="/ring-intro.png">
 
   <!-- ══ PWA ══ -->
-  <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#B8935A">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2075,73 +2074,121 @@ function showDlToast(msg) {
 
 </script>
 
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('/sw.js')
-      .then(function(reg) {
-        console.log('[PWA] Service Worker enregistré:', reg.scope);
 
-        // Vérifier les mises à jour
+
+<script>
+// ══ PWA — Manifest + Service Worker inline ══
+// (Aucun fichier externe requis)
+
+// ── Manifest inline via blob ──────────────────
+const manifestData = {
+  "name": "Mementos — Vos souvenirs en partage",
+  "short_name": "Mementos",
+  "description": "Partagez vos photos de mariage instantanément",
+  "start_url": "/mementos-app.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1C1712",
+  "theme_color": "#B8935A",
+  "lang": "fr",
+  "categories": [
+    "photography",
+    "social"
+  ],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/ring-intro.png",
+      "sizes": "1000x1000",
+      "type": "image/png",
+      "label": "Écran d'accueil Mementos"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Partager une photo",
+      "short_name": "Partager",
+      "description": "Uploader une photo directement",
+      "url": "/mementos-app.html?tab=upload",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Voir la galerie",
+      "short_name": "Galerie",
+      "description": "Voir toutes les photos",
+      "url": "/mementos-app.html?tab=gallery",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+};
+const manifestBlob = new Blob([JSON.stringify(manifestData)], {type:'application/manifest+json'});
+const manifestUrl  = URL.createObjectURL(manifestBlob);
+const manifestLink = document.createElement('link');
+manifestLink.rel  = 'manifest';
+manifestLink.href = manifestUrl;
+document.head.appendChild(manifestLink);
+
+// ── Service Worker inline via blob ────────────
+if ('serviceWorker' in navigator) {
+  const swCode = "// ══════════════════════════════════════════════\n//  MEMENTOS — Service Worker PWA\n//  Stratégie : Cache-First pour assets statiques\n//              Network-First pour photos Supabase\n// ══════════════════════════════════════════════\n\nconst CACHE_NAME    = 'mementos-v1';\nconst CACHE_STATIC  = 'mementos-static-v1';\nconst CACHE_PHOTOS  = 'mementos-photos-v1';\n\n// Assets statiques à mettre en cache immédiatement\nconst STATIC_ASSETS = [\n  '/mementos-app.html',\n  '/ring-intro.png',\n  '/manifest.json',\n  'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap'\n];\n\n// ── Installation : mise en cache des assets statiques ──\nself.addEventListener('install', (event) => {\n  event.waitUntil(\n    caches.open(CACHE_STATIC)\n      .then((cache) => {\n        console.log('[SW] Mise en cache des assets statiques');\n        return cache.addAll(STATIC_ASSETS.map(url => new Request(url, { mode: 'no-cors' })));\n      })\n      .then(() => self.skipWaiting())\n      .catch((err) => console.warn('[SW] Erreur cache install:', err))\n  );\n});\n\n// ── Activation : nettoyage des anciens caches ──\nself.addEventListener('activate', (event) => {\n  event.waitUntil(\n    caches.keys().then((cacheNames) =>\n      Promise.all(\n        cacheNames\n          .filter(name => name !== CACHE_STATIC && name !== CACHE_PHOTOS)\n          .map(name => {\n            console.log('[SW] Suppression ancien cache:', name);\n            return caches.delete(name);\n          })\n      )\n    ).then(() => self.clients.claim())\n  );\n});\n\n// ── Fetch : stratégie intelligente par type de ressource ──\nself.addEventListener('fetch', (event) => {\n  const { request } = event;\n  const url = new URL(request.url);\n\n  // Ignorer les requêtes non-GET\n  if (request.method !== 'GET') return;\n\n  // ── Photos Supabase : Network-First avec cache fallback ──\n  if (url.hostname.includes('supabase.co') && url.pathname.includes('/storage/')) {\n    event.respondWith(networkFirstWithCache(request, CACHE_PHOTOS, 5000));\n    return;\n  }\n\n  // ── API Supabase REST : Network-Only (données temps réel) ──\n  if (url.hostname.includes('supabase.co') && url.pathname.includes('/rest/')) {\n    return; // Laisser passer sans cache\n  }\n\n  // ── Polices Google : Cache-First (immutables) ──\n  if (url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com')) {\n    event.respondWith(cacheFirstWithNetwork(request, CACHE_STATIC));\n    return;\n  }\n\n  // ── Assets statiques locaux : Cache-First ──\n  if (url.hostname === self.location.hostname) {\n    event.respondWith(cacheFirstWithNetwork(request, CACHE_STATIC));\n    return;\n  }\n});\n\n// ── Network-First : essaie le réseau, fallback cache ──\nasync function networkFirstWithCache(request, cacheName, timeoutMs) {\n  const cache = await caches.open(cacheName);\n\n  try {\n    const controller = new AbortController();\n    const timeout    = setTimeout(() => controller.abort(), timeoutMs);\n    const response   = await fetch(request, { signal: controller.signal });\n    clearTimeout(timeout);\n\n    if (response && response.status === 200) {\n      cache.put(request, response.clone());\n    }\n    return response;\n  } catch {\n    const cached = await cache.match(request);\n    return cached || new Response('', { status: 503 });\n  }\n}\n\n// ── Cache-First : retourne le cache, fetch si absent ──\nasync function cacheFirstWithNetwork(request, cacheName) {\n  const cache  = await caches.open(cacheName);\n  const cached = await cache.match(request);\n\n  if (cached) return cached;\n\n  try {\n    const response = await fetch(request);\n    if (response && response.status === 200) {\n      cache.put(request, response.clone());\n    }\n    return response;\n  } catch {\n    return new Response('', { status: 503 });\n  }\n}\n\n// ── Background Sync : upload en attente si hors-ligne ──\nself.addEventListener('sync', (event) => {\n  if (event.tag === 'upload-photo') {\n    event.waitUntil(processPendingUploads());\n  }\n});\n\nasync function processPendingUploads() {\n  // Récupérer les uploads en attente depuis IndexedDB\n  // (à connecter avec la logique d'upload de l'app)\n  console.log('[SW] Traitement des uploads en attente...');\n}\n\n// ── Push Notifications (pour plus tard) ──\nself.addEventListener('push', (event) => {\n  if (!event.data) return;\n  const data = event.data.json();\n\n  event.waitUntil(\n    self.registration.showNotification(data.title || 'Mementos', {\n      body:    data.body || 'Nouvelle photo partagée !',\n      icon:    '/icons/icon-192.png',\n      badge:   '/icons/icon-192.png',\n      vibrate: [100, 50, 100],\n      data:    { url: data.url || '/' }\n    })\n  );\n});\n\nself.addEventListener('notificationclick', (event) => {\n  event.notification.close();\n  event.waitUntil(\n    clients.openWindow(event.notification.data.url || '/')\n  );\n});";
+  const swBlob = new Blob([swCode], {type: 'application/javascript'});
+  const swUrl  = URL.createObjectURL(swBlob);
+
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register(swUrl, {scope: '/'})
+      .then(function(reg) {
+        console.log('[PWA] Service Worker actif:', reg.scope);
         reg.addEventListener('updatefound', function() {
-          const newWorker = reg.installing;
-          newWorker.addEventListener('statechange', function() {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              console.log('[PWA] Mise à jour disponible');
-            }
-          });
+          console.log('[PWA] Mise à jour disponible');
         });
       })
       .catch(function(err) {
-        console.warn('[PWA] Erreur Service Worker:', err);
+        console.warn('[PWA] Erreur SW:', err);
       });
   });
 }
 
-// ── Bannière d'installation PWA ──────────────────────────────────
+// ── Bannière installation ─────────────────────
 let deferredPrompt = null;
-
 window.addEventListener('beforeinstallprompt', function(e) {
   e.preventDefault();
   deferredPrompt = e;
-
-  // Afficher la bannière d'installation après 30 secondes
-  // (si l'utilisateur n'a pas encore installé)
+  try {
+    const dismissed = localStorage.getItem('pwa_dismissed');
+    if (dismissed && Date.now() - parseInt(dismissed) < 7 * 86400000) return;
+  } catch(e) {}
   setTimeout(showInstallBanner, 30000);
 });
 
 function showInstallBanner() {
-  if (!deferredPrompt) return;
-
+  if (!deferredPrompt || document.getElementById('installBanner')) return;
   const banner = document.createElement('div');
   banner.id = 'installBanner';
-  banner.style.cssText = [
-    'position:fixed;bottom:80px;left:50%;transform:translateX(-50%)',
-    'background:#1C1712;border:1px solid #B8935A;border-radius:12px',
-    'padding:14px 20px;display:flex;align-items:center;gap:14px',
-    'z-index:8888;box-shadow:0 8px 32px rgba(0,0,0,.5)',
-    'font-family:Jost,sans-serif;max-width:320px;width:calc(100% - 40px)',
-    'animation:slideUp .4s ease'
-  ].join(';');
-
-  banner.innerHTML = [
-    '<img src="/icons/icon-192.png" style="width:40px;height:40px;border-radius:8px;flex-shrink:0">',
-    '<div style="flex:1;min-width:0">',
-    '  <div style="color:#F2E9D8;font-size:13px;font-weight:500">Installer Mementos</div>',
-    '  <div style="color:#B8935A;font-size:11px;letter-spacing:.05em">Accès rapide sur votre écran d'accueil</div>',
-    '</div>',
-    '<button onclick="installPWA()" style="background:#B8935A;color:#1C1712;border:none;border-radius:8px;padding:8px 14px;font-family:Jost,sans-serif;font-size:12px;font-weight:500;cursor:pointer;flex-shrink:0">Installer</button>',
-    '<button onclick="dismissInstall()" style="background:none;border:none;color:rgba(242,233,216,.4);cursor:pointer;font-size:18px;padding:4px;flex-shrink:0;line-height:1">×</button>'
-  ].join('');
-
-  // Ajouter l'animation CSS
-  if (!document.getElementById('pwaStyle')) {
-    const style = document.createElement('style');
-    style.id = 'pwaStyle';
-    style.textContent = '@keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}';
-    document.head.appendChild(style);
-  }
-
+  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1C1712;border:1px solid #B8935A;border-radius:12px;padding:14px 20px;display:flex;align-items:center;gap:14px;z-index:8888;box-shadow:0 8px 32px rgba(0,0,0,.5);font-family:Jost,sans-serif;max-width:320px;width:calc(100% - 40px)';
+  banner.innerHTML = '<div style="flex:1;min-width:0"><div style="color:#F2E9D8;font-size:13px;font-weight:500">💍 Installer Mementos</div><div style="color:#B8935A;font-size:11px;letter-spacing:.05em">Accès rapide sur votre écran d'accueil</div></div><button onclick="installPWA()" style="background:#B8935A;color:#1C1712;border:none;border-radius:8px;padding:8px 14px;font-family:Jost,sans-serif;font-size:12px;font-weight:500;cursor:pointer;flex-shrink:0">Installer</button><button onclick="dismissInstall()" style="background:none;border:none;color:rgba(242,233,216,.4);cursor:pointer;font-size:20px;padding:4px;flex-shrink:0;line-height:1">×</button>';
   document.body.appendChild(banner);
 }
 
@@ -2149,7 +2196,6 @@ async function installPWA() {
   if (!deferredPrompt) return;
   deferredPrompt.prompt();
   const { outcome } = await deferredPrompt.userChoice;
-  console.log('[PWA] Installation:', outcome);
   deferredPrompt = null;
   dismissInstall();
 }
@@ -2158,15 +2204,10 @@ function dismissInstall() {
   const b = document.getElementById('installBanner');
   if (b) b.remove();
   deferredPrompt = null;
-  // Ne plus proposer pendant 7 jours
   try { localStorage.setItem('pwa_dismissed', Date.now()); } catch(e) {}
 }
 
-// Vérifier si déjà installé ou refusé récemment
-window.addEventListener('appinstalled', function() {
-  console.log('[PWA] App installée !');
-  dismissInstall();
-});
+window.addEventListener('appinstalled', dismissInstall);
 </script>
 </body>
 </html>
