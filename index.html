@@ -1135,7 +1135,15 @@ function retakePhoto() {
 
 function keepPhoto() {
   if (!capturedBlob) return;
-  const file = new File([capturedBlob], `photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
+  // Timestamp unique pour éviter tout faux doublon caméra
+  const ts   = Date.now();
+  const uid  = Math.random().toString(36).substr(2, 6);
+  const file = new File([capturedBlob], `photo-cam-${ts}-${uid}.jpg`, {
+    type: 'image/jpeg',
+    lastModified: ts
+  });
+  // Marquer ce fichier comme provenant de la caméra (exclure détection doublon)
+  file._fromCamera = true;
   addFiles([file]);
   capturedBlob = null;
   // Passer sur l'onglet galerie pour voir la prévisualisation + envoyer
@@ -1211,6 +1219,11 @@ function addFiles(files) {
   const newFiles   = [];
 
   files.forEach(f => {
+    // Exclure les photos prises avec la caméra de la détection doublon
+    if (f._fromCamera) {
+      newFiles.push(f);
+      return;
+    }
     const key = f.name + '_' + f.size + '_' + f.lastModified;
     if (existingKeys.has(key)) {
       duplicates.push(f.name);
@@ -2081,7 +2094,7 @@ function showDlToast(msg) {
 // (Aucun fichier externe requis)
 
 // ── Manifest inline via blob ──────────────────
-const manifestData = JSON.parse("{\"name\": \"Mementos \u2014 Vos souvenirs en partage\", \"short_name\": \"Mementos\", \"description\": \"Partagez vos photos de mariage instantan\u00e9ment\", \"start_url\": \"/mementos-app.html\", \"display\": \"standalone\", \"orientation\": \"portrait\", \"background_color\": \"#1C1712\", \"theme_color\": \"#B8935A\", \"lang\": \"fr\", \"categories\": [\"photography\", \"social\"], \"icons\": [{\"src\": \"/icons/icon-192.png\", \"sizes\": \"192x192\", \"type\": \"image/png\", \"purpose\": \"any maskable\"}, {\"src\": \"/icons/icon-512.png\", \"sizes\": \"512x512\", \"type\": \"image/png\", \"purpose\": \"any maskable\"}], \"screenshots\": [{\"src\": \"/ring-intro.png\", \"sizes\": \"1000x1000\", \"type\": \"image/png\", \"label\": \"Ecran accueil Mementos\"}], \"shortcuts\": [{\"name\": \"Partager une photo\", \"short_name\": \"Partager\", \"description\": \"Uploader une photo directement\", \"url\": \"/mementos-app.html?tab=upload\", \"icons\": [{\"src\": \"/icons/icon-192.png\", \"sizes\": \"192x192\"}]}, {\"name\": \"Voir la galerie\", \"short_name\": \"Galerie\", \"description\": \"Voir toutes les photos\", \"url\": \"/mementos-app.html?tab=gallery\", \"icons\": [{\"src\": \"/icons/icon-192.png\", \"sizes\": \"192x192\"}]}]}");
+const manifestData = JSON.parse("{\"name\": \"Mementos \u2014 Vos souvenirs en partage\", \"short_name\": \"Mementos\", \"description\": \"Partagez vos photos de mariage\", \"start_url\": \"https://memorie-one.vercel.app/mementos-app.html\", \"display\": \"standalone\", \"orientation\": \"portrait\", \"background_color\": \"#1C1712\", \"theme_color\": \"#B8935A\", \"lang\": \"fr\", \"icons\": [{\"src\": \"https://memorie-one.vercel.app/icons/icon-192.png\", \"sizes\": \"192x192\", \"type\": \"image/png\", \"purpose\": \"any maskable\"}, {\"src\": \"https://memorie-one.vercel.app/icons/icon-512.png\", \"sizes\": \"512x512\", \"type\": \"image/png\", \"purpose\": \"any maskable\"}], \"shortcuts\": [{\"name\": \"Partager une photo\", \"short_name\": \"Partager\", \"url\": \"https://memorie-one.vercel.app/mementos-app.html\"}, {\"name\": \"Voir la galerie\", \"short_name\": \"Galerie\", \"url\": \"https://memorie-one.vercel.app/mementos-app.html\"}]}");
 const manifestBlob = new Blob([JSON.stringify(manifestData)], {type:'application/manifest+json'});
 const manifestUrl  = URL.createObjectURL(manifestBlob);
 const manifestLink = document.createElement('link');
@@ -2091,21 +2104,7 @@ document.head.appendChild(manifestLink);
 
 // ── Service Worker inline via blob ────────────
 if ('serviceWorker' in navigator) {
-  const swCode = "// ══════════════════════════════════════════════\n//  MEMENTOS — Service Worker PWA\n//  Stratégie : Cache-First pour assets statiques\n//              Network-First pour photos Supabase\n// ══════════════════════════════════════════════\n\nconst CACHE_NAME    = 'mementos-v1';\nconst CACHE_STATIC  = 'mementos-static-v1';\nconst CACHE_PHOTOS  = 'mementos-photos-v1';\n\n// Assets statiques à mettre en cache immédiatement\nconst STATIC_ASSETS = [\n  '/mementos-app.html',\n  '/ring-intro.png',\n  '/manifest.json',\n  'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap'\n];\n\n// ── Installation : mise en cache des assets statiques ──\nself.addEventListener('install', (event) => {\n  event.waitUntil(\n    caches.open(CACHE_STATIC)\n      .then((cache) => {\n        console.log('[SW] Mise en cache des assets statiques');\n        return cache.addAll(STATIC_ASSETS.map(url => new Request(url, { mode: 'no-cors' })));\n      })\n      .then(() => self.skipWaiting())\n      .catch((err) => console.warn('[SW] Erreur cache install:', err))\n  );\n});\n\n// ── Activation : nettoyage des anciens caches ──\nself.addEventListener('activate', (event) => {\n  event.waitUntil(\n    caches.keys().then((cacheNames) =>\n      Promise.all(\n        cacheNames\n          .filter(name => name !== CACHE_STATIC && name !== CACHE_PHOTOS)\n          .map(name => {\n            console.log('[SW] Suppression ancien cache:', name);\n            return caches.delete(name);\n          })\n      )\n    ).then(() => self.clients.claim())\n  );\n});\n\n// ── Fetch : stratégie intelligente par type de ressource ──\nself.addEventListener('fetch', (event) => {\n  const { request } = event;\n  const url = new URL(request.url);\n\n  // Ignorer les requêtes non-GET\n  if (request.method !== 'GET') return;\n\n  // ── Photos Supabase : Network-First avec cache fallback ──\n  if (url.hostname.includes('supabase.co') && url.pathname.includes('/storage/')) {\n    event.respondWith(networkFirstWithCache(request, CACHE_PHOTOS, 5000));\n    return;\n  }\n\n  // ── API Supabase REST : Network-Only (données temps réel) ──\n  if (url.hostname.includes('supabase.co') && url.pathname.includes('/rest/')) {\n    return; // Laisser passer sans cache\n  }\n\n  // ── Polices Google : Cache-First (immutables) ──\n  if (url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com')) {\n    event.respondWith(cacheFirstWithNetwork(request, CACHE_STATIC));\n    return;\n  }\n\n  // ── Assets statiques locaux : Cache-First ──\n  if (url.hostname === self.location.hostname) {\n    event.respondWith(cacheFirstWithNetwork(request, CACHE_STATIC));\n    return;\n  }\n});\n\n// ── Network-First : essaie le réseau, fallback cache ──\nasync function networkFirstWithCache(request, cacheName, timeoutMs) {\n  const cache = await caches.open(cacheName);\n\n  try {\n    const controller = new AbortController();\n    const timeout    = setTimeout(() => controller.abort(), timeoutMs);\n    const response   = await fetch(request, { signal: controller.signal });\n    clearTimeout(timeout);\n\n    if (response && response.status === 200) {\n      cache.put(request, response.clone());\n    }\n    return response;\n  } catch {\n    const cached = await cache.match(request);\n    return cached || new Response('', { status: 503 });\n  }\n}\n\n// ── Cache-First : retourne le cache, fetch si absent ──\nasync function cacheFirstWithNetwork(request, cacheName) {\n  const cache  = await caches.open(cacheName);\n  const cached = await cache.match(request);\n\n  if (cached) return cached;\n\n  try {\n    const response = await fetch(request);\n    if (response && response.status === 200) {\n      cache.put(request, response.clone());\n    }\n    return response;\n  } catch {\n    return new Response('', { status: 503 });\n  }\n}\n\n// ── Background Sync : upload en attente si hors-ligne ──\nself.addEventListener('sync', (event) => {\n  if (event.tag === 'upload-photo') {\n    event.waitUntil(processPendingUploads());\n  }\n});\n\nasync function processPendingUploads() {\n  // Récupérer les uploads en attente depuis IndexedDB\n  // (à connecter avec la logique d'upload de l'app)\n  console.log('[SW] Traitement des uploads en attente...');\n}\n\n// ── Push Notifications (pour plus tard) ──\nself.addEventListener('push', (event) => {\n  if (!event.data) return;\n  const data = event.data.json();\n\n  event.waitUntil(\n    self.registration.showNotification(data.title || 'Mementos', {\n      body:    data.body || 'Nouvelle photo partagée !',\n      icon:    '/icons/icon-192.png',\n      badge:   '/icons/icon-192.png',\n      vibrate: [100, 50, 100],\n      data:    { url: data.url || '/' }\n    })\n  );\n});\n\nself.addEventListener('notificationclick', (event) => {\n  event.notification.close();\n  event.waitUntil(\n    clients.openWindow(event.notification.data.url || '/')\n  );\n});";
-  const swBlob = new Blob([swCode], {type: 'application/javascript'});
-  const swUrl  = URL.createObjectURL(swBlob);
-
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register(swUrl, {scope: '/'})
-      .then(function(reg) {
-        console.log('[PWA] Service Worker actif:', reg.scope);
-        reg.addEventListener('updatefound', function() {
-          console.log('[PWA] Mise à jour disponible');
-        });
-      })
-      .catch(function(err) {
-        console.warn('[PWA] Erreur SW:', err);
-      });
+  // Service Worker non supporté en blob URL sur HTTPS
   });
 }
 
