@@ -1299,8 +1299,11 @@ async function compressImage(file) {
   if (done>0) {
     selectedFiles=[]; renderPreviews(); setProgress(0,1);
     showToast(`✦  ${done} photo${done>1?'s':''} partagée${done>1?'s':''} dans ${selectedCategory.emoji} ${selectedCategory.name} — merci !`, false);
-    // Recharger allPhotos pour que la galerie soit à jour
-    refreshAllPhotos();
+    // Recharger allPhotos et la galerie
+    await refreshAllPhotos();
+    // Switcher automatiquement sur la galerie de la catégorie uploadée
+    switchTab('gallery', document.querySelector('.tab[onclick*=gallery]'));
+    setTimeout(() => openCategory(selectedCategory.id), 300);
   }
   if (errors.length) showToast('⚠️ '+errors.join(' | '), true);
 }
@@ -1771,7 +1774,7 @@ function startRealtime() {
 
             // Rafraîchir la vue active si même catégorie
             if (activeCatId === newPhoto.category) {
-              loadCategoryDetail(newPhoto.category);
+              openCategory(newPhoto.category);
             }
 
             // Mettre à jour le compteur dans le slider de catégories
@@ -1786,7 +1789,7 @@ function startRealtime() {
 
             // Rafraîchir la vue active
             const activeCat = document.querySelector('.cat-card.selected');
-            if (activeCat) loadCategoryDetail(activeCat.dataset.cat);
+            if (activeCat) openCategory(activeCat.dataset.cat);
             updateCategoryCount(payload.old.category);
           }
         }
