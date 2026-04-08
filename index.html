@@ -609,18 +609,6 @@ to{opacity:1;transform:translateY(0)}}
 </style>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💍</text></svg>">
 <link rel="preload" as="image" href="/ring-intro.png">
-
-  <!-- ══ PWA ══ -->
-  <meta name="theme-color" content="#B8935A">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Mementos">
-  <link rel="apple-touch-icon" href="/icons/icon-192.png">
-  <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192.png">
-  <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512.png">
-  <meta name="msapplication-TileImage" content="/icons/icon-192.png">
-  <meta name="msapplication-TileColor" content="#1C1712">
 </head>
 <body>
 
@@ -768,11 +756,7 @@ to{opacity:1;transform:translateY(0)}}
         </div>
       </div>
       <div class="previews" id="previews"></div>
-      <div class="dup-alert" id="dupAlert">
-        <strong>⚠️ Photos en double détectées</strong>
-        <span id="dupMsg"></span>
-      </div>
-      <div class="nfield">
+<div class="nfield">
         <label>Votre prénom (optionnel)</label>
         <input id="uname" type="text" placeholder="ex : Sophie" oninput="saveName(this.value)">
       </div>
@@ -1205,70 +1189,9 @@ function onDrop(e) {
   addFiles(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')));
 }
 function addFiles(files) {
-  const alert   = document.getElementById('dupAlert');
-  const alertMsg = document.getElementById('dupMsg');
-  alert.classList.remove('show');
-
-  // ─── Détection des doublons ───────────────────────────
-  // Clé unique : nom + taille + date de modification
-  const existingKeys = new Set(
-    selectedFiles.map(f => f.name + '_' + f.size + '_' + f.lastModified)
-  );
-
-  const duplicates = [];
-  const newFiles   = [];
-
-  files.forEach(f => {
-    // Exclure les photos prises avec la caméra de la détection doublon
-    if (f._fromCamera) {
-      newFiles.push(f);
-      return;
-    }
-    const key = f.name + '_' + f.size + '_' + f.lastModified;
-    if (existingKeys.has(key)) {
-      duplicates.push(f.name);
-    } else {
-      existingKeys.add(key); // Évite aussi les doublons dans la sélection courante
-      newFiles.push(f);
-    }
-  });
-
-  // ─── Doublons dans la sélection courante ─────────────
-  const internalDups = [];
-  const seenInBatch  = new Set();
-  const dedupedFiles = [];
-  newFiles.forEach(f => {
-    const key = f.name + '_' + f.size + '_' + f.lastModified;
-    if (seenInBatch.has(key)) {
-      internalDups.push(f.name);
-    } else {
-      seenInBatch.add(key);
-      dedupedFiles.push(f);
-    }
-  });
-
-  const allDups = [...duplicates, ...internalDups];
-
-  if (allDups.length > 0) {
-    // Afficher le message d'alerte
-    const names = allDups.map(n => `• ${n}`).join('\n');
-    alertMsg.innerHTML = `Les photos suivantes sont en double et ont été ignorées :<br>
-      <ul>${allDups.map(n => `<li><strong>${n}</strong></li>`).join('')}</ul>`;
-    alert.classList.add('show');
-    // Faire défiler jusqu'à l'alerte
-    setTimeout(() => alert.scrollIntoView({ behavior:'smooth', block:'center' }), 100);
-  }
-
-  // Ajouter uniquement les fichiers non-dupliqués
-  selectedFiles = [...selectedFiles, ...dedupedFiles];
+  selectedFiles = [...selectedFiles, ...files];
   renderPreviews();
   document.getElementById('toast').style.display = 'none';
-
-  // Cacher l'alerte après 8 secondes
-  if (allDups.length > 0) {
-    clearTimeout(window._dupTimer);
-    window._dupTimer = setTimeout(() => alert.classList.remove('show'), 8000);
-  }
 }
 function removeFile(i) { selectedFiles.splice(i,1); renderPreviews(); }
 function renderPreviews() {
@@ -2089,83 +2012,6 @@ function showDlToast(msg) {
 
 
 
-<script>
-// ══ PWA — Manifest + Service Worker inline ══
-// (Aucun fichier externe requis)
 
-// ── Manifest inline via blob ──────────────────
-const manifestData = JSON.parse("{\"name\": \"Mementos \u2014 Vos souvenirs en partage\", \"short_name\": \"Mementos\", \"description\": \"Partagez vos photos de mariage\", \"start_url\": \"https://memorie-one.vercel.app/mementos-app.html\", \"display\": \"standalone\", \"orientation\": \"portrait\", \"background_color\": \"#1C1712\", \"theme_color\": \"#B8935A\", \"lang\": \"fr\", \"icons\": [{\"src\": \"https://memorie-one.vercel.app/icons/icon-192.png\", \"sizes\": \"192x192\", \"type\": \"image/png\", \"purpose\": \"any maskable\"}, {\"src\": \"https://memorie-one.vercel.app/icons/icon-512.png\", \"sizes\": \"512x512\", \"type\": \"image/png\", \"purpose\": \"any maskable\"}], \"shortcuts\": [{\"name\": \"Partager une photo\", \"short_name\": \"Partager\", \"url\": \"https://memorie-one.vercel.app/mementos-app.html\"}, {\"name\": \"Voir la galerie\", \"short_name\": \"Galerie\", \"url\": \"https://memorie-one.vercel.app/mementos-app.html\"}]}");
-const manifestBlob = new Blob([JSON.stringify(manifestData)], {type:'application/manifest+json'});
-const manifestUrl  = URL.createObjectURL(manifestBlob);
-const manifestLink = document.createElement('link');
-manifestLink.rel  = 'manifest';
-manifestLink.href = manifestUrl;
-document.head.appendChild(manifestLink);
-
-// ── Service Worker inline via blob ────────────
-if ('serviceWorker' in navigator) {
-  // Service Worker non supporté en blob URL sur HTTPS
-  });
-}
-
-// ── Bannière installation ─────────────────────
-let deferredPrompt = null;
-window.addEventListener('beforeinstallprompt', function(e) {
-  e.preventDefault();
-  deferredPrompt = e;
-  try {
-    const dismissed = localStorage.getItem('pwa_dismissed');
-    if (dismissed && Date.now() - parseInt(dismissed) < 7 * 86400000) return;
-  } catch(e) {}
-  setTimeout(showInstallBanner, 30000);
-});
-
-function showInstallBanner() {
-  if (!deferredPrompt || document.getElementById('installBanner')) return;
-  const banner = document.createElement('div');
-  banner.id = 'installBanner';
-  banner.setAttribute('style', [
-    'position:fixed', 'bottom:80px', 'left:50%',
-    'transform:translateX(-50%)', 'background:#1C1712',
-    'border:1px solid #B8935A', 'border-radius:12px',
-    'padding:14px 20px', 'display:flex', 'align-items:center',
-    'gap:14px', 'z-index:8888', 'box-shadow:0 8px 32px rgba(0,0,0,.5)',
-    'font-family:Jost,sans-serif', 'max-width:320px',
-    'width:calc(100% - 40px)'
-  ].join(';'));
-  const txt = document.createElement('div');
-  txt.setAttribute('style', 'flex:1;min-width:0');
-  txt.innerHTML = '<div style="color:#F2E9D8;font-size:13px;font-weight:500">Installer Mementos</div><div style="color:#B8935A;font-size:11px">Accès rapide sur l’écran d’accueil</div>';
-  const btnInstall = document.createElement('button');
-  btnInstall.textContent = 'Installer';
-  btnInstall.onclick = installPWA;
-  btnInstall.setAttribute('style', 'background:#B8935A;color:#1C1712;border:none;border-radius:8px;padding:8px 14px;font-family:Jost,sans-serif;font-size:12px;font-weight:500;cursor:pointer;flex-shrink:0');
-  const btnClose = document.createElement('button');
-  btnClose.innerHTML = '&times;';
-  btnClose.onclick = dismissInstall;
-  btnClose.setAttribute('style', 'background:none;border:none;color:rgba(242,233,216,.4);cursor:pointer;font-size:20px;padding:4px;flex-shrink:0;line-height:1');
-  banner.appendChild(txt);
-  banner.appendChild(btnInstall);
-  banner.appendChild(btnClose);
-  document.body.appendChild(banner);
-}
-
-async function installPWA() {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
-  deferredPrompt = null;
-  dismissInstall();
-}
-
-function dismissInstall() {
-  const b = document.getElementById('installBanner');
-  if (b) b.remove();
-  deferredPrompt = null;
-  try { localStorage.setItem('pwa_dismissed', Date.now()); } catch(e) {}
-}
-
-window.addEventListener('appinstalled', dismissInstall);
-</script>
 </body>
 </html>
