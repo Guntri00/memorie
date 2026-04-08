@@ -2114,7 +2114,7 @@ const manifestData = {
       "src": "/ring-intro.png",
       "sizes": "1000x1000",
       "type": "image/png",
-      "label": "Écran d'accueil Mementos"
+      "label": "Ecran accueil Mementos"
     }
   ],
   "shortcuts": [
@@ -2188,7 +2188,14 @@ function showInstallBanner() {
   const banner = document.createElement('div');
   banner.id = 'installBanner';
   banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1C1712;border:1px solid #B8935A;border-radius:12px;padding:14px 20px;display:flex;align-items:center;gap:14px;z-index:8888;box-shadow:0 8px 32px rgba(0,0,0,.5);font-family:Jost,sans-serif;max-width:320px;width:calc(100% - 40px)';
-  banner.innerHTML = '<div style="flex:1;min-width:0"><div style="color:#F2E9D8;font-size:13px;font-weight:500">💍 Installer Mementos</div><div style="color:#B8935A;font-size:11px;letter-spacing:.05em">Accès rapide sur votre écran d'accueil</div></div><button onclick="installPWA()" style="background:#B8935A;color:#1C1712;border:none;border-radius:8px;padding:8px 14px;font-family:Jost,sans-serif;font-size:12px;font-weight:500;cursor:pointer;flex-shrink:0">Installer</button><button onclick="dismissInstall()" style="background:none;border:none;color:rgba(242,233,216,.4);cursor:pointer;font-size:20px;padding:4px;flex-shrink:0;line-height:1">×</button>';
+  banner.innerHTML = [
+    '<div style="flex:1;min-width:0">',
+      '<div style="color:#F2E9D8;font-size:13px;font-weight:500">&#128141; Installer Mementos</div>',
+      '<div style="color:#B8935A;font-size:11px;letter-spacing:.05em">Acc&#232;s rapide sur votre &#233;cran d&#39;accueil</div>',
+    '</div>',
+    '<button onclick="installPWA()" style="background:#B8935A;color:#1C1712;border:none;border-radius:8px;padding:8px 14px;font-family:Jost,sans-serif;font-size:12px;font-weight:500;cursor:pointer;flex-shrink:0">Installer</button>',
+    '<button onclick="dismissInstall()" style="background:none;border:none;color:rgba(242,233,216,.4);cursor:pointer;font-size:20px;padding:4px;flex-shrink:0;line-height:1">&times;</button>'
+  ].join('');
   document.body.appendChild(banner);
 }
 
