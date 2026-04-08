@@ -1,0 +1,50 @@
+{
+  "name": "Mementos — Vos souvenirs en partage",
+  "short_name": "Mementos",
+  "description": "Partagez vos photos de mariage instantanément",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1C1712",
+  "theme_color": "#B8935A",
+  "lang": "fr",
+  "categories": ["photography", "social"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/ring-intro.png",
+      "sizes": "1000x1000",
+      "type": "image/png",
+      "label": "Écran d'accueil Mementos"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Partager une photo",
+      "short_name": "Partager",
+      "description": "Uploader une photo directement",
+      "url": "/?tab=upload",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Voir la galerie",
+      "short_name": "Galerie",
+      "description": "Voir toutes les photos",
+      "url": "/?tab=gallery",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
