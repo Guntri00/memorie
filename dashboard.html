@@ -718,10 +718,7 @@ async function deleteSelected() {
 
   for (const p of photos) {
     try {
-      await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${p.storage_path}`, {
-        method:'DELETE', mode:'cors', credentials:'omit',
-        headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json' }
-      });
+      // Supprimer en DB — le trigger nettoie le storage automatiquement
       await fetch(`${SB_URL}/rest/v1/photos?id=eq.${p.id}`, {
         method:'DELETE', mode:'cors', credentials:'omit',
         headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal' }
