@@ -609,6 +609,7 @@ to{opacity:1;transform:translateY(0)}}
 </style>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💍</text></svg>">
 <link rel="preload" as="image" href="/ring-intro.png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 
@@ -1700,18 +1701,106 @@ async function confirmDelete() {
 
 
 // ══════════════════════════════════════════
-//  NOTIFICATIONS TEMPS RÉEL
+//  NOTIFICATIONS TEMPS RÉEL — WebSocket Supabase Realtime
 // ══════════════════════════════════════════
-let realtimeChannel = null;
-const newPhotoCounts = {};
+let   realtimeChannel  = null;
+const newPhotoCounts   = {};
+
+// ── Initialiser le client Supabase via CDN ──────────────────
+let sbClient = null;
+function getSbClient() {
+  if (sbClient) return sbClient;
+  if (window.supabase && window.supabase.createClient) {
+    sbClient = window.supabase.createClient(SB_URL, SB_KEY, {
+      realtime: { params: { eventsPerSecond: 10 } }
+    });
+  }
+  return sbClient;
+}
 
 function startRealtime() {
   if (realtimeChannel) return;
-  realtimeChannel = setInterval(async () => {
-    if (document.getElementById('panel-gallery').classList.contains('on')) {
-      await checkNewPhotos();
-    }
-  }, 15000);
+
+  const client = getSbClient();
+  if (!client) {
+    // Fallback polling si le client Supabase n'est pas disponible
+    console.warn('[Realtime] SDK non disponible, fallback polling 30s');
+    realtimeChannel = setInterval(async () => {
+      if (document.getElementById('panel-gallery').classList.contains('on')) {
+        await checkNewPhotos();
+      }
+    }, 30000);
+    return;
+  }
+
+  // ── WebSocket Realtime ──────────────────────────────────────
+  realtimeChannel = client
+    .channel('mementos-photos')
+    .on(
+      'postgres_changes',
+      {
+        event:  '*',
+        schema: 'public',
+        table:  'photos',
+        filter: `event_id=eq.${EVENT_ID}`
+      },
+      (payload) => {
+        console.log('[Realtime] Changement reçu:', payload.eventType);
+
+        if (payload.eventType === 'INSERT') {
+          const newPhoto = payload.new;
+
+          // Ajouter la photo à allPhotos si pas déjà présente
+          if (!allPhotos.find(p => p.id === newPhoto.id)) {
+            allPhotos.push(newPhoto);
+
+            // Badge sur la catégorie si la galerie n'est pas sur cette catégorie
+            const activeCat = document.querySelector('.cat-card.selected');
+            const activeCatId = activeCat ? activeCat.dataset.cat : null;
+
+            if (activeCatId !== newPhoto.category) {
+              newPhotoCounts[newPhoto.category] = (newPhotoCounts[newPhoto.category] || 0) + 1;
+              showCategoryBadge(newPhoto.category, newPhotoCounts[newPhoto.category]);
+            }
+
+            // Rafraîchir la vue active si même catégorie
+            if (activeCatId === newPhoto.category) {
+              loadCategoryDetail(newPhoto.category);
+            }
+
+            // Mettre à jour le compteur dans le slider de catégories
+            updateCategoryCount(newPhoto.category);
+          }
+        }
+
+        if (payload.eventType === 'DELETE') {
+          const deletedId = payload.old && payload.old.id;
+          if (deletedId) {
+            allPhotos = allPhotos.filter(p => p.id !== deletedId);
+
+            // Rafraîchir la vue active
+            const activeCat = document.querySelector('.cat-card.selected');
+            if (activeCat) loadCategoryDetail(activeCat.dataset.cat);
+            updateCategoryCount(payload.old.category);
+          }
+        }
+
+        if (payload.eventType === 'UPDATE') {
+          const updated = payload.new;
+          const idx = allPhotos.findIndex(p => p.id === updated.id);
+          if (idx !== -1) allPhotos[idx] = { ...allPhotos[idx], ...updated };
+        }
+      }
+    )
+    .subscribe((status) => {
+      console.log('[Realtime] Statut:', status);
+    });
+}
+
+function updateCategoryCount(catId) {
+  const count = allPhotos.filter(p => p.category === catId).length;
+  const el = document.querySelector(`[data-cat="${catId}"] .cat-count`);
+  if (el) el.textContent = count + (count > 1 ? ' photos' : ' photo');
 }
 
 async function checkNewPhotos() {
@@ -1743,27 +1832,6 @@ function clearCategoryBadge(catId) {
   const badge = document.getElementById('badge-' + catId);
   if (badge) badge.classList.remove('show');
   newPhotoCounts[catId] = 0;
-}
-
-
-// Optimiser URL image selon le contexte (thumb ou full)
-
-
-function imgUrl(p, size) {
-  // Les photos sont déjà compressées à l'upload — URL directe
-  return p.public_url || '';
-}
-
-function showWidgets() {
-  document.getElementById('gallery-detail').style.display  = 'none';
-  document.getElementById('gallery-widgets').style.display = 'block';
-  CATEGORIES.forEach(cat => {
-    const photos = allPhotos.filter(p=>p.category===cat.id);
-    if (photos.length>0) {
-      const loop = photos.length===1?[...photos,...photos,...photos]:photos.length===2?[...photos,...photos]:photos;
-      startSlider(cat.id, loop.length);
-    }
-  });
 }
 
 // ══════════════════════════════════════════
