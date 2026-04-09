@@ -322,8 +322,70 @@ footer{text-align:center;padding:24px;font-size:10px;letter-spacing:.18em;color:
 .btn-select-mode:hover{border-color:var(--gold);color:var(--gold)}
 .btn-select-mode.active{background:var(--gold);border-color:var(--gold);color:var(--warm)}
 
+
+/* ── Toggle vidéo ── */
+.toggle-video-card {
+  background:var(--card-bg,#2a1f16);
+  border:1px solid rgba(184,147,90,.2);
+  border-radius:10px;padding:14px 18px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;margin-bottom:12px;
+}
+.toggle-video-card .tlabel {
+  font-size:13px;font-weight:500;color:#e8d5b5;letter-spacing:.03em;
+}
+.toggle-video-card .tsub {
+  font-size:11px;color:#9e8a7a;margin-top:2px;letter-spacing:.02em;
+}
+
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js">
+// ══════════════════════════════════════════
+//  TOGGLE VIDÉO
+// ══════════════════════════════════════════
+async function loadVideoToggle() {
+  try {
+    const r = await fetch(
+      `${SB_URL}/rest/v1/events?id=eq.${EVENT_ID}&select=video_enabled`,
+      { headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Accept':'application/json' } }
+    );
+    if (!r.ok) return;
+    const d = await r.json();
+    const enabled = d[0] ? d[0].video_enabled : false;
+    const chk = document.getElementById('videoToggle');
+    const lbl = document.getElementById('videoToggleStatus');
+    if (chk) chk.checked = enabled;
+    if (lbl) lbl.textContent = enabled ? 'ON' : 'OFF';
+  } catch(e) { console.warn('loadVideoToggle:', e); }
+}
+
+async function toggleVideo() {
+  const chk     = document.getElementById('videoToggle');
+  const lbl     = document.getElementById('videoToggleStatus');
+  const enabled = chk ? chk.checked : false;
+  try {
+    const r = await fetch(
+      `${SB_URL}/rest/v1/events?id=eq.${EVENT_ID}`,
+      {
+        method:'PATCH', mode:'cors', credentials:'omit',
+        headers:{
+          'apikey':SB_KEY, 'Authorization':`Bearer ${SB_KEY}`,
+          'Content-Type':'application/json', 'Prefer':'return=minimal'
+        },
+        body: JSON.stringify({ video_enabled: enabled })
+      }
+    );
+    if (!r.ok) throw new Error(await r.text());
+    if (lbl) lbl.textContent = enabled ? 'ON' : 'OFF';
+    console.log('[Dashboard] video_enabled =', enabled);
+  } catch(e) {
+    console.error('toggleVideo:', e);
+    if (chk) chk.checked = !enabled;
+    if (lbl) lbl.textContent = !enabled ? 'ON' : 'OFF';
+  }
+}
+
+</script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💍</text></svg>">
 </head>
 <body>
@@ -420,6 +482,21 @@ footer{text-align:center;padding:24px;font-size:10px;letter-spacing:.18em;color:
           <input type="checkbox" id="uploadToggle" checked onchange="toggleUploads()">
           <span class="toggle-slider"></span>
         </label>
+      </div>
+    </div>
+
+    <!-- TOGGLE VIDÉO -->
+    <div class="toggle-video-card">
+      <div>
+        <div class="tlabel">🎬 Micro-vidéos 20 secondes</div>
+        <div class="tsub">Permet aux invités de filmer de courtes vidéos depuis l'app</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+        <label class="toggle-switch">
+          <input type="checkbox" id="videoToggle" onchange="toggleVideo()">
+          <span class="toggle-slider"></span>
+        </label>
+        <span id="videoToggleStatus" style="font-size:10px;color:#9e8a7a;letter-spacing:.04em">OFF</span>
       </div>
     </div>
 
@@ -582,7 +659,8 @@ window.addEventListener('DOMContentLoaded', () => {
 //  CHARGEMENT
 // ══════════════════════════════════════════
 async function loadDashboard() {
-  console.log('Dashboard: connexion Supabase', SB_URL);
+    loadVideoToggle();
+console.log('Dashboard: connexion Supabase', SB_URL);
   console.log('EVENT_ID:', EVENT_ID);
   await refreshPhotos();
   startAutoRefresh();
