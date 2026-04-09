@@ -606,12 +606,376 @@ to{opacity:1;transform:translateY(0)}}
   40%, 60%  { opacity: .55; }
 }
 
+
+/* ─── VIDÉO MICRO ─── */
+.btn-video {
+  display:none;
+  align-items:center;gap:6px;
+  background:var(--brown,#6B4F35);color:#fff;
+  border:none;border-radius:8px;padding:10px 18px;
+  font-family:'Jost',sans-serif;font-size:13px;font-weight:500;
+  letter-spacing:.08em;cursor:pointer;transition:opacity .2s;
+}
+.btn-video:hover { opacity:.85; }
+.btn-video.recording { background:#C0392B; }
+
+.video-recorder-wrap {
+  display:none;
+  flex-direction:column;align-items:center;
+  gap:12px;padding:16px 0;
+}
+.video-recorder-wrap.show { display:flex; }
+#videoPreviewEl { width:100%;max-width:360px;border-radius:10px;background:#000; }
+#videoCountdown {
+  font-family:'Jost',sans-serif;font-size:13px;
+  color:#C0392B;font-weight:500;letter-spacing:.05em;
+  min-height:20px;
+}
+
+/* Bouton enregistrement hold */
+#btnRecord {
+  width:70px;height:70px;border-radius:50%;
+  background:#1C1712;border:3px solid #B8935A;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .2s;user-select:none;
+  -webkit-user-select:none;touch-action:none;
+}
+#btnRecord .rec-dot {
+  width:28px;height:28px;border-radius:50%;background:#B8935A;
+  transition:all .2s;
+}
+#btnRecord.recording { border-color:#C0392B;background:#2D0A0A; }
+#btnRecord.recording .rec-dot {
+  width:14px;height:14px;border-radius:3px;background:#C0392B;
+}
+
+/* Barre de progression vidéo */
+.video-progress-bar {
+  width:100%;max-width:360px;height:4px;
+  background:rgba(184,147,90,.2);border-radius:2px;overflow:hidden;
+}
+.video-progress-fill {
+  height:100%;background:#C0392B;width:0%;
+  transition:width .1s linear;
+}
+
+/* Aperçu vidéo après capture */
+.video-preview-actions { display:flex;gap:10px;justify-content:center; }
+.video-preview-actions button {
+  padding:8px 20px;border-radius:8px;border:1px solid #B8935A;
+  font-family:'Jost',sans-serif;font-size:12px;cursor:pointer;
+  letter-spacing:.08em;text-transform:uppercase;
+}
+.btn-retake { background:transparent;color:#6B4F35; }
+.btn-use    { background:#B8935A;color:#fff;border:none; }
+
+
+  8%   { opacity: 0.18; }
+  50%  { transform: translateY(50vh)  rotate(15deg)  scale(1.1); opacity: 0.12; }
+  92%  { opacity: 0.10; }
+  100% { transform: translateY(105vh) rotate(-10deg) scale(0.9); opacity: 0; }
+}
+
+
+/* ═══════════════════════════════════════════
+   ANIMATION CŒURS — Accueil jovial
+═══════════════════════════════════════════ */
+.heart {
+  position: fixed;
+  top: -50px;
+  font-size: 22px;
+  opacity: 0;
+  animation: heartFall linear infinite;
+  pointer-events: none;
+  z-index: 0;
+  user-select: none;
+  will-change: transform, opacity;
+}
+
+/* Position & timing unique pour chaque cœur */
+.heart:nth-child(1)  { left:  3%; animation-duration:14s; animation-delay:   0s; font-size:16px; }
+.heart:nth-child(2)  { left: 10%; animation-duration:20s; animation-delay:  -3s; font-size:26px; }
+.heart:nth-child(3)  { left: 18%; animation-duration:16s; animation-delay:  -8s; font-size:14px; }
+.heart:nth-child(4)  { left: 27%; animation-duration:22s; animation-delay:  -1s; font-size:20px; }
+.heart:nth-child(5)  { left: 36%; animation-duration:17s; animation-delay: -12s; font-size:12px; }
+.heart:nth-child(6)  { left: 45%; animation-duration:25s; animation-delay:  -5s; font-size:24px; }
+.heart:nth-child(7)  { left: 54%; animation-duration:15s; animation-delay:  -9s; font-size:18px; }
+.heart:nth-child(8)  { left: 63%; animation-duration:21s; animation-delay:  -2s; font-size:14px; }
+.heart:nth-child(9)  { left: 72%; animation-duration:18s; animation-delay: -14s; font-size:22px; }
+.heart:nth-child(10) { left: 81%; animation-duration:23s; animation-delay:  -6s; font-size:16px; }
+.heart:nth-child(11) { left: 89%; animation-duration:16s; animation-delay: -10s; font-size:20px; }
+.heart:nth-child(12) { left: 96%; animation-duration:19s; animation-delay:  -4s; font-size:13px; }
+
+/* Chute avec légère oscillation gauche-droite */
+@keyframes heartFall {
+  0%   { transform: translateY(-50px) translateX(0px)   rotate(-10deg) scale(0.7); opacity: 0; }
+  8%   { opacity: 0.22; }
+  25%  { transform: translateY(25vh)  translateX(15px)  rotate(8deg)   scale(1.05); }
+  50%  { transform: translateY(52vh)  translateX(-12px) rotate(-6deg)  scale(1.0);  opacity: 0.16; }
+  75%  { transform: translateY(78vh)  translateX(10px)  rotate(5deg)   scale(0.95); }
+  92%  { opacity: 0.10; }
+  100% { transform: translateY(108vh) translateX(-5px)  rotate(-8deg)  scale(0.8);  opacity: 0; }
+}
+
+/* ── TOAST D'ACCUEIL ───────────────────────────────────────── */
+#welcomeToast {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: linear-gradient(135deg, #2a1f14, #1C1712);
+  border: 1px solid rgba(184,147,90,.45);
+  border-radius: 50px;
+  padding: 12px 22px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 100;
+  opacity: 0;
+  animation: welcomeIn 1s ease 1.5s forwards, welcomeOut .8s ease 6s forwards;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 8px 30px rgba(0,0,0,.4);
+}
+#welcomeToast span.wt-icon { font-size: 18px; }
+#welcomeToast span.wt-text {
+  font-family: 'Jost', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: .06em;
+  color: #F2E9D8;
+}
+#welcomeToast span.wt-text em {
+  color: #B8935A;
+  font-style: normal;
+  font-weight: 500;
+}
+
+@keyframes welcomeIn {
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes welcomeOut {
+  to { opacity: 0; transform: translateX(-50%) translateY(10px); }
+}
+
+
+/* ─── CŒURS ROSES & BAGUES FLOTTANTS ─── */
+.charm {
+  position: fixed;
+  top: -50px;
+  opacity: 0;
+  animation: charmFall linear infinite;
+  pointer-events: none;
+  z-index: 0;
+  user-select: none;
+}
+.charm:nth-child(1)  { left:  3%; animation-duration:16s; animation-delay:   0s; font-size:15px; }
+.charm:nth-child(2)  { left: 11%; animation-duration:21s; animation-delay:  -4s; font-size:22px; }
+.charm:nth-child(3)  { left: 20%; animation-duration:14s; animation-delay:  -9s; font-size:13px; }
+.charm:nth-child(4)  { left: 30%; animation-duration:24s; animation-delay:  -2s; font-size:19px; }
+.charm:nth-child(5)  { left: 40%; animation-duration:18s; animation-delay: -13s; font-size:11px; }
+.charm:nth-child(6)  { left: 50%; animation-duration:22s; animation-delay:  -6s; font-size:24px; }
+.charm:nth-child(7)  { left: 60%; animation-duration:15s; animation-delay: -10s; font-size:16px; }
+.charm:nth-child(8)  { left: 69%; animation-duration:20s; animation-delay:  -1s; font-size:12px; }
+.charm:nth-child(9)  { left: 78%; animation-duration:17s; animation-delay: -15s; font-size:20px; }
+.charm:nth-child(10) { left: 87%; animation-duration:23s; animation-delay:  -7s; font-size:14px; }
+.charm:nth-child(11) { left: 93%; animation-duration:19s; animation-delay: -11s; font-size:18px; }
+
+@keyframes charmFall {
+  from { transform: translateY(-50px) rotate(0deg);   opacity: 0; }
+  8%   {                                               opacity: 0.25; }
+  50%  { transform: translateY(52vh)  rotate(200deg); opacity: 0.18; }
+  92%  {                                               opacity: 0.14; }
+  to   { transform: translateY(108vh) rotate(360deg); opacity: 0; }
+}
+
 </style>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💍</text></svg>">
 <link rel="preload" as="image" href="/ring-intro.png">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js">
+// ══════════════════════════════════════════
+//  VIDÉO 20 SECONDES
+// ══════════════════════════════════════════
+let videoStream    = null;
+let mediaRecorder  = null;
+let videoChunks    = [];
+let videoBlob      = null;
+let videoTimer     = null;
+let videoProgress  = null;
+let isRecording    = false;
+const VIDEO_MAX_MS = 20000;
+
+async function initVideoCamera() {
+  try {
+    if (videoStream) return;
+    // Limiter la résolution à 480p pour réduire la taille des vidéos
+    videoStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        width:     { ideal: 854,  max: 854  },
+        height:    { ideal: 480,  max: 480  },
+        frameRate: { ideal: 24,   max: 24   },
+        facingMode: 'environment'
+      },
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        sampleRate: 44100
+      }
+    });
+    const liveEl = document.getElementById('videoLive');
+    if (liveEl) { liveEl.srcObject = videoStream; liveEl.style.display = 'block'; }
+  } catch(e) {
+    // Fallback sans contraintes strictes
+    try {
+      videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      const liveEl = document.getElementById('videoLive');
+      if (liveEl) { liveEl.srcObject = videoStream; liveEl.style.display = 'block'; }
+    } catch(e2) {
+      showToast("Impossible d’accéder à la caméra", true);
+    }
+  }
+}
+
+function stopVideoCamera() {
+  if (videoStream) {
+    videoStream.getTracks().forEach(t => t.stop());
+    videoStream = null;
+  }
+  isRecording = false;
+  clearTimeout(videoTimer);
+  clearInterval(videoProgress);
+}
+
+function startVideoRecord(e) {
+  if (e) e.preventDefault();
+  if (isRecording || !videoStream) return;
+  isRecording   = true;
+  videoChunks   = [];
+  videoBlob     = null;
+
+  const btn = document.getElementById('btnRecord');
+  if (btn) btn.classList.add('recording');
+  document.getElementById('videoProgressBar').style.display = 'block';
+  document.getElementById('videoProgressFill').style.width  = '0%';
+  document.getElementById('videoCountdown').textContent = '0s / 20s';
+
+  // Choisir le meilleur codec supporté
+  const mimeType = [
+    'video/webm;codecs=vp9,opus',
+    'video/webm;codecs=vp8,opus',
+    'video/webm',
+    'video/mp4'
+  ].find(t => MediaRecorder.isTypeSupported(t)) || '';
+
+  // Bitrate réduit : 400kbps video + 64kbps audio = ~600ko pour 20s
+  const recOptions = { ...(mimeType ? { mimeType } : {}), videoBitsPerSecond: 400000, audioBitsPerSecond: 64000 };
+  try {
+    mediaRecorder = new MediaRecorder(videoStream, recOptions);
+  } catch(e) {
+    mediaRecorder = new MediaRecorder(videoStream, mimeType ? { mimeType } : {});
+  }
+  mediaRecorder.ondataavailable = e => { if (e.data.size > 0) videoChunks.push(e.data); };
+  mediaRecorder.onstop = () => {
+    videoBlob = new Blob(videoChunks, { type: mimeType || 'video/webm' });
+    showVideoPreview(videoBlob);
+  };
+  mediaRecorder.start(100);
+
+  // Timer 20s + progress
+  const startTime = Date.now();
+  videoProgress = setInterval(() => {
+    const elapsed = Date.now() - startTime;
+    const pct = Math.min((elapsed / VIDEO_MAX_MS) * 100, 100);
+    document.getElementById('videoProgressFill').style.width = pct + '%';
+    document.getElementById('videoCountdown').textContent =
+      Math.floor(elapsed/1000) + 's / 20s';
+    if (elapsed >= VIDEO_MAX_MS) stopVideoRecord();
+  }, 100);
+
+  videoTimer = setTimeout(stopVideoRecord, VIDEO_MAX_MS);
+}
+
+function stopVideoRecord() {
+  if (!isRecording) return;
+  isRecording = false;
+  clearTimeout(videoTimer);
+  clearInterval(videoProgress);
+
+  const btn = document.getElementById('btnRecord');
+  if (btn) btn.classList.remove('recording');
+  document.getElementById('videoProgressBar').style.display = 'none';
+  document.getElementById('videoCountdown').textContent = '';
+
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+  }
+}
+
+function showVideoPreview(blob) {
+  const url = URL.createObjectURL(blob);
+  document.getElementById('videoPreviewEl').src = url;
+  document.getElementById('videoRecorderWrap').style.display = 'none';
+  document.getElementById('videoPreviewWrap').style.display  = 'flex';
+}
+
+function retakeVideo() {
+  videoBlob = null;
+  document.getElementById('videoPreviewWrap').style.display  = 'none';
+  document.getElementById('videoRecorderWrap').style.display = 'flex';
+  document.getElementById('videoPreviewEl').src = '';
+}
+
+async function useVideo() {
+  if (!videoBlob) return;
+  const ext  = videoBlob.type.includes('mp4') ? 'mp4' : 'webm';
+  const ts   = Date.now();
+  const uid  = Math.random().toString(36).substr(2, 6);
+  const file = new File([videoBlob], `video-cam-${ts}-${uid}.${ext}`, {
+    type: videoBlob.type, lastModified: ts
+  });
+  file._fromCamera = true;
+  file._isVideo    = true;
+
+  // Fermer l'interface vidéo et passer en galerie
+  retakeVideo();
+  switchUploadTab('gallery');
+  addFiles([file]);
+}
+
+</script>
 </head>
 <body>
+<!-- ─── CŒURS & BAGUES ─── -->
+<span class="charm">🩷</span>
+<span class="charm">💍</span>
+<span class="charm">🩷</span>
+<span class="charm">💍</span>
+<span class="charm">🩷</span>
+<span class="charm">💍</span>
+<span class="charm">🩷</span>
+<span class="charm">💍</span>
+<span class="charm">🩷</span>
+<span class="charm">💍</span>
+<span class="charm">🩷</span>
+<!-- ═══ ANIMATION ACCUEIL ═══ -->
+<span class="heart">❤️</span>
+<span class="heart">🤍</span>
+<span class="heart">❤️</span>
+<span class="heart">💛</span>
+<span class="heart">❤️</span>
+<span class="heart">🤍</span>
+<span class="heart">❤️</span>
+<span class="heart">💛</span>
+<span class="heart">❤️</span>
+<span class="heart">🤍</span>
+<span class="heart">❤️</span>
+<span class="heart">💛</span>
+
+<!-- Toast de bienvenue -->
+<div id="welcomeToast">
+  <span class="wt-icon">📸</span>
+  <span class="wt-text">Partagez vos plus beaux souvenirs <em>avec amour</em> ❤️</span>
+</div>
 
 <!-- ══ INTRO MEMENTOS ══ -->
 <div id="introScreen" onclick="closeIntro()">
@@ -662,7 +1026,8 @@ to{opacity:1;transform:translateY(0)}}
   
 <div class="tabs">
   <button class="tab on" onclick="switchTab('upload',this)">📤 Partager</button>
-  <button class="tab" onclick="switchTab('gallery',this)">🖼️ Galerie</button>
+  <button class="tab" onclick="loadEventConfig();
+  switchTab('gallery',this)">🖼️ Galerie</button>
   <button class="tab" onclick="switchTab('qr',this)">📱 QR Code</button>
 </div>
 
@@ -704,6 +1069,7 @@ to{opacity:1;transform:translateY(0)}}
       <!-- Sous-onglets Galerie / Appareil photo -->
       <div class="upload-tabs">
         <button class="upload-tab on" id="utab-camera" onclick="switchUploadTab('camera')">📷 Appareil photo</button>
+        <button class="upload-tab" id="utab-video" onclick="switchUploadTab('video')" style="display:none">🎬 Vidéo</button>
         <button class="upload-tab" id="utab-gallery" onclick="switchUploadTab('gallery')">🖼️ Galerie</button>
       </div>
 
@@ -740,6 +1106,34 @@ to{opacity:1;transform:translateY(0)}}
         </div>
       </div>
 
+      <!-- Onglet vidéo (20s) -->
+      <div id="upload-video-pane" style="display:none">
+        <div class="video-recorder-wrap show" id="videoRecorderWrap">
+          <video id="videoLive" autoplay muted playsinline
+                 style="width:100%;max-width:360px;border-radius:10px;background:#000"></video>
+          <div id="videoCountdown"></div>
+          <div class="video-progress-bar" id="videoProgressBar" style="display:none">
+            <div class="video-progress-fill" id="videoProgressFill"></div>
+          </div>
+          <div id="btnRecord" title="Maintenir pour enregistrer"
+               onmousedown="startVideoRecord()" onmouseup="stopVideoRecord()"
+               ontouchstart="startVideoRecord(event)" ontouchend="stopVideoRecord()">
+            <div class="rec-dot"></div>
+          </div>
+          <div style="font-family:Jost,sans-serif;font-size:11px;color:#9e8a7a;letter-spacing:.1em;text-transform:uppercase;text-align:center">
+            Maintenir appuyé pour filmer · 20s max
+          </div>
+        </div>
+        <!-- Aperçu après enregistrement -->
+        <div id="videoPreviewWrap" style="display:none;flex-direction:column;align-items:center;gap:10px;width:100%">
+          <video id="videoPreviewEl" controls style="width:100%;max-width:360px;border-radius:10px;background:#000"></video>
+          <div class="video-preview-actions">
+            <button class="btn-retake" onclick="retakeVideo()">↺ Reprendre</button>
+            <button class="btn-use"    onclick="useVideo()">Utiliser ✓</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Onglet galerie -->
       <div id="upload-gallery-pane" style="display:none">
         <div class="zone" id="dropzone"
@@ -757,6 +1151,24 @@ to{opacity:1;transform:translateY(0)}}
         </div>
       </div>
       <div class="previews" id="previews"></div>
+<div class="video-progress-bar" id="videoProgressBar" style="display:none">
+          <div class="video-progress-fill" id="videoProgressFill"></div>
+        </div>
+        <div id="btnRecord" title="Maintenir pour enregistrer">
+          <div class="rec-dot"></div>
+        </div>
+        <div style="font-family:Jost,sans-serif;font-size:11px;color:#9e8a7a;letter-spacing:.1em;text-transform:uppercase">
+          Maintenir pour filmer · 20s max
+        </div>
+        <!-- Aperçu après enregistrement -->
+        <div id="videoPreviewWrap" style="display:none;flex-direction:column;align-items:center;gap:10px;width:100%">
+          <video id="videoPreviewEl" controls style="width:100%;max-width:360px;border-radius:10px;background:#000"></video>
+          <div class="video-preview-actions">
+            <button class="btn-retake" onclick="retakeVideo()">↺ Reprendre</button>
+            <button class="btn-use"    onclick="useVideo()">Utiliser cette vidéo</button>
+          </div>
+        </div>
+      </div>
 <div class="nfield">
         <label>Votre prénom (optionnel)</label>
         <input id="uname" type="text" placeholder="ex : Sophie" oninput="saveName(this.value)">
@@ -879,6 +1291,26 @@ const SB_KEY   = 'sb_publishable_59uI3S3lCP0xyVtvrR6ZZA_vXsiF27o';
 const EVENT_ID = 'mariage-melodie-thomas-2025';
 const BUCKET   = 'photos';
 
+// Vidéos activées (chargé depuis Supabase)
+let VIDEO_ENABLED = false;
+async function loadEventConfig() {
+  try {
+    const r = await fetch(
+      `${SB_URL}/rest/v1/events?id=eq.${EVENT_ID}&select=video_enabled`,
+      { headers:{ 'apikey':SB_KEY, 'Authorization':`Bearer ${SB_KEY}`, 'Accept':'application/json' } }
+    );
+    if (r.ok) {
+      const d = await r.json();
+      if (d[0]) VIDEO_ENABLED = d[0].video_enabled;
+      updateVideoUI();
+    }
+  } catch(e) {}
+}
+function updateVideoUI() {
+  const tab = document.getElementById('utab-video');
+  if (tab) tab.style.display = VIDEO_ENABLED ? 'inline-flex' : 'none';
+}
+
 // Retourner l'URL publique de la photo
 function imgUrl(p, size) {
   return p.public_url || '';
@@ -913,14 +1345,23 @@ let pendingDeleteEl  = null;
 //  SOUS-ONGLETS UPLOAD
 // ══════════════════════════════════════════
 function switchUploadTab(tab) {
-  document.querySelectorAll('.upload-tab').forEach(b => b.classList.remove('on'));
-  document.getElementById('utab-' + tab).classList.add('on');
+  ['camera','video','gallery'].forEach(t => {
+    const pane = document.getElementById('upload-'+t+'-pane');
+    const btn  = document.getElementById('utab-'+t);
+    if (pane) pane.style.display = (t === tab) ? 'block' : 'none';
+    if (btn)  btn.classList.toggle('on', t === tab);
+  });
 
-  document.getElementById('upload-camera-pane').style.display  = tab === 'camera'  ? 'block' : 'none';
-  document.getElementById('upload-gallery-pane').style.display = tab === 'gallery' ? 'block' : 'none';
-
-  if (tab === 'camera') startCamera();
-  else stopCamera();
+  if (tab === 'camera') {
+    startCamera();
+    stopVideoCamera();
+  } else if (tab === 'video') {
+    stopCamera();
+    initVideoCamera();
+  } else {
+    stopCamera();
+    stopVideoCamera();
+  }
 }
 
 // ══════════════════════════════════════════
@@ -1223,7 +1664,8 @@ async function doUpload() {
 
   for (const file of selectedFiles) {
     try {
-      setProgress(done, total, `Photo ${done+1} / ${total}`);
+      const fileSize = fileToUpload ? (fileToUpload.size/1024).toFixed(0)+'Ko' : '';
+      setProgress(done, total, `Photo ${done+1}/${total} · ${fileSize}`);
       const ext      = (file.name.split('.').pop()||'jpg').toLowerCase();
       const filename = `${EVENT_ID}/${selectedCategory.id}/${Date.now()}-${Math.random().toString(36).substr(2,6)}.${ext}`;
 
@@ -1232,39 +1674,77 @@ async function doUpload() {
 //  COMPRESSION IMAGE AVANT UPLOAD
 // ══════════════════════════════════════════
 async function compressImage(file) {
-  const MAX_W   = 1600;  // largeur max px
-  const QUALITY = 0.78;  // qualité JPEG
-  
+  // Ignorer les vidéos
+  if (file._isVideo || file.type.startsWith('video/')) return file;
+
+  const TARGET_MAX_BYTES = 280 * 1024; // cible : 280 Ko max
+  const MAX_W            = 1200;       // largeur max px (réduit de 1600)
+  const QUALITY_START    = 0.82;       // qualité départ
+  const QUALITY_MIN      = 0.45;       // qualité plancher
+
   return new Promise((resolve) => {
     const img  = new Image();
     const burl = URL.createObjectURL(file);
-    
+
     img.onload = () => {
       URL.revokeObjectURL(burl);
       let { width, height } = img;
-      
-      // Réduire si trop grand
+
+      // ── Étape 1 : réduire la résolution ──────────────────────
       if (width > MAX_W) {
         height = Math.round(height * MAX_W / width);
         width  = MAX_W;
       }
-      
+      // Réduire encore si portrait très haut
+      const MAX_H = 1600;
+      if (height > MAX_H) {
+        width  = Math.round(width * MAX_H / height);
+        height = MAX_H;
+      }
+
       const canvas = document.createElement('canvas');
       canvas.width  = width;
       canvas.height = height;
-      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-      
-      canvas.toBlob((blob) => {
-        if (!blob || blob.size >= file.size) {
-          resolve(file); // Garder original si pas de gain
-        } else {
-          console.log(`🗜️ ${file.name}: ${(file.size/1048576).toFixed(1)}Mo → ${(blob.size/1048576).toFixed(1)}Mo`);
-          resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
-            type: 'image/jpeg', lastModified: Date.now()
-          }));
-        }
-      }, 'image/jpeg', QUALITY);
+      const ctx = canvas.getContext('2d');
+
+      // Rendu avec anti-aliasing
+      ctx.imageSmoothingEnabled  = true;
+      ctx.imageSmoothingQuality  = 'high';
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // ── Étape 2 : compression adaptative ─────────────────────
+      // Trouver la meilleure qualité pour rester sous TARGET_MAX_BYTES
+      function tryQuality(quality, attempt) {
+        canvas.toBlob((blob) => {
+          if (!blob) { resolve(file); return; }
+
+          const tooBig  = blob.size > TARGET_MAX_BYTES;
+          const canLower = quality - 0.08 >= QUALITY_MIN;
+
+          if (tooBig && canLower && attempt < 5) {
+            // Réessayer avec qualité réduite
+            tryQuality(quality - 0.08, attempt + 1);
+          } else {
+            // Résultat final — garder seulement si gain réel
+            if (blob.size >= file.size) {
+              resolve(file);
+            } else {
+              const savedPct = Math.round((1 - blob.size / file.size) * 100);
+              console.log(
+                `🗜️ ${file.name}: ${(file.size/1048576).toFixed(1)}Mo → ` +
+                `${(blob.size/1024).toFixed(0)}Ko (-${savedPct}%) @ q=${quality.toFixed(2)}`
+              );
+              resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
+                type: 'image/jpeg', lastModified: Date.now()
+              }));
+            }
+          }
+        }, 'image/jpeg', quality);
+      }
+
+      tryQuality(QUALITY_START, 0);
     };
+
     img.onerror = () => { URL.revokeObjectURL(burl); resolve(file); };
     img.src = burl;
   });
@@ -1287,7 +1767,15 @@ async function compressImage(file) {
         mode:'cors',
         credentials:'omit',
         headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal' },
-        body:JSON.stringify({ event_id:EVENT_ID, uploader_name:uploaderName, category:selectedCategory.id, storage_path:filename, public_url:publicUrl, uploaded_at:new Date().toISOString() })
+        body:JSON.stringify({
+          event_id:      EVENT_ID,
+          uploader_name: uploaderName,
+          category:      selectedCategory.id,
+          storage_path:  filename,
+          public_url:    publicUrl,
+          uploaded_at:   new Date().toISOString(),
+          media_type:    (file._isVideo ? 'video' : 'image')
+        })
       });
       done++; setProgress(done, total);
     } catch(err) { errors.push(file.name+': '+err.message); }
@@ -1727,7 +2215,7 @@ function getSbClient() {
   return sbClient;
 }
 
-function startRealtime() {
+async function startRealtime() {
   if (realtimeChannel) return;
 
   const client = getSbClient();
