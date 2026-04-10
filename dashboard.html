@@ -339,8 +339,7 @@ footer{text-align:center;padding:24px;font-size:10px;letter-spacing:.18em;color:
 }
 
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js">
-// ══════════════════════════════════════════
+<script>// ══════════════════════════════════════════
 //  TOGGLE VIDÉO
 // ══════════════════════════════════════════
 async function loadVideoToggle() {
@@ -386,6 +385,7 @@ async function toggleVideo() {
 }
 
 </script>
+
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💍</text></svg>">
 </head>
 <body>
@@ -583,6 +583,8 @@ async function toggleVideo() {
 
 <div class="dash-toast" id="dashToast"></div>
 
+
+
 <script>
 // ══════════════════════════════════════════
 //  CONFIG
@@ -659,11 +661,13 @@ window.addEventListener('DOMContentLoaded', () => {
 //  CHARGEMENT
 // ══════════════════════════════════════════
 async function loadDashboard() {
+  try {
+    await refreshPhotos();
     loadVideoToggle();
-console.log('Dashboard: connexion Supabase', SB_URL);
-  console.log('EVENT_ID:', EVENT_ID);
-  await refreshPhotos();
-  startAutoRefresh();
+    startAutoRefresh();
+  } catch(e) {
+    console.error('loadDashboard error:', e);
+  }
 }
 
 async function refreshPhotos() {
