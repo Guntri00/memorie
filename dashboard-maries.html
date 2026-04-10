@@ -545,6 +545,7 @@ footer em{font-style:italic;font-family:'Playfair Display',serif;font-size:12px;
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💍</text></svg>">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 
@@ -972,7 +973,8 @@ window.addEventListener('DOMContentLoaded',()=>{
 async function initDashboard(){
   console.log('Dashboard mariés: connexion Supabase', SB_URL);
   console.log('EVENT_ID:', EVENT_ID);
-  await loadPhotos();
+  await loadPhotos()
+  startRealtimeMaries();;
   startAutoRefresh();
 }
 
@@ -1009,7 +1011,7 @@ async function loadPhotos(){
 let autoRefreshInterval = null;
 function startAutoRefresh(){
   if(autoRefreshInterval) clearInterval(autoRefreshInterval);
-  autoRefreshInterval = setInterval(()=>{ loadPhotos(); }, 15000);
+  autoRefreshInterval = setInterval(loadPhotos, 30000) // fallback si Realtime déconnecté;
 }
 
 function updateUI(){
@@ -1172,6 +1174,44 @@ document.addEventListener('keydown',e=>{
     if(e.key===' '){e.preventDefault();ssToggle();}
   }
 });
+
+// ══ REALTIME — suppression instantanée ══
+let sbClientMaries = null;
+function startRealtimeMaries() {
+  if (!window.supabase || !window.supabase.createClient) {
+    // fallback : refresh toutes les 10s
+    setInterval(loadPhotos, 10000);
+    return;
+  }
+  sbClientMaries = window.supabase.createClient(SB_URL, SB_KEY);
+  sbClientMaries
+    .channel('maries-photos')
+    .on('postgres_changes', {
+      event: 'DELETE', schema: 'public', table: 'photos',
+      filter: `event_id=eq.${EVENT_ID}`
+    }, (payload) => {
+      // Supprimer la photo de l'affichage immédiatement
+      const deletedId = payload.old && payload.old.id;
+      if (deletedId) {
+        photos = photos.filter(p => p.id !== deletedId);
+        renderGallery();
+        console.log('[Realtime mariés] Photo supprimée:', deletedId);
+      }
+    })
+    .on('postgres_changes', {
+      event: 'INSERT', schema: 'public', table: 'photos',
+      filter: `event_id=eq.${EVENT_ID}`
+    }, (payload) => {
+      if (payload.new && !photos.find(p => p.id === payload.new.id)) {
+        photos.push(payload.new);
+        renderGallery();
+      }
+    })
+    .subscribe((status) => {
+      console.log('[Realtime mariés] Statut:', status);
+    });
+}
+
 </script>
 </body>
 </html>
