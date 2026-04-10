@@ -730,31 +730,32 @@ const VIDEO_MAX_MS = 20000;
 async function initVideoCamera() {
   try {
     if (videoStream) return;
-    // Limiter la résolution à 480p pour réduire la taille des vidéos
-    videoStream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        width:     { ideal: 854,  max: 854  },
-        height:    { ideal: 480,  max: 480  },
-        frameRate: { ideal: 24,   max: 24   },
-        facingMode: 'environment'
-      },
-      audio: {
-        echoCancellation: true,
-        noiseSuppression: true,
-        sampleRate: 44100
-      }
-    });
-    const liveEl = document.getElementById('videoLive');
-    if (liveEl) { liveEl.srcObject = videoStream; liveEl.style.display = 'block'; }
-  } catch(e) {
-    // Fallback sans contraintes strictes
-    try {
-      videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      const liveEl = document.getElementById('videoLive');
-      if (liveEl) { liveEl.srcObject = videoStream; liveEl.style.display = 'block'; }
-    } catch(e2) {
-      showToast("Impossible d’accéder à la caméra", true);
+    // Contraintes progressives pour compatibilité mobile Safari
+    const constraints = [
+      // Essai 1 : vidéo + audio 480p optimisé
+      { video: { width:{ideal:854}, height:{ideal:480}, frameRate:{ideal:24,max:30}, facingMode:'environment' }, audio:true },
+      // Essai 2 : plus simple
+      { video: { facingMode:'environment' }, audio: true },
+      // Essai 3 : minimal
+      { video: true, audio: true }
+    ];
+    for (const c of constraints) {
+      try {
+        videoStream = await navigator.mediaDevices.getUserMedia(c);
+        break;
+      } catch(err) { videoStream = null; }
     }
+    if (!videoStream) throw new Error('Caméra inaccessible');
+    const liveEl = document.getElementById('videoLive');
+    if (liveEl) {
+      liveEl.srcObject = videoStream;
+      liveEl.style.display = 'block';
+      // Important sur iOS : forcer le play
+      liveEl.play().catch(() => {});
+    }
+  } catch(e) {
+    console.error('initVideoCamera:', e);
+    showToast("Impossible d’accéder à la caméra vidéo", true);
   }
 }
 
@@ -849,7 +850,7 @@ function retakeVideo() {
 
 async function useVideo() {
   if (!videoBlob) return;
-  const ext  = videoBlob.type.includes('mp4') ? 'mp4' : 'webm';
+  const ext = file._isVideo ? (file.type && file.type.includes('mp4') ? 'mp4' : 'webm') : (file.name.match(/\.([^.]+)$/) || ['','jpg'])[1].toLowerCase().replace('jpeg','jpg') || 'jpg';
   const ts   = Date.now();
   const uid  = Math.random().toString(36).substr(2, 6);
   const file = new File([videoBlob], `video-cam-${ts}-${uid}.${ext}`, {
@@ -893,6 +894,10 @@ async function useVideo() {
   function closeIntro() {
     var s = document.getElementById('introScreen');
     if (!s || s.classList.contains('fade-out')) return;
+    // Charger la config event (video_enabled etc.) dès l'intro fermée
+    loadEventConfig();
+    // Démarrer le Realtime WebSocket dès l'intro fermée
+    startRealtime();
     // Centrer le zoom sur l'anneau (centre légèrement haut de l'image)
     s.style.transformOrigin = '50% 52%';
     s.classList.add('fade-out');
@@ -930,8 +935,7 @@ async function useVideo() {
   
 <div class="tabs">
   <button class="tab on" onclick="switchTab('upload',this)">📤 Partager</button>
-  <button class="tab" onclick="loadEventConfig();
-  switchTab('gallery',this)">🖼️ Galerie</button>
+  <button class="tab" onclick="switchTab('gallery',this)">🖼️ Galerie</button>
   <button class="tab" onclick="switchTab('qr',this)">📱 QR Code</button>
 </div>
 
@@ -1570,7 +1574,7 @@ async function doUpload() {
     try {
       const fileSize = fileToUpload ? (fileToUpload.size/1024).toFixed(0)+'Ko' : '';
       setProgress(done, total, `Photo ${done+1}/${total} · ${fileSize}`);
-      const ext      = (file.name.split('.').pop()||'jpg').toLowerCase();
+      const ext      = file._isVideo ? (file.type && file.type.includes('mp4') ? 'mp4' : 'webm') : (file.name.split('.').pop()||'jpg').toLowerCase();
       const filename = `${EVENT_ID}/${selectedCategory.id}/${Date.now()}-${Math.random().toString(36).substr(2,6)}.${ext}`;
 
 
@@ -1660,7 +1664,7 @@ async function compressImage(file) {
         method:'POST',
         mode:'cors',
         credentials:'omit',
-        headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'image/jpeg','x-upsert':'true' },
+        headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type': file._isVideo ? (file.type || 'video/mp4') : 'image/jpeg','x-upsert':'true' },
         body:fileToUpload
       });
       if (!uploadRes.ok) throw new Error(`Storage ${uploadRes.status}: ${await uploadRes.text()}`);
