@@ -677,86 +677,9 @@ to{opacity:1;transform:translateY(0)}}
 }
 
 
-/* ═══════════════════════════════════════════
-   ANIMATION CŒURS — Accueil jovial
-═══════════════════════════════════════════ */
-.heart {
-  position: fixed;
-  top: -50px;
-  font-size: 22px;
-  opacity: 0;
-  animation: heartFall linear infinite;
-  pointer-events: none;
-  z-index: 0;
-  user-select: none;
-  will-change: transform, opacity;
 }
 
-/* Position & timing unique pour chaque cœur */
-.heart:nth-child(1)  { left:  3%; animation-duration:14s; animation-delay:   0s; font-size:16px; }
-.heart:nth-child(2)  { left: 10%; animation-duration:20s; animation-delay:  -3s; font-size:26px; }
-.heart:nth-child(3)  { left: 18%; animation-duration:16s; animation-delay:  -8s; font-size:14px; }
-.heart:nth-child(4)  { left: 27%; animation-duration:22s; animation-delay:  -1s; font-size:20px; }
-.heart:nth-child(5)  { left: 36%; animation-duration:17s; animation-delay: -12s; font-size:12px; }
-.heart:nth-child(6)  { left: 45%; animation-duration:25s; animation-delay:  -5s; font-size:24px; }
-.heart:nth-child(7)  { left: 54%; animation-duration:15s; animation-delay:  -9s; font-size:18px; }
-.heart:nth-child(8)  { left: 63%; animation-duration:21s; animation-delay:  -2s; font-size:14px; }
-.heart:nth-child(9)  { left: 72%; animation-duration:18s; animation-delay: -14s; font-size:22px; }
-.heart:nth-child(10) { left: 81%; animation-duration:23s; animation-delay:  -6s; font-size:16px; }
-.heart:nth-child(11) { left: 89%; animation-duration:16s; animation-delay: -10s; font-size:20px; }
-.heart:nth-child(12) { left: 96%; animation-duration:19s; animation-delay:  -4s; font-size:13px; }
 
-/* Chute avec légère oscillation gauche-droite */
-@keyframes heartFall {
-  0%   { transform: translateY(-50px) translateX(0px)   rotate(-10deg) scale(0.7); opacity: 0; }
-  8%   { opacity: 0.22; }
-  25%  { transform: translateY(25vh)  translateX(15px)  rotate(8deg)   scale(1.05); }
-  50%  { transform: translateY(52vh)  translateX(-12px) rotate(-6deg)  scale(1.0);  opacity: 0.16; }
-  75%  { transform: translateY(78vh)  translateX(10px)  rotate(5deg)   scale(0.95); }
-  92%  { opacity: 0.10; }
-  100% { transform: translateY(108vh) translateX(-5px)  rotate(-8deg)  scale(0.8);  opacity: 0; }
-}
-
-/* ── TOAST D'ACCUEIL ───────────────────────────────────────── */
-#welcomeToast {
-  position: fixed;
-  bottom: 90px;
-  left: 50%;
-  transform: translateX(-50%) translateY(20px);
-  background: linear-gradient(135deg, #2a1f14, #1C1712);
-  border: 1px solid rgba(184,147,90,.45);
-  border-radius: 50px;
-  padding: 12px 22px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  z-index: 100;
-  opacity: 0;
-  animation: welcomeIn 1s ease 1.5s forwards, welcomeOut .8s ease 6s forwards;
-  pointer-events: none;
-  white-space: nowrap;
-  box-shadow: 0 8px 30px rgba(0,0,0,.4);
-}
-#welcomeToast span.wt-icon { font-size: 18px; }
-#welcomeToast span.wt-text {
-  font-family: 'Jost', sans-serif;
-  font-size: 13px;
-  font-weight: 400;
-  letter-spacing: .06em;
-  color: #F2E9D8;
-}
-#welcomeToast span.wt-text em {
-  color: #B8935A;
-  font-style: normal;
-  font-weight: 500;
-}
-
-@keyframes welcomeIn {
-  to { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
-@keyframes welcomeOut {
-  to { opacity: 0; transform: translateX(-50%) translateY(10px); }
-}
 
 
 /* ─── CŒURS ROSES & BAGUES FLOTTANTS ─── */
@@ -780,12 +703,11 @@ to{opacity:1;transform:translateY(0)}}
 .charm:nth-child(9)  { left: 78%; animation-duration:17s; animation-delay: -15s; font-size:20px; }
 .charm:nth-child(10) { left: 87%; animation-duration:23s; animation-delay:  -7s; font-size:14px; }
 .charm:nth-child(11) { left: 93%; animation-duration:19s; animation-delay: -11s; font-size:18px; }
-
 @keyframes charmFall {
-  0%   { transform: translateY(-80px) rotate(0deg);   opacity: 0; }
-  10%  { transform: translateY(-20px) rotate(15deg);  opacity: 0.22; }
-  50%  { transform: translateY(50vh)  rotate(200deg); opacity: 0.16; }
-  90%  { transform: translateY(95vh)  rotate(340deg); opacity: 0.10; }
+  0%   { transform: translateY(-60px) rotate(0deg);   opacity: 0; }
+  8%   { opacity: 0.22; }
+  50%  { transform: translateY(52vh)  rotate(200deg); opacity: 0.16; }
+  92%  { opacity: 0.10; }
   100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
 }
 
@@ -945,7 +867,7 @@ async function useVideo() {
 </script>
 </head>
 <body>
-<!-- ─── CŒURS & BAGUES ─── -->
+<!-- ─── CŒURS ROSES & BAGUES ─── -->
 <span class="charm" style="opacity:0">🩷</span>
 <span class="charm" style="opacity:0">💍</span>
 <span class="charm" style="opacity:0">🩷</span>
@@ -957,25 +879,7 @@ async function useVideo() {
 <span class="charm" style="opacity:0">🩷</span>
 <span class="charm" style="opacity:0">💍</span>
 <span class="charm" style="opacity:0">🩷</span>
-<!-- ═══ ANIMATION ACCUEIL ═══ -->
-<span class="heart">❤️</span>
-<span class="heart">🤍</span>
-<span class="heart">❤️</span>
-<span class="heart">💛</span>
-<span class="heart">❤️</span>
-<span class="heart">🤍</span>
-<span class="heart">❤️</span>
-<span class="heart">💛</span>
-<span class="heart">❤️</span>
-<span class="heart">🤍</span>
-<span class="heart">❤️</span>
-<span class="heart">💛</span>
 
-<!-- Toast de bienvenue -->
-<div id="welcomeToast">
-  <span class="wt-icon">📸</span>
-  <span class="wt-text">Partagez vos plus beaux souvenirs <em>avec amour</em> ❤️</span>
-</div>
 
 <!-- ══ INTRO MEMENTOS ══ -->
 <div id="introScreen" onclick="closeIntro()">
@@ -2286,6 +2190,18 @@ async function startRealtime() {
           const updated = payload.new;
           const idx = allPhotos.findIndex(p => p.id === updated.id);
           if (idx !== -1) allPhotos[idx] = { ...allPhotos[idx], ...updated };
+        }
+      }
+    )
+    .on(
+      'postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'events',
+        filter: `id=eq.${EVENT_ID}` },
+      (payload) => {
+        if (payload.new && typeof payload.new.video_enabled !== 'undefined') {
+          VIDEO_ENABLED = payload.new.video_enabled;
+          updateVideoUI();
+          console.log('[Realtime] video_enabled =', VIDEO_ENABLED);
         }
       }
     )
