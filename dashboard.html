@@ -339,52 +339,7 @@ footer{text-align:center;padding:24px;font-size:10px;letter-spacing:.18em;color:
 }
 
 </style>
-<script>// ══════════════════════════════════════════
-//  TOGGLE VIDÉO
-// ══════════════════════════════════════════
-async function loadVideoToggle() {
-  try {
-    const r = await fetch(
-      `${SB_URL}/rest/v1/events?id=eq.${EVENT_ID}&select=video_enabled`,
-      { headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Accept':'application/json' } }
-    );
-    if (!r.ok) return;
-    const d = await r.json();
-    const enabled = d[0] ? d[0].video_enabled : false;
-    const chk = document.getElementById('videoToggle');
-    const lbl = document.getElementById('videoToggleStatus');
-    if (chk) chk.checked = enabled;
-    if (lbl) lbl.textContent = enabled ? 'ON' : 'OFF';
-  } catch(e) { console.warn('loadVideoToggle:', e); }
-}
 
-async function toggleVideo() {
-  const chk     = document.getElementById('videoToggle');
-  const lbl     = document.getElementById('videoToggleStatus');
-  const enabled = chk ? chk.checked : false;
-  try {
-    const r = await fetch(
-      `${SB_URL}/rest/v1/events?id=eq.${EVENT_ID}`,
-      {
-        method:'PATCH', mode:'cors', credentials:'omit',
-        headers:{
-          'apikey':SB_KEY, 'Authorization':`Bearer ${SB_KEY}`,
-          'Content-Type':'application/json', 'Prefer':'return=minimal'
-        },
-        body: JSON.stringify({ video_enabled: enabled })
-      }
-    );
-    if (!r.ok) throw new Error(await r.text());
-    if (lbl) lbl.textContent = enabled ? 'ON' : 'OFF';
-    console.log('[Dashboard] video_enabled =', enabled);
-  } catch(e) {
-    console.error('toggleVideo:', e);
-    if (chk) chk.checked = !enabled;
-    if (lbl) lbl.textContent = !enabled ? 'ON' : 'OFF';
-  }
-}
-
-</script>
 
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💍</text></svg>">
 </head>
@@ -594,6 +549,53 @@ const SB_KEY   = 'sb_publishable_59uI3S3lCP0xyVtvrR6ZZA_vXsiF27o';
 const EVENT_ID = 'mariage-melodie-thomas-2025';
 const BUCKET   = 'photos';
 const LOGIN_H  = '5d6ada4655ef0223d6391f5aeac433c04fc9db4d6fe8b3055fc0f49092a2fdb4'; // SHA-256
+
+// ── Toggle Vidéo ──────────────────────────────
+// ══════════════════════════════════════════
+//  TOGGLE VIDÉO
+// ══════════════════════════════════════════
+async function loadVideoToggle() {
+  try {
+    const r = await fetch(
+      `${SB_URL}/rest/v1/events?id=eq.${EVENT_ID}&select=video_enabled`,
+      { headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Accept':'application/json' } }
+    );
+    if (!r.ok) return;
+    const d = await r.json();
+    const enabled = d[0] ? d[0].video_enabled : false;
+    const chk = document.getElementById('videoToggle');
+    const lbl = document.getElementById('videoToggleStatus');
+    if (chk) chk.checked = enabled;
+    if (lbl) lbl.textContent = enabled ? 'ON' : 'OFF';
+  } catch(e) { console.warn('loadVideoToggle:', e); }
+}
+
+async function toggleVideo() {
+  const chk     = document.getElementById('videoToggle');
+  const lbl     = document.getElementById('videoToggleStatus');
+  const enabled = chk ? chk.checked : false;
+  try {
+    const r = await fetch(
+      `${SB_URL}/rest/v1/events?id=eq.${EVENT_ID}`,
+      {
+        method:'PATCH', mode:'cors', credentials:'omit',
+        headers:{
+          'apikey':SB_KEY, 'Authorization':`Bearer ${SB_KEY}`,
+          'Content-Type':'application/json', 'Prefer':'return=minimal'
+        },
+        body: JSON.stringify({ video_enabled: enabled })
+      }
+    );
+    if (!r.ok) throw new Error(await r.text());
+    if (lbl) lbl.textContent = enabled ? 'ON' : 'OFF';
+    console.log('[Dashboard] video_enabled =', enabled);
+  } catch(e) {
+    console.error('toggleVideo:', e);
+    if (chk) chk.checked = !enabled;
+    if (lbl) lbl.textContent = !enabled ? 'ON' : 'OFF';
+  }
+}
+
 const PWD_H    = 'ad1f95a7db72b027a7ad4960a216ad4d4d9071c8e3ce367ec5538722ceceeb24'; // SHA-256
 
 const CATEGORIES = {
