@@ -624,14 +624,6 @@ to{opacity:1;transform:translateY(0)}}
   flex-direction:column;align-items:center;
   gap:12px;padding:16px 0;
 }
-#videoRecorderWrap {
-  width: 100%;
-}
-#videoWrap {
-  position:relative;width:100%;
-  border-radius:8px;overflow:hidden;
-  background:#000;aspect-ratio:9/16;max-height:72vh;
-}
 .video-recorder-wrap.show { display:flex; }
 #videoPreviewEl { width:100%;max-width:360px;border-radius:10px;background:#000; }
 #videoCountdown {
@@ -647,10 +639,6 @@ to{opacity:1;transform:translateY(0)}}
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;transition:all .2s;user-select:none;
   -webkit-user-select:none;touch-action:none;
-  position:relative;
-}
-#btnRecord:active, #btnRecord.recording {
-  border-color:#C0392B;background:#2D0A0A;transform:scale(0.95);
 }
 #btnRecord .rec-dot {
   width:28px;height:28px;border-radius:50%;background:#B8935A;
@@ -697,13 +685,12 @@ to{opacity:1;transform:translateY(0)}}
 /* ─── CŒURS ROSES & BAGUES FLOTTANTS ─── */
 .charm {
   position: fixed;
-  top: -60px;
+  top: -50px;
   opacity: 0;
   animation: charmFall linear infinite;
   pointer-events: none;
   z-index: 0;
   user-select: none;
-  will-change: transform, opacity;
 }
 .charm:nth-child(1)  { left:  3%; animation-duration:16s; animation-delay:   0s; font-size:15px; }
 .charm:nth-child(2)  { left: 11%; animation-duration:21s; animation-delay:  -4s; font-size:22px; }
@@ -742,47 +729,32 @@ const VIDEO_MAX_MS = 20000;
 
 async function initVideoCamera() {
   try {
-    if (videoStream) {
-      // Stream déjà actif — juste rebrancher sur l'élément vidéo
-      const liveEl = document.getElementById('videoLive');
-      if (liveEl && liveEl.srcObject !== videoStream) {
-        liveEl.srcObject = videoStream;
-        await liveEl.play().catch(() => {});
+    if (videoStream) return;
+    // Limiter la résolution à 480p pour réduire la taille des vidéos
+    videoStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        width:     { ideal: 854,  max: 854  },
+        height:    { ideal: 480,  max: 480  },
+        frameRate: { ideal: 24,   max: 24   },
+        facingMode: 'environment'
+      },
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        sampleRate: 44100
       }
-      return;
-    }
-
-    // Contraintes progressives pour iOS Safari
-    const constraints = [
-      { video: { width:{ideal:720}, height:{ideal:1280}, frameRate:{ideal:24,max:30}, facingMode:'environment' }, audio: true },
-      { video: { facingMode:'environment' }, audio: true },
-      { video: true, audio: true }
-    ];
-
-    for (const c of constraints) {
-      try {
-        videoStream = await navigator.mediaDevices.getUserMedia(c);
-        break;
-      } catch(e) { videoStream = null; }
-    }
-
-    if (!videoStream) throw new Error('Cam inaccessible');
-
+    });
     const liveEl = document.getElementById('videoLive');
-    if (liveEl) {
-      liveEl.srcObject = videoStream;
-      liveEl.muted = true;       // requis iOS
-      liveEl.playsInline = true; // requis iOS
-      liveEl.autoplay = true;
-      // Forcer le play — iOS bloque autoplay sans geste utilisateur
-      try { await liveEl.play(); } catch(e) {
-        // Retry après 100ms si le premier play échoue
-        setTimeout(() => liveEl.play().catch(() => {}), 100);
-      }
-    }
+    if (liveEl) { liveEl.srcObject = videoStream; liveEl.style.display = 'block'; }
   } catch(e) {
-    console.error('initVideoCamera:', e);
-    showToast("Caméra inaccessible — vérifiez les permissions", true);
+    // Fallback sans contraintes strictes
+    try {
+      videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      const liveEl = document.getElementById('videoLive');
+      if (liveEl) { liveEl.srcObject = videoStream; liveEl.style.display = 'block'; }
+    } catch(e2) {
+      showToast("Impossible d’accéder à la caméra", true);
+    }
   }
 }
 
@@ -805,8 +777,6 @@ function startVideoRecord(e) {
 
   const btn = document.getElementById('btnRecord');
   if (btn) btn.classList.add('recording');
-  const recInd = document.getElementById('recIndicator');
-  if (recInd) recInd.style.display = 'block';
   document.getElementById('videoProgressBar').style.display = 'block';
   document.getElementById('videoProgressFill').style.width  = '0%';
   document.getElementById('videoCountdown').textContent = '0s / 20s';
@@ -855,8 +825,6 @@ function stopVideoRecord() {
 
   const btn = document.getElementById('btnRecord');
   if (btn) btn.classList.remove('recording');
-  const recInd = document.getElementById('recIndicator');
-  if (recInd) recInd.style.display = 'none';
   document.getElementById('videoProgressBar').style.display = 'none';
   document.getElementById('videoCountdown').textContent = '';
 
@@ -881,7 +849,7 @@ function retakeVideo() {
 
 async function useVideo() {
   if (!videoBlob) return;
-  const ext = file._isVideo ? (file.type && file.type.includes('mp4') ? 'mp4' : 'webm') : (file.name.match(/\.([^.]+)$/) || ['','jpg'])[1].toLowerCase().replace('jpeg','jpg') || 'jpg';
+  const ext  = videoBlob.type.includes('mp4') ? 'mp4' : 'webm';
   const ts   = Date.now();
   const uid  = Math.random().toString(36).substr(2, 6);
   const file = new File([videoBlob], `video-cam-${ts}-${uid}.${ext}`, {
@@ -925,10 +893,6 @@ async function useVideo() {
   function closeIntro() {
     var s = document.getElementById('introScreen');
     if (!s || s.classList.contains('fade-out')) return;
-    // Charger la config event (video_enabled etc.) dès l'intro fermée
-    loadEventConfig();
-    // Démarrer le Realtime WebSocket dès l'intro fermée
-    startRealtime();
     // Centrer le zoom sur l'anneau (centre légèrement haut de l'image)
     s.style.transformOrigin = '50% 52%';
     s.classList.add('fade-out');
@@ -966,7 +930,8 @@ async function useVideo() {
   
 <div class="tabs">
   <button class="tab on" onclick="switchTab('upload',this)">📤 Partager</button>
-  <button class="tab" onclick="switchTab('gallery',this)">🖼️ Galerie</button>
+  <button class="tab" onclick="loadEventConfig();
+  switchTab('gallery',this)">🖼️ Galerie</button>
   <button class="tab" onclick="switchTab('qr',this)">📱 QR Code</button>
 </div>
 
@@ -1047,59 +1012,30 @@ async function useVideo() {
 
       <!-- Onglet vidéo (20s) -->
       <div id="upload-video-pane" style="display:none">
-
-        <!-- ENREGISTREMENT -->
-        <div id="videoRecorderWrap">
-          <!-- Cadre vidéo — mêmes dimensions que camera-wrap -->
-          <div class="camera-wrap" id="videoWrap" style="cursor:pointer"
-               onmousedown="startVideoRecord()" onmouseup="stopVideoRecord()"
-               ontouchstart="startVideoRecord(event)" ontouchend="stopVideoRecord()">
-            <video id="videoLive" autoplay muted playsinline
-                   style="width:100%;height:100%;object-fit:cover;display:block"></video>
-            <div class="camera-overlay">
-              <div class="camera-frame"></div>
-            </div>
-            <!-- Indicateur REC centré sur la vidéo -->
-            <div id="recIndicator" style="display:none;position:absolute;top:12px;right:12px;
-                 background:rgba(192,57,43,.9);color:#fff;border-radius:20px;
-                 padding:4px 10px;font-family:Jost,sans-serif;font-size:12px;
-                 font-weight:500;letter-spacing:.1em">⏺ REC</div>
-          </div>
-
-          <!-- Barre de progression sous la vidéo -->
+        <div class="video-recorder-wrap show" id="videoRecorderWrap">
+          <video id="videoLive" autoplay muted playsinline
+                 style="width:100%;max-width:360px;border-radius:10px;background:#000"></video>
+          <div id="videoCountdown"></div>
           <div class="video-progress-bar" id="videoProgressBar" style="display:none">
             <div class="video-progress-fill" id="videoProgressFill"></div>
           </div>
-          <div id="videoCountdown" style="font-family:Jost,sans-serif;font-size:13px;
-               color:#C0392B;font-weight:500;text-align:center;min-height:20px"></div>
-
-          <!-- Bouton maintenir — sous la vidéo comme la caméra photo -->
-          <div class="camera-controls" style="justify-content:center;gap:0">
-            <div id="btnRecord"
-                 onmousedown="startVideoRecord()" onmouseup="stopVideoRecord()"
-                 ontouchstart="startVideoRecord(event)" ontouchend="stopVideoRecord()">
-              <div class="rec-dot"></div>
-            </div>
+          <div id="btnRecord" title="Maintenir pour enregistrer"
+               onmousedown="startVideoRecord()" onmouseup="stopVideoRecord()"
+               ontouchstart="startVideoRecord(event)" ontouchend="stopVideoRecord()">
+            <div class="rec-dot"></div>
           </div>
-          <p style="text-align:center;font-family:Jost,sans-serif;font-size:11px;
-             color:#9e8a7a;letter-spacing:.1em;text-transform:uppercase;margin:4px 0 0">
-            Maintenir appuyé · 20s max
-          </p>
+          <div style="font-family:Jost,sans-serif;font-size:11px;color:#9e8a7a;letter-spacing:.1em;text-transform:uppercase;text-align:center">
+            Maintenir appuyé pour filmer · 20s max
+          </div>
         </div>
-
-        <!-- APERÇU APRÈS ENREGISTREMENT -->
-        <div id="videoPreviewWrap" style="display:none;flex-direction:column;
-             align-items:center;gap:12px;width:100%">
-          <div class="camera-wrap">
-            <video id="videoPreviewEl" controls playsinline
-                   style="width:100%;height:100%;object-fit:cover"></video>
-          </div>
+        <!-- Aperçu après enregistrement -->
+        <div id="videoPreviewWrap" style="display:none;flex-direction:column;align-items:center;gap:10px;width:100%">
+          <video id="videoPreviewEl" controls style="width:100%;max-width:360px;border-radius:10px;background:#000"></video>
           <div class="video-preview-actions">
             <button class="btn-retake" onclick="retakeVideo()">↺ Reprendre</button>
             <button class="btn-use"    onclick="useVideo()">Utiliser ✓</button>
           </div>
         </div>
-
       </div>
 
       <!-- Onglet galerie -->
@@ -1122,7 +1058,12 @@ async function useVideo() {
 <div class="video-progress-bar" id="videoProgressBar" style="display:none">
           <div class="video-progress-fill" id="videoProgressFill"></div>
         </div>
-
+        <div id="btnRecord" title="Maintenir pour enregistrer">
+          <div class="rec-dot"></div>
+        </div>
+        <div style="font-family:Jost,sans-serif;font-size:11px;color:#9e8a7a;letter-spacing:.1em;text-transform:uppercase">
+          Maintenir pour filmer · 20s max
+        </div>
         <!-- Aperçu après enregistrement -->
         <div id="videoPreviewWrap" style="display:none;flex-direction:column;align-items:center;gap:10px;width:100%">
           <video id="videoPreviewEl" controls style="width:100%;max-width:360px;border-radius:10px;background:#000"></video>
@@ -1629,7 +1570,7 @@ async function doUpload() {
     try {
       const fileSize = fileToUpload ? (fileToUpload.size/1024).toFixed(0)+'Ko' : '';
       setProgress(done, total, `Photo ${done+1}/${total} · ${fileSize}`);
-      const ext      = file._isVideo ? (file.type && file.type.includes('mp4') ? 'mp4' : 'webm') : (file.name.split('.').pop()||'jpg').toLowerCase();
+      const ext      = (file.name.split('.').pop()||'jpg').toLowerCase();
       const filename = `${EVENT_ID}/${selectedCategory.id}/${Date.now()}-${Math.random().toString(36).substr(2,6)}.${ext}`;
 
 
@@ -1719,7 +1660,7 @@ async function compressImage(file) {
         method:'POST',
         mode:'cors',
         credentials:'omit',
-        headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type': file._isVideo ? (file.type || 'video/mp4') : 'image/jpeg','x-upsert':'true' },
+        headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'image/jpeg','x-upsert':'true' },
         body:fileToUpload
       });
       if (!uploadRes.ok) throw new Error(`Storage ${uploadRes.status}: ${await uploadRes.text()}`);
@@ -1768,8 +1709,6 @@ async function refreshAllPhotos() {
     );
     if (!res.ok) return;
     allPhotos = await res.json();
-    // Mettre à jour tous les compteurs
-    updateAllCounts();
     // Si la galerie est visible et qu'une catégorie est ouverte, la rafraîchir
     const galPanel  = document.getElementById('panel-gallery');
     const catDetail = document.getElementById('gallery-detail');
@@ -2239,7 +2178,6 @@ async function startRealtime() {
           const deletedId = payload.old && payload.old.id;
           if (deletedId) {
             allPhotos = allPhotos.filter(p => p.id !== deletedId);
-            updateAllCounts();
 
             // Rafraîchir la vue active
             const activeCat = document.querySelector('.cat-card.selected');
@@ -2274,23 +2212,8 @@ async function startRealtime() {
 
 function updateCategoryCount(catId) {
   const count = allPhotos.filter(p => p.category === catId).length;
-  // Mettre à jour le compteur dans le widget galerie (cnt-X)
-  const el = document.getElementById('cnt-' + catId);
-  if (el) el.textContent = count === 0 ? 'Aucune photo'
-                         : count === 1 ? '1 photo'
-                         : count + ' photos';
-  // Aussi mettre à jour les onglets si visibles (tc-X)
-  const tc = document.getElementById('tc-' + catId);
-  if (tc) tc.textContent = count;
-}
-
-function updateAllCounts() {
-  ['ceremonie','cocktail','diner','danse'].forEach(cat => {
-    updateCategoryCount(cat);
-  });
-  // Compteur total
-  const total = document.getElementById('tc-all');
-  if (total) total.textContent = allPhotos.length;
+  const el = document.querySelector(`[data-cat="${catId}"] .cat-count`);
+  if (el) el.textContent = count + (count > 1 ? ' photos' : ' photo');
 }
 
 async function checkNewPhotos() {
