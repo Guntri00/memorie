@@ -624,6 +624,14 @@ to{opacity:1;transform:translateY(0)}}
   flex-direction:column;align-items:center;
   gap:12px;padding:16px 0;
 }
+#videoRecorderWrap {
+  width: 100%;
+}
+#videoWrap {
+  position:relative;width:100%;
+  border-radius:8px;overflow:hidden;
+  background:#000;aspect-ratio:9/16;max-height:72vh;
+}
 .video-recorder-wrap.show { display:flex; }
 #videoPreviewEl { width:100%;max-width:360px;border-radius:10px;background:#000; }
 #videoCountdown {
@@ -639,6 +647,10 @@ to{opacity:1;transform:translateY(0)}}
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;transition:all .2s;user-select:none;
   -webkit-user-select:none;touch-action:none;
+  position:relative;
+}
+#btnRecord:active, #btnRecord.recording {
+  border-color:#C0392B;background:#2D0A0A;transform:scale(0.95);
 }
 #btnRecord .rec-dot {
   width:28px;height:28px;border-radius:50%;background:#B8935A;
@@ -685,12 +697,13 @@ to{opacity:1;transform:translateY(0)}}
 /* ─── CŒURS ROSES & BAGUES FLOTTANTS ─── */
 .charm {
   position: fixed;
-  top: -50px;
-  opacity: 0;
+  top: -60px;
+  opacity: 0 !important;
   animation: charmFall linear infinite;
   pointer-events: none;
   z-index: 0;
   user-select: none;
+  will-change: transform, opacity;
 }
 .charm:nth-child(1)  { left:  3%; animation-duration:16s; animation-delay:   0s; font-size:15px; }
 .charm:nth-child(2)  { left: 11%; animation-duration:21s; animation-delay:  -4s; font-size:22px; }
@@ -729,33 +742,47 @@ const VIDEO_MAX_MS = 20000;
 
 async function initVideoCamera() {
   try {
-    if (videoStream) return;
-    // Contraintes progressives pour compatibilité mobile Safari
+    if (videoStream) {
+      // Stream déjà actif — juste rebrancher sur l'élément vidéo
+      const liveEl = document.getElementById('videoLive');
+      if (liveEl && liveEl.srcObject !== videoStream) {
+        liveEl.srcObject = videoStream;
+        await liveEl.play().catch(() => {});
+      }
+      return;
+    }
+
+    // Contraintes progressives pour iOS Safari
     const constraints = [
-      // Essai 1 : vidéo + audio 480p optimisé
-      { video: { width:{ideal:854}, height:{ideal:480}, frameRate:{ideal:24,max:30}, facingMode:'environment' }, audio:true },
-      // Essai 2 : plus simple
+      { video: { width:{ideal:720}, height:{ideal:1280}, frameRate:{ideal:24,max:30}, facingMode:'environment' }, audio: true },
       { video: { facingMode:'environment' }, audio: true },
-      // Essai 3 : minimal
       { video: true, audio: true }
     ];
+
     for (const c of constraints) {
       try {
         videoStream = await navigator.mediaDevices.getUserMedia(c);
         break;
-      } catch(err) { videoStream = null; }
+      } catch(e) { videoStream = null; }
     }
-    if (!videoStream) throw new Error('Caméra inaccessible');
+
+    if (!videoStream) throw new Error('Cam inaccessible');
+
     const liveEl = document.getElementById('videoLive');
     if (liveEl) {
       liveEl.srcObject = videoStream;
-      liveEl.style.display = 'block';
-      // Important sur iOS : forcer le play
-      liveEl.play().catch(() => {});
+      liveEl.muted = true;       // requis iOS
+      liveEl.playsInline = true; // requis iOS
+      liveEl.autoplay = true;
+      // Forcer le play — iOS bloque autoplay sans geste utilisateur
+      try { await liveEl.play(); } catch(e) {
+        // Retry après 100ms si le premier play échoue
+        setTimeout(() => liveEl.play().catch(() => {}), 100);
+      }
     }
   } catch(e) {
     console.error('initVideoCamera:', e);
-    showToast("Impossible d’accéder à la caméra vidéo", true);
+    showToast("Caméra inaccessible — vérifiez les permissions", true);
   }
 }
 
@@ -1016,30 +1043,49 @@ async function useVideo() {
 
       <!-- Onglet vidéo (20s) -->
       <div id="upload-video-pane" style="display:none">
-        <div class="video-recorder-wrap show" id="videoRecorderWrap">
-          <video id="videoLive" autoplay muted playsinline
-                 style="width:100%;max-width:360px;border-radius:10px;background:#000"></video>
-          <div id="videoCountdown"></div>
-          <div class="video-progress-bar" id="videoProgressBar" style="display:none">
+
+        <!-- Enregistrement -->
+        <div id="videoRecorderWrap">
+          <!-- Vidéo en direct — mêmes dimensions que la caméra photo -->
+          <div class="camera-wrap" id="videoWrap">
+            <video id="videoLive" autoplay muted playsinline
+                   style="width:100%;height:100%;object-fit:cover"></video>
+            <div class="camera-overlay">
+              <div class="camera-frame"></div>
+            </div>
+          </div>
+
+          <!-- Barre de progression -->
+          <div class="video-progress-bar" id="videoProgressBar" style="display:none;margin-top:8px">
             <div class="video-progress-fill" id="videoProgressFill"></div>
           </div>
-          <div id="btnRecord" title="Maintenir pour enregistrer"
-               onmousedown="startVideoRecord()" onmouseup="stopVideoRecord()"
-               ontouchstart="startVideoRecord(event)" ontouchend="stopVideoRecord()">
-            <div class="rec-dot"></div>
+          <div id="videoCountdown" style="font-family:Jost,sans-serif;font-size:13px;color:#C0392B;font-weight:500;letter-spacing:.05em;min-height:20px;text-align:center"></div>
+
+          <!-- Bouton enregistrement (maintenir) -->
+          <div class="camera-controls" style="justify-content:center">
+            <div id="btnRecord"
+                 onmousedown="startVideoRecord()" onmouseup="stopVideoRecord()"
+                 ontouchstart="startVideoRecord(event)" ontouchend="stopVideoRecord()"
+                 title="Maintenir pour enregistrer">
+              <div class="rec-dot"></div>
+            </div>
           </div>
-          <div style="font-family:Jost,sans-serif;font-size:11px;color:#9e8a7a;letter-spacing:.1em;text-transform:uppercase;text-align:center">
+          <div style="font-family:Jost,sans-serif;font-size:11px;color:#9e8a7a;letter-spacing:.1em;text-transform:uppercase;text-align:center;margin-top:4px">
             Maintenir appuyé pour filmer · 20s max
           </div>
         </div>
+
         <!-- Aperçu après enregistrement -->
         <div id="videoPreviewWrap" style="display:none;flex-direction:column;align-items:center;gap:10px;width:100%">
-          <video id="videoPreviewEl" controls style="width:100%;max-width:360px;border-radius:10px;background:#000"></video>
+          <div class="camera-wrap">
+            <video id="videoPreviewEl" controls style="width:100%;height:100%;object-fit:cover"></video>
+          </div>
           <div class="video-preview-actions">
             <button class="btn-retake" onclick="retakeVideo()">↺ Reprendre</button>
             <button class="btn-use"    onclick="useVideo()">Utiliser ✓</button>
           </div>
         </div>
+
       </div>
 
       <!-- Onglet galerie -->
@@ -1062,12 +1108,7 @@ async function useVideo() {
 <div class="video-progress-bar" id="videoProgressBar" style="display:none">
           <div class="video-progress-fill" id="videoProgressFill"></div>
         </div>
-        <div id="btnRecord" title="Maintenir pour enregistrer">
-          <div class="rec-dot"></div>
-        </div>
-        <div style="font-family:Jost,sans-serif;font-size:11px;color:#9e8a7a;letter-spacing:.1em;text-transform:uppercase">
-          Maintenir pour filmer · 20s max
-        </div>
+
         <!-- Aperçu après enregistrement -->
         <div id="videoPreviewWrap" style="display:none;flex-direction:column;align-items:center;gap:10px;width:100%">
           <video id="videoPreviewEl" controls style="width:100%;max-width:360px;border-radius:10px;background:#000"></video>
