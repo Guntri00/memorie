@@ -698,7 +698,7 @@ to{opacity:1;transform:translateY(0)}}
 .charm {
   position: fixed;
   top: -60px;
-  opacity: 0 !important;
+  opacity: 0;
   animation: charmFall linear infinite;
   pointer-events: none;
   z-index: 0;
@@ -805,6 +805,8 @@ function startVideoRecord(e) {
 
   const btn = document.getElementById('btnRecord');
   if (btn) btn.classList.add('recording');
+  const recInd = document.getElementById('recIndicator');
+  if (recInd) recInd.style.display = 'block';
   document.getElementById('videoProgressBar').style.display = 'block';
   document.getElementById('videoProgressFill').style.width  = '0%';
   document.getElementById('videoCountdown').textContent = '0s / 20s';
@@ -853,6 +855,8 @@ function stopVideoRecord() {
 
   const btn = document.getElementById('btnRecord');
   if (btn) btn.classList.remove('recording');
+  const recInd = document.getElementById('recIndicator');
+  if (recInd) recInd.style.display = 'none';
   document.getElementById('videoProgressBar').style.display = 'none';
   document.getElementById('videoCountdown').textContent = '';
 
@@ -1044,41 +1048,51 @@ async function useVideo() {
       <!-- Onglet vidéo (20s) -->
       <div id="upload-video-pane" style="display:none">
 
-        <!-- Enregistrement -->
+        <!-- ENREGISTREMENT -->
         <div id="videoRecorderWrap">
-          <!-- Vidéo en direct — mêmes dimensions que la caméra photo -->
-          <div class="camera-wrap" id="videoWrap">
+          <!-- Cadre vidéo — mêmes dimensions que camera-wrap -->
+          <div class="camera-wrap" id="videoWrap" style="cursor:pointer"
+               onmousedown="startVideoRecord()" onmouseup="stopVideoRecord()"
+               ontouchstart="startVideoRecord(event)" ontouchend="stopVideoRecord()">
             <video id="videoLive" autoplay muted playsinline
-                   style="width:100%;height:100%;object-fit:cover"></video>
+                   style="width:100%;height:100%;object-fit:cover;display:block"></video>
             <div class="camera-overlay">
               <div class="camera-frame"></div>
             </div>
+            <!-- Indicateur REC centré sur la vidéo -->
+            <div id="recIndicator" style="display:none;position:absolute;top:12px;right:12px;
+                 background:rgba(192,57,43,.9);color:#fff;border-radius:20px;
+                 padding:4px 10px;font-family:Jost,sans-serif;font-size:12px;
+                 font-weight:500;letter-spacing:.1em">⏺ REC</div>
           </div>
 
-          <!-- Barre de progression -->
-          <div class="video-progress-bar" id="videoProgressBar" style="display:none;margin-top:8px">
+          <!-- Barre de progression sous la vidéo -->
+          <div class="video-progress-bar" id="videoProgressBar" style="display:none">
             <div class="video-progress-fill" id="videoProgressFill"></div>
           </div>
-          <div id="videoCountdown" style="font-family:Jost,sans-serif;font-size:13px;color:#C0392B;font-weight:500;letter-spacing:.05em;min-height:20px;text-align:center"></div>
+          <div id="videoCountdown" style="font-family:Jost,sans-serif;font-size:13px;
+               color:#C0392B;font-weight:500;text-align:center;min-height:20px"></div>
 
-          <!-- Bouton enregistrement (maintenir) -->
-          <div class="camera-controls" style="justify-content:center">
+          <!-- Bouton maintenir — sous la vidéo comme la caméra photo -->
+          <div class="camera-controls" style="justify-content:center;gap:0">
             <div id="btnRecord"
                  onmousedown="startVideoRecord()" onmouseup="stopVideoRecord()"
-                 ontouchstart="startVideoRecord(event)" ontouchend="stopVideoRecord()"
-                 title="Maintenir pour enregistrer">
+                 ontouchstart="startVideoRecord(event)" ontouchend="stopVideoRecord()">
               <div class="rec-dot"></div>
             </div>
           </div>
-          <div style="font-family:Jost,sans-serif;font-size:11px;color:#9e8a7a;letter-spacing:.1em;text-transform:uppercase;text-align:center;margin-top:4px">
-            Maintenir appuyé pour filmer · 20s max
-          </div>
+          <p style="text-align:center;font-family:Jost,sans-serif;font-size:11px;
+             color:#9e8a7a;letter-spacing:.1em;text-transform:uppercase;margin:4px 0 0">
+            Maintenir appuyé · 20s max
+          </p>
         </div>
 
-        <!-- Aperçu après enregistrement -->
-        <div id="videoPreviewWrap" style="display:none;flex-direction:column;align-items:center;gap:10px;width:100%">
+        <!-- APERÇU APRÈS ENREGISTREMENT -->
+        <div id="videoPreviewWrap" style="display:none;flex-direction:column;
+             align-items:center;gap:12px;width:100%">
           <div class="camera-wrap">
-            <video id="videoPreviewEl" controls style="width:100%;height:100%;object-fit:cover"></video>
+            <video id="videoPreviewEl" controls playsinline
+                   style="width:100%;height:100%;object-fit:cover"></video>
           </div>
           <div class="video-preview-actions">
             <button class="btn-retake" onclick="retakeVideo()">↺ Reprendre</button>
@@ -1754,6 +1768,8 @@ async function refreshAllPhotos() {
     );
     if (!res.ok) return;
     allPhotos = await res.json();
+    // Mettre à jour tous les compteurs
+    updateAllCounts();
     // Si la galerie est visible et qu'une catégorie est ouverte, la rafraîchir
     const galPanel  = document.getElementById('panel-gallery');
     const catDetail = document.getElementById('gallery-detail');
@@ -2223,6 +2239,7 @@ async function startRealtime() {
           const deletedId = payload.old && payload.old.id;
           if (deletedId) {
             allPhotos = allPhotos.filter(p => p.id !== deletedId);
+            updateAllCounts();
 
             // Rafraîchir la vue active
             const activeCat = document.querySelector('.cat-card.selected');
@@ -2257,8 +2274,23 @@ async function startRealtime() {
 
 function updateCategoryCount(catId) {
   const count = allPhotos.filter(p => p.category === catId).length;
-  const el = document.querySelector(`[data-cat="${catId}"] .cat-count`);
-  if (el) el.textContent = count + (count > 1 ? ' photos' : ' photo');
+  // Mettre à jour le compteur dans le widget galerie (cnt-X)
+  const el = document.getElementById('cnt-' + catId);
+  if (el) el.textContent = count === 0 ? 'Aucune photo'
+                         : count === 1 ? '1 photo'
+                         : count + ' photos';
+  // Aussi mettre à jour les onglets si visibles (tc-X)
+  const tc = document.getElementById('tc-' + catId);
+  if (tc) tc.textContent = count;
+}
+
+function updateAllCounts() {
+  ['ceremonie','cocktail','diner','danse'].forEach(cat => {
+    updateCategoryCount(cat);
+  });
+  // Compteur total
+  const total = document.getElementById('tc-all');
+  if (total) total.textContent = allPhotos.length;
 }
 
 async function checkNewPhotos() {
