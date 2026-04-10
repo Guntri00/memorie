@@ -665,7 +665,7 @@ window.addEventListener('DOMContentLoaded', () => {
 async function loadDashboard() {
   try {
     await refreshPhotos();
-    loadVideoToggle();
+    await loadVideoToggle();
     startAutoRefresh();
   } catch(e) {
     console.error('loadDashboard error:', e);
