@@ -682,6 +682,50 @@ async function loadEventConfig() {
     }
   } catch(e) {}
 }
+function updateVideoUI() {
+  const btn = document.getElementById('utab-video');
+  if (btn) btn.style.display = VIDEO_ENABLED ? 'flex' : 'none';
+  // Si vidéo désactivée et on est sur l'onglet vidéo → revenir à galerie
+  if (!VIDEO_ENABLED) {
+    const pane = document.getElementById('upload-video-pane');
+    if (pane && pane.style.display !== 'none') {
+      switchUploadTab('gallery');
+    }
+    stopVideoCamera();
+  }
+}
+function stopVideoCamera() {
+  if (videoStream) {
+    videoStream.getTracks().forEach(t => t.stop());
+    videoStream = null;
+  }
+  const vid = document.getElementById('cameraVideo');
+  if (vid) vid.srcObject = null;
+}
+async function initVideoCamera() {
+  try {
+    stopVideoCamera();
+    const constraints = {
+      video: { facingMode: 'environment', width: { ideal: 854 }, height: { ideal: 480 }, frameRate: { ideal: 24 } },
+      audio: true
+    };
+    videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+    const vid = document.getElementById('cameraVideo');
+    if (vid) { vid.srcObject = videoStream; await vid.play(); }
+  } catch(err) {
+    console.warn('Camera attempt failed:', err.message);
+    try {
+      videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      const vid = document.getElementById('cameraVideo');
+      if (vid) { vid.srcObject = videoStream; await vid.play(); }
+    } catch(e) {
+      showToast('Caméra non disponible');
+    }
+  }
+}
+
+
+
 
 function startVideoRecord(e) {
   if (e) e.preventDefault();
@@ -887,11 +931,7 @@ async function useVideo() {
         </div>
       </div>
       <div class="previews" id="previews"></div>
-      <div class="dup-alert" id="dupAlert">
-        <strong>⚠️ Photos en double détectées</strong>
-        <span id="dupMsg"></span>
-      </div>
-      <div class="nfield">
+<div class="nfield">
         <label>Votre prénom (optionnel)</label>
         <input id="uname" type="text" placeholder="ex : Sophie" oninput="saveName(this.value)">
       </div>
@@ -1042,6 +1082,7 @@ const CATEGORIES = [
 let selectedFiles    = [];
 let selectedCategory = null;
 let allPhotos        = [];
+let VIDEO_ENABLED    = false;
 let sliderIntervals  = {};
 let sliderPositions  = {};
 let timerIntervals   = {};   // compte à rebours par photo
@@ -1333,65 +1374,9 @@ function onDrop(e) {
   addFiles(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')));
 }
 function addFiles(files) {
-  const alert   = document.getElementById('dupAlert');
-  const alertMsg = document.getElementById('dupMsg');
-  alert.classList.remove('show');
-
-  // ─── Détection des doublons ───────────────────────────
-  // Clé unique : nom + taille + date de modification
-  const existingKeys = new Set(
-    selectedFiles.map(f => f.name + '_' + f.size + '_' + f.lastModified)
-  );
-
-  const duplicates = [];
-  const newFiles   = [];
-
-  files.forEach(f => {
-    const key = f.name + '_' + f.size + '_' + f.lastModified;
-    if (existingKeys.has(key)) {
-      duplicates.push(f.name);
-    } else {
-      existingKeys.add(key); // Évite aussi les doublons dans la sélection courante
-      newFiles.push(f);
-    }
-  });
-
-  // ─── Doublons dans la sélection courante ─────────────
-  const internalDups = [];
-  const seenInBatch  = new Set();
-  const dedupedFiles = [];
-  newFiles.forEach(f => {
-    const key = f.name + '_' + f.size + '_' + f.lastModified;
-    if (seenInBatch.has(key)) {
-      internalDups.push(f.name);
-    } else {
-      seenInBatch.add(key);
-      dedupedFiles.push(f);
-    }
-  });
-
-  const allDups = [...duplicates, ...internalDups];
-
-  if (allDups.length > 0) {
-    // Afficher le message d'alerte
-    const names = allDups.map(n => `• ${n}`).join('\n');
-    alertMsg.innerHTML = `Les photos suivantes sont en double et ont été ignorées :<br>
-      <ul>${allDups.map(n => `<li><strong>${n}</strong></li>`).join('')}</ul>`;
-    alert.classList.add('show');
-    // Faire défiler jusqu'à l'alerte
-    setTimeout(() => alert.scrollIntoView({ behavior:'smooth', block:'center' }), 100);
-  }
-
-  // Ajouter uniquement les fichiers non-dupliqués
-  selectedFiles = [...selectedFiles, ...dedupedFiles];
+  selectedFiles = [...selectedFiles, ...files];
   renderPreviews();
   document.getElementById('toast').style.display = 'none';
-
-  // Cacher l'alerte après 8 secondes
-  if (allDups.length > 0) {
-    clearTimeout(window._dupTimer);
-    window._dupTimer = setTimeout(() => alert.classList.remove('show'), 8000);
-  }
 }
 function removeFile(i) { selectedFiles.splice(i,1); renderPreviews(); }
 function renderPreviews() {
