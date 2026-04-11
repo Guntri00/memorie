@@ -696,32 +696,64 @@ function updateVideoUI() {
 }
 function stopVideoCamera() {
   if (videoStream) {
-    videoStream.getTracks().forEach(t => t.stop());
+    // Ne stopper que les tracks propres à videoStream
+    // (ne pas toucher cameraStream/cameraVideo de l'onglet photo)
+    videoStream.getTracks().forEach(t => {
+      if (!cameraStream || !cameraStream.getTracks().includes(t)) {
+        t.stop();
+      }
+    });
     videoStream = null;
   }
-  const vid = document.getElementById('cameraVideo');
+  const vid = document.getElementById('videoLive');
   if (vid) vid.srcObject = null;
+  // Stopper l'enregistrement en cours si actif
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    try { mediaRecorder.stop(); } catch(e) {}
+  }
+  isRecording = false;
+  clearTimeout(videoTimer);
 }
 async function initVideoCamera() {
-  try {
-    stopVideoCamera();
-    const constraints = {
-      video: { facingMode: 'environment', width: { ideal: 854 }, height: { ideal: 480 }, frameRate: { ideal: 24 } },
-      audio: true
-    };
-    videoStream = await navigator.mediaDevices.getUserMedia(constraints);
-    const vid = document.getElementById('cameraVideo');
-    if (vid) { vid.srcObject = videoStream; await vid.play(); }
-  } catch(err) {
-    console.warn('Camera attempt failed:', err.message);
+  const vid = document.getElementById('videoLive');
+  if (!vid) return;
+
+  // Réutiliser le stream photo si déjà actif (permission déjà accordée)
+  if (cameraStream && cameraStream.active) {
     try {
-      videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      const vid = document.getElementById('cameraVideo');
-      if (vid) { vid.srcObject = videoStream; await vid.play(); }
+      const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      videoStream = new MediaStream([
+        ...cameraStream.getVideoTracks(),
+        ...audioStream.getAudioTracks()
+      ]);
     } catch(e) {
-      showToast('Caméra non disponible');
+      // Pas d'audio → stream vidéo seul
+      videoStream = new MediaStream(cameraStream.getVideoTracks());
     }
+    vid.srcObject = videoStream;
+    await vid.play().catch(() => {});
+    return;
   }
+
+  // Pas de stream photo → demander les permissions complètes
+  const tries = [
+    { video: { facingMode: 'environment', width:{ideal:854}, height:{ideal:480}, frameRate:{ideal:24} }, audio: true },
+    { video: { facingMode: 'user', width:{ideal:640}, height:{ideal:480} }, audio: true },
+    { video: true, audio: true },
+    { video: true, audio: false }
+  ];
+
+  for (const c of tries) {
+    try {
+      videoStream = await navigator.mediaDevices.getUserMedia(c);
+      // Mémoriser aussi cameraStream pour que l'onglet photo en profite
+      cameraStream = new MediaStream(videoStream.getVideoTracks());
+      vid.srcObject = videoStream;
+      await vid.play().catch(() => {});
+      return;
+    } catch(err) {}
+  }
+  showToast('Caméra non disponible — vérifiez les permissions');
 }
 
 
@@ -1100,10 +1132,10 @@ function switchUploadTab(tab) {
     if (btn)  btn.classList.toggle('on', t === tab);
   });
   if (tab === 'camera') {
-    startCamera();
     stopVideoCamera();
+    startCamera();
   } else if (tab === 'video') {
-    stopCamera();
+    stopCamera();           // Libérer la caméra photo avant la vidéo
     initVideoCamera();
   } else {
     stopCamera();
@@ -1129,30 +1161,32 @@ async function startCamera() {
   previewEl.style.display = 'none';
   wrapEl.style.display    = 'block';
 
-  // Arrêter le stream existant
+  // Réutiliser un stream existant (venant de l'onglet vidéo par ex.)
+  if (cameraStream && cameraStream.active) {
+    video.srcObject = cameraStream;
+    await video.play().catch(() => {});
+    return;
+  }
+
   stopCamera();
 
-  // Contraintes par ordre de priorité
   const constraints = [
-    { video: { facingMode: { exact: facingMode }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false },
-    { video: { facingMode: facingMode, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false },
-    { video: true, audio: false } // fallback total
+    { video: { facingMode: { exact: facingMode }, width:{ideal:1920}, height:{ideal:1080} }, audio: false },
+    { video: { facingMode: facingMode, width:{ideal:1280}, height:{ideal:720} }, audio: false },
+    { video: true, audio: false }
   ];
 
   for (const constraint of constraints) {
     try {
       cameraStream = await navigator.mediaDevices.getUserMedia(constraint);
       video.srcObject = cameraStream;
-      // Forcer le play (nécessaire sur certains iOS)
       await video.play().catch(() => {});
-      return; // succès
+      return;
     } catch (err) {
       console.warn('Camera attempt failed:', err.message);
       cameraStream = null;
     }
   }
-
-  // Aucune contrainte n'a fonctionné
   wrapEl.style.display = 'none';
   errEl.style.display  = 'block';
 }
