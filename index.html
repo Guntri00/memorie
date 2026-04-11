@@ -614,6 +614,8 @@ to{opacity:1;transform:translateY(0)}}
 .btn-retake,.btn-use{padding:8px 20px;border-radius:2px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;border:none}
 .btn-retake{background:transparent;color:var(--stone);border:1px solid var(--gold-m)}
 .btn-use{background:var(--gold);color:var(--warm)}
+
+#cameraPermission { background: #1C1712; border-radius: 12px; min-height: 260px; }
 </style>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💍</text></svg>">
 <link rel="preload" as="image" href="/ring-intro.png">
@@ -715,13 +717,29 @@ function stopVideoCamera() {
   clearTimeout(videoTimer);
 }
 async function initVideoCamera() {
-  const vid = document.getElementById('videoLive');
+  const vid    = document.getElementById('videoLive');
+  const permEl = document.getElementById('cameraPermission');
   if (!vid) return;
 
-  // Libérer le stream photo pour libérer la caméra (obligatoire sur iOS)
-  stopCamera();
+  // Si stream photo déjà actif → réutiliser (pas de redemande de permission)
+  if (cameraStream && cameraStream.active) {
+    try {
+      const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      videoStream = new MediaStream([
+        ...cameraStream.getVideoTracks(),
+        ...audioStream.getAudioTracks()
+      ]);
+    } catch(e) {
+      videoStream = new MediaStream(cameraStream.getVideoTracks());
+    }
+    vid.srcObject = videoStream;
+    await vid.play().catch(() => {});
+    return;
+  }
 
-  // Tenter d'obtenir un stream vidéo+audio
+  // Pas de stream → demander les permissions via getUserMedia directement
+  // (l'utilisateur vient de cliquer sur l'onglet vidéo = action directe)
+  stopVideoCamera();
   const tries = [
     { video: { facingMode: 'environment', width:{ideal:854}, height:{ideal:480}, frameRate:{ideal:24} }, audio: true },
     { video: { facingMode: 'user', width:{ideal:640}, height:{ideal:480} }, audio: true },
@@ -730,13 +748,14 @@ async function initVideoCamera() {
   ];
   for (const c of tries) {
     try {
-      videoStream = await navigator.mediaDevices.getUserMedia(c);
+      videoStream  = await navigator.mediaDevices.getUserMedia(c);
+      cameraStream = new MediaStream(videoStream.getVideoTracks());
       vid.srcObject = videoStream;
       await vid.play().catch(() => {});
       return;
     } catch(err) {}
   }
-  showToast('Caméra non disponible — vérifiez les permissions');
+  showToast('Caméra non disponible — vérifiez les permissions dans votre navigateur');
 }
 
 
@@ -865,6 +884,12 @@ async function useVideo() {
 
       <!-- Onglet appareil photo (défaut) -->
       <div id="upload-camera-pane">
+        <div id="cameraPermission" style="display:none;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;min-height:260px">
+          <div style="font-size:52px;margin-bottom:16px">📷</div>
+          <p style="font-size:16px;font-weight:500;color:var(--gold);margin-bottom:8px">Accès à la caméra</p>
+          <p style="font-size:13px;color:var(--cream-muted);margin-bottom:24px;line-height:1.5">Pour prendre des photos et vidéos, autorisez l'accès à votre caméra</p>
+          <button onclick="requestCameraPermission()" style="background:var(--gold);color:#1C1712;border:none;border-radius:12px;padding:14px 32px;font-size:15px;font-weight:600;font-family:Jost,sans-serif;cursor:pointer;letter-spacing:.05em">Activer ma caméra</button>
+        </div>
         <div class="camera-wrap" id="cameraWrap">
           <video id="cameraVideo" autoplay playsinline muted></video>
           <div class="camera-overlay">
@@ -1139,19 +1164,34 @@ async function startCamera() {
   const errEl     = document.getElementById('cameraError');
   const wrapEl    = document.getElementById('cameraWrap');
   const previewEl = document.getElementById('cameraPreview');
+  const permEl    = document.getElementById('cameraPermission');
 
   errEl.style.display     = 'none';
   previewEl.style.display = 'none';
-  wrapEl.style.display    = 'block';
 
-  // Réutiliser un stream existant (venant de l'onglet vidéo par ex.)
+  // Si stream déjà actif → afficher directement sans redemander
   if (cameraStream && cameraStream.active) {
+    if (permEl) permEl.style.display = 'none';
+    wrapEl.style.display = 'block';
     video.srcObject = cameraStream;
     await video.play().catch(() => {});
     return;
   }
 
-  stopCamera();
+  // Pas de stream → afficher l'écran de demande de permission
+  wrapEl.style.display = 'none';
+  if (permEl) permEl.style.display = 'flex';
+}
+
+async function requestCameraPermission() {
+  const video  = document.getElementById('cameraVideo');
+  const errEl  = document.getElementById('cameraError');
+  const wrapEl = document.getElementById('cameraWrap');
+  const permEl = document.getElementById('cameraPermission');
+
+  // Désactiver le bouton pendant la demande
+  const btn = permEl ? permEl.querySelector('button') : null;
+  if (btn) { btn.disabled = true; btn.textContent = 'Activation…'; }
 
   const constraints = [
     { video: { facingMode: { exact: facingMode }, width:{ideal:1920}, height:{ideal:1080} }, audio: false },
@@ -1164,14 +1204,21 @@ async function startCamera() {
       cameraStream = await navigator.mediaDevices.getUserMedia(constraint);
       video.srcObject = cameraStream;
       await video.play().catch(() => {});
+      // Succès → cacher la demande, montrer la caméra
+      if (permEl) permEl.style.display = 'none';
+      wrapEl.style.display = 'block';
+      errEl.style.display  = 'none';
       return;
     } catch (err) {
-      console.warn('Camera attempt failed:', err.message);
       cameraStream = null;
     }
   }
+
+  // Échec → afficher erreur
+  if (permEl) permEl.style.display = 'none';
   wrapEl.style.display = 'none';
   errEl.style.display  = 'block';
+  if (btn) { btn.disabled = false; btn.textContent = 'Activer ma caméra'; }
 }
 
 function stopCamera() {
