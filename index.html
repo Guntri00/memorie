@@ -100,7 +100,6 @@ h1 em{font-style:italic;color:var(--gold)}
 .cam-error p{font-family:'Cormorant Garamond',serif;font-size:18px;margin-bottom:6px}
 .cam-error small{font-size:12px;color:var(--stone)}
 
-
 /* ── BADGE NOTIFICATION ── */
 .cw-badge{
   position:absolute;top:-6px;right:-6px;
@@ -208,7 +207,6 @@ h1 em{font-style:italic;color:var(--gold)}
   font-family:'Jost',sans-serif;
 }
 
-
 /* ── TÉLÉCHARGEMENT PHOTO ── */
 .dl-btn{
   position:absolute;top:7px;left:7px;
@@ -248,7 +246,6 @@ h1 em{font-style:italic;color:var(--gold)}
 }
 .dl-all-btn:hover{background:var(--dark);color:var(--warm);border-color:var(--dark)}
 .dl-all-btn.loading{opacity:.6;cursor:not-allowed;pointer-events:none}
-
 
 /* Toast téléchargement */
 .dl-toast{
@@ -431,9 +428,6 @@ footer a{color:var(--gold);text-decoration:none}
 .modal-confirm{flex:1;padding:12px;background:#C0392B;border:none;border-radius:2px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;color:#fff;transition:all .2s}
 .modal-confirm:hover{background:#A93226}
 
-
-
-
 /* ─── SLIDER PERFORMANCE ─── */
 .cw-slider{overflow:hidden;height:143px;contain:strict}
 .cw-track{display:flex;will-change:transform;height:143px}
@@ -489,9 +483,6 @@ footer a{color:var(--gold);text-decoration:none}
 }
 .gitem.loaded img{opacity:1}
 
-
-
-
 #introScreen {
   position:fixed;inset:0;
   background:#0d0b08;
@@ -517,15 +508,11 @@ footer a{color:var(--gold);text-decoration:none}
 
 @keyframes iglow{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.6}50%{transform:translate(-50%,-50%) scale(1.18);opacity:1}}
 
-
-
 .ipt.cross::before{width:1px;height:8px;left:50%;top:50%;transform:translate(-50%,-50%)}
 
 30%{opacity:.9}70%{opacity:.3}100%{opacity:0;transform:translateY(-28px) scale(1.3) rotate(180deg)}}
 
 50%{transform:scaleX(1.12);opacity:1}}
-
-
 
 @keyframes iRingFloat {
   0%,100% { transform: translateY(0) rotate(-2deg); }
@@ -535,16 +522,8 @@ footer a{color:var(--gold);text-decoration:none}
 
 50%{transform:translate(-50%,-50%) scale(1.08);opacity:1}}
 
-
-
-
-
-
-
-
 to{opacity:1;transform:translateY(0)}}
 40%,60%{opacity:.45}}
-
 
 /* ═══════════════════════════════════════
    INTRO ANIMATION MEMENTOS — FINAL
@@ -606,6 +585,35 @@ to{opacity:1;transform:translateY(0)}}
   40%, 60%  { opacity: .55; }
 }
 
+/* ─── ANIMATION 🩷💍 ─── */
+.charm{position:fixed;top:-60px;opacity:0;animation:charmFall linear infinite;pointer-events:none;z-index:0;user-select:none;will-change:transform,opacity}
+.charm:nth-child(1){left:3%;animation-duration:16s;animation-delay:0s;font-size:15px}
+.charm:nth-child(2){left:11%;animation-duration:21s;animation-delay:-4s;font-size:22px}
+.charm:nth-child(3){left:20%;animation-duration:14s;animation-delay:-9s;font-size:13px}
+.charm:nth-child(4){left:30%;animation-duration:24s;animation-delay:-2s;font-size:19px}
+.charm:nth-child(5){left:40%;animation-duration:18s;animation-delay:-13s;font-size:11px}
+.charm:nth-child(6){left:50%;animation-duration:22s;animation-delay:-6s;font-size:24px}
+.charm:nth-child(7){left:60%;animation-duration:15s;animation-delay:-10s;font-size:16px}
+.charm:nth-child(8){left:69%;animation-duration:20s;animation-delay:-1s;font-size:12px}
+.charm:nth-child(9){left:78%;animation-duration:17s;animation-delay:-15s;font-size:20px}
+.charm:nth-child(10){left:87%;animation-duration:23s;animation-delay:-7s;font-size:14px}
+.charm:nth-child(11){left:93%;animation-duration:19s;animation-delay:-11s;font-size:18px}
+@keyframes charmFall{0%{transform:translateY(-60px) rotate(0deg);opacity:0}8%{opacity:.22}50%{transform:translateY(52vh) rotate(200deg);opacity:.16}92%{opacity:.10}100%{transform:translateY(110vh) rotate(360deg);opacity:0}}
+
+/* ─── VIDÉO 20s ─── */
+#videoWrap{position:relative;width:100%;border-radius:8px;overflow:hidden;background:#000;aspect-ratio:9/16;max-height:72vh;cursor:pointer}
+#videoLive{width:100%;height:100%;object-fit:cover;display:block}
+#recIndicator{display:none;position:absolute;top:12px;right:12px;background:rgba(192,57,43,.9);color:#fff;border-radius:20px;padding:4px 10px;font-family:Jost,sans-serif;font-size:12px;font-weight:500;letter-spacing:.1em}
+.video-progress-bar{width:100%;height:4px;background:rgba(184,147,90,.2);border-radius:2px;overflow:hidden;margin-top:4px}
+.video-progress-fill{height:100%;background:#C0392B;width:0%;transition:width .1s linear}
+#btnRecord{width:64px;height:64px;background:rgba(255,255,255,.95);border:3px solid rgba(255,255,255,.5);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;box-shadow:0 4px 20px rgba(0,0,0,.3);margin:0 auto}
+#btnRecord.recording{background:rgba(192,57,43,.9);border-color:#fff}
+#btnRecord .rec-dot{width:24px;height:24px;background:#C0392B;border-radius:50%;transition:all .2s}
+#btnRecord.recording .rec-dot{width:14px;height:14px;border-radius:3px;background:#fff}
+.video-preview-actions{display:flex;gap:10px;justify-content:center;margin-top:8px}
+.btn-retake,.btn-use{padding:8px 20px;border-radius:2px;font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;border:none}
+.btn-retake{background:transparent;color:var(--stone);border:1px solid var(--gold-m)}
+.btn-use{background:var(--gold);color:var(--warm)}
 </style>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💍</text></svg>">
 <link rel="preload" as="image" href="/ring-intro.png">
@@ -621,8 +629,14 @@ to{opacity:1;transform:translateY(0)}}
   <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512.png">
   <meta name="msapplication-TileImage" content="/icons/icon-192.png">
   <meta name="msapplication-TileColor" content="#1C1712">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
+<!-- 🩷💍 -->
+<span class="charm">🩷</span><span class="charm">💍</span><span class="charm">🩷</span>
+<span class="charm">💍</span><span class="charm">🩷</span><span class="charm">💍</span>
+<span class="charm">🩷</span><span class="charm">💍</span><span class="charm">🩷</span>
+<span class="charm">💍</span><span class="charm">🩷</span>
 
 <!-- ══ INTRO MEMENTOS ══ -->
 <div id="introScreen" onclick="closeIntro()">
@@ -636,6 +650,8 @@ to{opacity:1;transform:translateY(0)}}
   function closeIntro() {
     var s = document.getElementById('introScreen');
     if (!s || s.classList.contains('fade-out')) return;
+    if (typeof loadEventConfig === 'function') loadEventConfig();
+    if (typeof startRealtimeFull === 'function') startRealtimeFull();
     // Centrer le zoom sur l'anneau (centre légèrement haut de l'image)
     s.style.transformOrigin = '50% 52%';
     s.classList.add('fade-out');
@@ -650,15 +666,84 @@ to{opacity:1;transform:translateY(0)}}
 
   // Auto-fermeture après 6s
   setTimeout(closeIntro, 6000);
+
+// ══ VIDÉO — variables et fonctions ══
+let videoStream = null, mediaRecorder = null, videoChunks = [], videoBlob = null;
+let videoTimer = null, videoProgress = null, isRecording = false;
+
+async function loadEventConfig() {
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/events?id=eq.${EVENT_ID}&select=video_enabled`,
+      { headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Accept':'application/json' } });
+    if (r.ok) {
+      const d = await r.json();
+      if (d[0]) VIDEO_ENABLED = d[0].video_enabled;
+      updateVideoUI();
+    }
+  } catch(e) {}
+}
+
+function startVideoRecord(e) {
+  if (e) e.preventDefault();
+  if (isRecording || !videoStream) return;
+  isRecording=true; videoChunks=[]; videoBlob=null;
+  const btn=document.getElementById('btnRecord'); if(btn) btn.classList.add('recording');
+  const ri=document.getElementById('recIndicator'); if(ri) ri.style.display='block';
+  document.getElementById('videoProgressBar').style.display='block';
+  document.getElementById('videoProgressFill').style.width='0%';
+  document.getElementById('videoCountdown').textContent='0s / 20s';
+  const mimeType=['video/mp4','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm']
+    .find(t=>{ try{return MediaRecorder.isTypeSupported(t)}catch(e){return false} })||'';
+  const opts={videoBitsPerSecond:400000,audioBitsPerSecond:64000};
+  if(mimeType) opts.mimeType=mimeType;
+  try { mediaRecorder=new MediaRecorder(videoStream,opts); } catch(e){ mediaRecorder=new MediaRecorder(videoStream); }
+  mediaRecorder.ondataavailable=ev=>{ if(ev.data.size>0) videoChunks.push(ev.data); };
+  mediaRecorder.onstop=()=>{ videoBlob=new Blob(videoChunks,{type:mimeType||'video/mp4'}); showVideoPreview(videoBlob); };
+  mediaRecorder.start(100);
+  const t0=Date.now();
+  videoProgress=setInterval(()=>{
+    const elapsed=Date.now()-t0;
+    document.getElementById('videoProgressFill').style.width=Math.min(elapsed/VIDEO_MAX_MS*100,100)+'%';
+    document.getElementById('videoCountdown').textContent=Math.floor(elapsed/1000)+'s / 20s';
+    if(elapsed>=VIDEO_MAX_MS) stopVideoRecord();
+  },100);
+  videoTimer=setTimeout(stopVideoRecord,VIDEO_MAX_MS);
+}
+
+function stopVideoRecord() {
+  if(!isRecording) return; isRecording=false;
+  clearTimeout(videoTimer); clearInterval(videoProgress);
+  const btn=document.getElementById('btnRecord'); if(btn) btn.classList.remove('recording');
+  const ri=document.getElementById('recIndicator'); if(ri) ri.style.display='none';
+  document.getElementById('videoProgressBar').style.display='none';
+  document.getElementById('videoCountdown').textContent='';
+  if(mediaRecorder && mediaRecorder.state!=='inactive') mediaRecorder.stop();
+}
+
+function showVideoPreview(blob) {
+  document.getElementById('videoPreviewEl').src=URL.createObjectURL(blob);
+  document.getElementById('videoRecorderWrap').style.display='none';
+  document.getElementById('videoPreviewWrap').style.display='flex';
+}
+
+function retakeVideo() {
+  videoBlob=null;
+  document.getElementById('videoPreviewWrap').style.display='none';
+  document.getElementById('videoRecorderWrap').style.display='block';
+  document.getElementById('videoPreviewEl').src='';
+}
+
+async function useVideo() {
+  if(!videoBlob) return;
+  const ext=videoBlob.type.includes('mp4')?'mp4':'webm';
+  const file=new File([videoBlob],`video-cam-${Date.now()}-${Math.random().toString(36).substr(2,6)}.${ext}`,
+    {type:videoBlob.type,lastModified:Date.now()});
+  file._fromCamera=true; file._isVideo=true;
+  retakeVideo(); switchUploadTab('gallery'); addFiles([file]);
+}
+
 })();
 </script>
-
-
-
-
-
-
-
 
 <header>
   <div style="text-align:right;padding:12px 20px 0">
@@ -716,6 +801,7 @@ to{opacity:1;transform:translateY(0)}}
       <div class="upload-tabs">
         <button class="upload-tab on" id="utab-camera" onclick="switchUploadTab('camera')">📷 Appareil photo</button>
         <button class="upload-tab" id="utab-gallery" onclick="switchUploadTab('gallery')">🖼️ Galerie</button>
+            <button class="upload-tab" id="utab-video" onclick="switchUploadTab('video')" style="display:none">🎬 Vidéo</button>
       </div>
 
       <!-- Onglet appareil photo (défaut) -->
@@ -751,6 +837,39 @@ to{opacity:1;transform:translateY(0)}}
         </div>
       </div>
 
+      <!-- Onglet vidéo (20s) -->
+      <div id="upload-video-pane" style="display:none">
+        <div id="videoRecorderWrap">
+          <div id="videoWrap"
+               onmousedown="startVideoRecord()" onmouseup="stopVideoRecord()"
+               ontouchstart="startVideoRecord(event)" ontouchend="stopVideoRecord()">
+            <video id="videoLive" autoplay muted playsinline></video>
+            <div class="camera-overlay"><div class="camera-frame"></div></div>
+            <div id="recIndicator">⏺ REC</div>
+          </div>
+          <div class="video-progress-bar" id="videoProgressBar" style="display:none">
+            <div class="video-progress-fill" id="videoProgressFill"></div>
+          </div>
+          <div id="videoCountdown" style="font-family:Jost,sans-serif;font-size:13px;color:#C0392B;font-weight:500;text-align:center;min-height:20px;margin-top:4px"></div>
+          <div class="camera-controls" style="justify-content:center;position:static;background:none;padding:12px 0">
+            <div id="btnRecord"
+                 onmousedown="startVideoRecord()" onmouseup="stopVideoRecord()"
+                 ontouchstart="startVideoRecord(event)" ontouchend="stopVideoRecord()">
+              <div class="rec-dot"></div>
+            </div>
+          </div>
+          <p style="text-align:center;font-family:Jost,sans-serif;font-size:11px;color:#9e8a7a;letter-spacing:.1em;text-transform:uppercase;margin:0">Maintenir appuyé · 20s max</p>
+        </div>
+        <div id="videoPreviewWrap" style="display:none;flex-direction:column;align-items:center;gap:12px;width:100%">
+          <div style="position:relative;width:100%;border-radius:8px;overflow:hidden;background:#000;aspect-ratio:9/16;max-height:72vh">
+            <video id="videoPreviewEl" controls playsinline style="width:100%;height:100%;object-fit:cover"></video>
+          </div>
+          <div class="video-preview-actions">
+            <button class="btn-retake" onclick="retakeVideo()">↺ Reprendre</button>
+            <button class="btn-use" onclick="useVideo()">Utiliser ✓</button>
+          </div>
+        </div>
+      </div>
       <!-- Onglet galerie -->
       <div id="upload-gallery-pane" style="display:none">
         <div class="zone" id="dropzone"
@@ -840,7 +959,6 @@ to{opacity:1;transform:translateY(0)}}
 
 </div>
 
-
 <!-- DIAPORAMA -->
 <div class="slideshow-overlay" id="slideshowOverlay">
   <div class="ss-progress" id="ssProgress"></div>
@@ -848,7 +966,7 @@ to{opacity:1;transform:translateY(0)}}
     <span class="ss-cat" id="ssCat"></span>
   </div>
   <div class="ss-counter" id="ssCounter"></div>
-  <img class="slideshow-img" id="ssImg" src="" alt="">
+  <img class="slideshow-img" id="ssImg" src="" alt="" loading="lazy">
   <div class="slideshow-bar">
     <div class="ss-info">
       <strong id="ssName"></strong>
@@ -867,7 +985,7 @@ to{opacity:1;transform:translateY(0)}}
 <!-- LIGHTBOX -->
 <div class="lb" id="lb" onclick="closeLB()">
   <button class="lb-x" onclick="closeLB()">✕</button>
-  <img id="lbImg" src="" alt="">
+  <img id="lbImg" src="" alt="" loading="lazy">
 </div>
 
 <!-- MODAL CONFIRMATION SUPPRESSION -->
@@ -891,6 +1009,18 @@ to{opacity:1;transform:translateY(0)}}
 // ══════════════════════════════════════════
 const SB_URL   = 'https://hmytqbgnjpugqeslnuvk.supabase.co';
 const SB_KEY   = 'sb_publishable_59uI3S3lCP0xyVtvrR6ZZA_vXsiF27o';
+
+// ── Helpers Supabase centralisés ──────────────────────
+function sbHeaders(extra) {
+  return Object.assign({
+    'apikey': SB_KEY,
+    'Authorization': 'Bearer ' + SB_KEY,
+    'Accept': 'application/json'
+  }, extra || {});
+}
+function sbHeadersJson() {
+  return sbHeaders({'Content-Type': 'application/json'});
+}
 const EVENT_ID = 'mariage-melodie-thomas-2025';
 const BUCKET   = 'photos';
 const DELETE_WINDOW_MS = 120 * 1000; // 2 minutes
@@ -922,14 +1052,22 @@ let pendingDeleteEl  = null;
 //  SOUS-ONGLETS UPLOAD
 // ══════════════════════════════════════════
 function switchUploadTab(tab) {
-  document.querySelectorAll('.upload-tab').forEach(b => b.classList.remove('on'));
-  document.getElementById('utab-' + tab).classList.add('on');
-
-  document.getElementById('upload-camera-pane').style.display  = tab === 'camera'  ? 'block' : 'none';
-  document.getElementById('upload-gallery-pane').style.display = tab === 'gallery' ? 'block' : 'none';
-
-  if (tab === 'camera') startCamera();
-  else stopCamera();
+  ['camera','video','gallery'].forEach(t => {
+    const pane = document.getElementById('upload-'+t+'-pane');
+    const btn  = document.getElementById('utab-'+t);
+    if (pane) pane.style.display = (t === tab) ? 'block' : 'none';
+    if (btn)  btn.classList.toggle('on', t === tab);
+  });
+  if (tab === 'camera') {
+    startCamera();
+    stopVideoCamera();
+  } else if (tab === 'video') {
+    stopCamera();
+    initVideoCamera();
+  } else {
+    stopCamera();
+    stopVideoCamera();
+  }
 }
 
 // ══════════════════════════════════════════
@@ -1040,7 +1178,6 @@ async function toggleFlash() {
   }
 }
 
-
 function takePhoto() {
   const video = document.getElementById('cameraVideo');
   if (!video.srcObject) return;
@@ -1141,7 +1278,6 @@ function keepPhoto() {
   // Passer sur l'onglet galerie pour voir la prévisualisation + envoyer
   switchUploadTab('gallery');
 }
-
 
 function switchTab(id, btn) {
   document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
@@ -1268,6 +1404,56 @@ function renderPreviews() {
 // ══════════════════════════════════════════
 //  UPLOAD
 // ══════════════════════════════════════════
+// ══════════════════════════════════════════
+//  COMPRESSION IMAGE AVANT UPLOAD
+// ══════════════════════════════════════════
+async function compressImage(file) {
+  if (file._isVideo || (file.type && file.type.startsWith('video/'))) return file;
+
+  const TARGET_MAX_BYTES = 280 * 1024; // cible 280 Ko max
+  const MAX_W            = 1200;
+  const MAX_H            = 1600;
+  const QUALITY_START    = 0.82;
+  const QUALITY_MIN      = 0.45;
+
+  return new Promise((resolve) => {
+    const img  = new Image();
+    const burl = URL.createObjectURL(file);
+
+    img.onload = () => {
+      URL.revokeObjectURL(burl);
+      let { width, height } = img;
+
+      if (width > MAX_W)  { height = Math.round(height * MAX_W / width); width = MAX_W; }
+      if (height > MAX_H) { width  = Math.round(width * MAX_H / height); height = MAX_H; }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, width, height);
+
+      function tryQuality(quality, attempt) {
+        canvas.toBlob((blob) => {
+          if (!blob) { resolve(file); return; }
+          if (blob.size > TARGET_MAX_BYTES && quality - 0.08 >= QUALITY_MIN && attempt < 5) {
+            tryQuality(quality - 0.08, attempt + 1);
+          } else {
+            if (blob.size >= file.size) { resolve(file); }
+            else {
+              resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type:'image/jpeg', lastModified:Date.now() }));
+            }
+          }
+        }, 'image/jpeg', quality);
+      }
+      tryQuality(QUALITY_START, 0);
+    };
+    img.onerror = () => { URL.revokeObjectURL(burl); resolve(file); };
+    img.src = burl;
+  });
+}
+
 async function doUpload() {
   if (!selectedFiles.length || !selectedCategory) return;
   const btn = document.getElementById('sbtn');
@@ -1281,51 +1467,8 @@ async function doUpload() {
   for (const file of selectedFiles) {
     try {
       setProgress(done, total, `Photo ${done+1} / ${total}`);
-      const ext      = (file.name.split('.').pop()||'jpg').toLowerCase();
+      const ext      = file._isVideo ? (file.type&&file.type.includes('mp4')?'mp4':'webm') : (file.name.split('.').pop()||'jpg').toLowerCase();
       const filename = `${EVENT_ID}/${selectedCategory.id}/${Date.now()}-${Math.random().toString(36).substr(2,6)}.${ext}`;
-
-
-// ══════════════════════════════════════════
-//  COMPRESSION IMAGE AVANT UPLOAD
-// ══════════════════════════════════════════
-async function compressImage(file) {
-  const MAX_W   = 1600;  // largeur max px
-  const QUALITY = 0.78;  // qualité JPEG
-  
-  return new Promise((resolve) => {
-    const img  = new Image();
-    const burl = URL.createObjectURL(file);
-    
-    img.onload = () => {
-      URL.revokeObjectURL(burl);
-      let { width, height } = img;
-      
-      // Réduire si trop grand
-      if (width > MAX_W) {
-        height = Math.round(height * MAX_W / width);
-        width  = MAX_W;
-      }
-      
-      const canvas = document.createElement('canvas');
-      canvas.width  = width;
-      canvas.height = height;
-      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-      
-      canvas.toBlob((blob) => {
-        if (!blob || blob.size >= file.size) {
-          resolve(file); // Garder original si pas de gain
-        } else {
-          console.log(`🗜️ ${file.name}: ${(file.size/1048576).toFixed(1)}Mo → ${(blob.size/1048576).toFixed(1)}Mo`);
-          resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
-            type: 'image/jpeg', lastModified: Date.now()
-          }));
-        }
-      }, 'image/jpeg', QUALITY);
-    };
-    img.onerror = () => { URL.revokeObjectURL(burl); resolve(file); };
-    img.src = burl;
-  });
-}
 
       // Compresser avant envoi
       const fileToUpload = await compressImage(file);
@@ -1333,7 +1476,7 @@ async function compressImage(file) {
         method:'POST',
         mode:'cors',
         credentials:'omit',
-        headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'image/jpeg','x-upsert':'true' },
+        headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type': (file._isVideo ? (file.type||'video/mp4') : 'image/jpeg'),'x-upsert':'true' },
         body:fileToUpload
       });
       if (!uploadRes.ok) throw new Error(`Storage ${uploadRes.status}: ${await uploadRes.text()}`);
@@ -1746,11 +1889,21 @@ async function confirmDelete() {
     setTimeout(() => { if (el) el.remove(); }, 400);
 
     // 4. Mettre à jour allPhotos
+    const deletedPhoto = allPhotos.find(p => p.id === id);
     allPhotos = allPhotos.filter(p => p.id !== id);
 
     // 5. Mettre à jour le compteur total
     const totalEl = document.getElementById('totalCount');
-    if (totalEl) totalEl.textContent = Math.max(0, parseInt(totalEl.textContent) - 1);
+    if (totalEl) totalEl.textContent = allPhotos.length;
+
+    // 5b. Mettre à jour le compteur par catégorie
+    const deletedCat = (deletedPhoto && deletedPhoto.category) || (path && path.split('/')[1]);
+    if (deletedCat) {
+      const catCount = allPhotos.filter(p => p.category === deletedCat).length;
+      const cntEl = document.getElementById('cnt-' + deletedCat);
+      if (cntEl) cntEl.textContent = catCount === 0 ? 'Aucune photo encore'
+                                    : catCount + ' photo' + (catCount > 1 ? 's' : '');
+    }
 
     // 6. Arrêter le timer
     if (timerIntervals[id]) { clearInterval(timerIntervals[id]); delete timerIntervals[id]; }
@@ -1762,39 +1915,85 @@ async function confirmDelete() {
   }
 }
 
-
 // ══════════════════════════════════════════
 //  NOTIFICATIONS TEMPS RÉEL
 // ══════════════════════════════════════════
 let realtimeChannel = null;
 const newPhotoCounts = {};
+let sbClientRT = null;
 
-function startRealtime() {
+function getSbClientRT() {
+  if (sbClientRT) return sbClientRT;
+  if (window.supabase && window.supabase.createClient) {
+    sbClientRT = window.supabase.createClient(SB_URL, SB_KEY);
+  }
+  return sbClientRT;
+}
+
+// Realtime WebSocket complet (photos + events pour vidéo)
+async function startRealtimeFull() {
   if (realtimeChannel) return;
-  realtimeChannel = setInterval(async () => {
-    if (document.getElementById('panel-gallery').classList.contains('on')) {
-      await checkNewPhotos();
-    }
-  }, 15000);
+  const client = getSbClientRT();
+  if (!client) {
+    // Fallback polling si SDK non dispo
+    realtimeChannel = setInterval(async () => {
+      if (document.getElementById('panel-gallery').classList.contains('on')) {
+        await checkNewPhotos();
+      }
+    }, 30000);
+    return;
+  }
+  realtimeChannel = client
+    .channel('mementos-rt')
+    .on('postgres_changes', {
+      event: '*', schema: 'public', table: 'photos',
+      filter: `event_id=eq.${EVENT_ID}`
+    }, (payload) => {
+      if (payload.eventType === 'INSERT') {
+        const p = payload.new;
+        if (!allPhotos.find(x => x.id === p.id)) {
+          allPhotos.push(p);
+          // Mettre à jour le compteur de la catégorie
+          const cnt = allPhotos.filter(x => x.category === p.category).length;
+          const el = document.getElementById('cnt-' + p.category);
+          if (el) el.textContent = cnt + ' photo' + (cnt > 1 ? 's' : '');
+          const total = document.getElementById('totalCount');
+          if (total) total.textContent = allPhotos.length;
+          // Badge nouvelle photo
+          newPhotoCounts[p.category] = (newPhotoCounts[p.category] || 0) + 1;
+          showCategoryBadge(p.category, newPhotoCounts[p.category]);
+        }
+      }
+      if (payload.eventType === 'DELETE') {
+        const id = payload.old && payload.old.id;
+        if (id) {
+          const cat = (allPhotos.find(x => x.id === id) || {}).category;
+          allPhotos = allPhotos.filter(x => x.id !== id);
+          if (cat) {
+            const cnt = allPhotos.filter(x => x.category === cat).length;
+            const el = document.getElementById('cnt-' + cat);
+            if (el) el.textContent = cnt === 0 ? 'Aucune photo encore' : cnt + ' photo' + (cnt > 1 ? 's' : '');
+          }
+          const total = document.getElementById('totalCount');
+          if (total) total.textContent = allPhotos.length;
+        }
+      }
+    })
+    .on('postgres_changes', {
+      event: 'UPDATE', schema: 'public', table: 'events',
+      filter: `id=eq.${EVENT_ID}`
+    }, (payload) => {
+      if (payload.new && typeof payload.new.video_enabled !== 'undefined') {
+        VIDEO_ENABLED = payload.new.video_enabled;
+        updateVideoUI();
+      }
+    })
+    .subscribe((status) => {
+    });
 }
 
-async function checkNewPhotos() {
-  try {
-    const res = await fetch(
-      `${SB_URL}/rest/v1/photos?event_id=eq.${EVENT_ID}&order=uploaded_at.desc&select=id,category,uploaded_at`,
-      { method:'GET', mode:'cors', credentials:'omit', headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Accept':'application/json' } }
-    );
-    if (!res.ok) return;
-    const latest = await res.json();
-    CATEGORIES.forEach(cat => {
-      const newCount = latest.filter(p => p.category === cat.id).length - allPhotos.filter(p => p.category === cat.id).length;
-      if (newCount > 0) {
-        newPhotoCounts[cat.id] = (newPhotoCounts[cat.id] || 0) + newCount;
-        showCategoryBadge(cat.id, newPhotoCounts[cat.id]);
-      }
-    });
-  } catch(e) {}
-}
+// Garder la vieille startRealtime pour compatibilité
+function startRealtime() { startRealtimeFull(); }
 
 function showCategoryBadge(catId, count) {
   const badge = document.getElementById('badge-' + catId);
@@ -1809,9 +2008,7 @@ function clearCategoryBadge(catId) {
   newPhotoCounts[catId] = 0;
 }
 
-
 // Optimiser URL image selon le contexte (thumb ou full)
-
 
 function imgUrl(p, size) {
   // Les photos sont déjà compressées à l'upload — URL directe
@@ -1843,8 +2040,6 @@ function openLB(src) {
 function closeLB() { document.getElementById('lb').classList.remove('open'); }
 document.addEventListener('keydown', e => { if(e.key==='Escape'){ closeLB(); closeModal(); } });
 
-
-
 document.addEventListener('keydown', e => {
   const ss = document.getElementById('slideshowOverlay');
   if (ss && ss.classList.contains('open')) {
@@ -1853,8 +2048,6 @@ document.addEventListener('keydown', e => {
     if (e.key === ' ')          { e.preventDefault(); ssTogglePlay(); }
   }
 });
-
-
 
 // ══════════════════════════════════════════
 //  DIAPORAMA — TOUTES CATÉGORIES
@@ -2050,8 +2243,6 @@ function showDlToast(msg) {
   window._dlToastTimer = setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-
-
 // Intersection Observer pour images hors écran
 (function() {
   if (!('IntersectionObserver' in window)) return;
@@ -2074,147 +2265,5 @@ function showDlToast(msg) {
 
 </script>
 
-
-
-<script>
-// ══ PWA — Manifest + Service Worker inline ══
-// (Aucun fichier externe requis)
-
-// ── Manifest inline via blob ──────────────────
-const manifestData = {
-  "name": "Mementos — Vos souvenirs en partage",
-  "short_name": "Mementos",
-  "description": "Partagez vos photos de mariage instantanément",
-  "start_url": "/mementos-app.html",
-  "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#1C1712",
-  "theme_color": "#B8935A",
-  "lang": "fr",
-  "categories": [
-    "photography",
-    "social"
-  ],
-  "icons": [
-    {
-      "src": "/icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/ring-intro.png",
-      "sizes": "1000x1000",
-      "type": "image/png",
-      "label": "Ecran accueil Mementos"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Partager une photo",
-      "short_name": "Partager",
-      "description": "Uploader une photo directement",
-      "url": "/mementos-app.html?tab=upload",
-      "icons": [
-        {
-          "src": "/icons/icon-192.png",
-          "sizes": "192x192"
-        }
-      ]
-    },
-    {
-      "name": "Voir la galerie",
-      "short_name": "Galerie",
-      "description": "Voir toutes les photos",
-      "url": "/mementos-app.html?tab=gallery",
-      "icons": [
-        {
-          "src": "/icons/icon-192.png",
-          "sizes": "192x192"
-        }
-      ]
-    }
-  ]
-};
-const manifestBlob = new Blob([JSON.stringify(manifestData)], {type:'application/manifest+json'});
-const manifestUrl  = URL.createObjectURL(manifestBlob);
-const manifestLink = document.createElement('link');
-manifestLink.rel  = 'manifest';
-manifestLink.href = manifestUrl;
-document.head.appendChild(manifestLink);
-
-// ── Service Worker inline via blob ────────────
-if ('serviceWorker' in navigator) {
-  const swCode = "// ══════════════════════════════════════════════\n//  MEMENTOS — Service Worker PWA\n//  Stratégie : Cache-First pour assets statiques\n//              Network-First pour photos Supabase\n// ══════════════════════════════════════════════\n\nconst CACHE_NAME    = 'mementos-v1';\nconst CACHE_STATIC  = 'mementos-static-v1';\nconst CACHE_PHOTOS  = 'mementos-photos-v1';\n\n// Assets statiques à mettre en cache immédiatement\nconst STATIC_ASSETS = [\n  '/mementos-app.html',\n  '/ring-intro.png',\n  '/manifest.json',\n  'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap'\n];\n\n// ── Installation : mise en cache des assets statiques ──\nself.addEventListener('install', (event) => {\n  event.waitUntil(\n    caches.open(CACHE_STATIC)\n      .then((cache) => {\n        console.log('[SW] Mise en cache des assets statiques');\n        return cache.addAll(STATIC_ASSETS.map(url => new Request(url, { mode: 'no-cors' })));\n      })\n      .then(() => self.skipWaiting())\n      .catch((err) => console.warn('[SW] Erreur cache install:', err))\n  );\n});\n\n// ── Activation : nettoyage des anciens caches ──\nself.addEventListener('activate', (event) => {\n  event.waitUntil(\n    caches.keys().then((cacheNames) =>\n      Promise.all(\n        cacheNames\n          .filter(name => name !== CACHE_STATIC && name !== CACHE_PHOTOS)\n          .map(name => {\n            console.log('[SW] Suppression ancien cache:', name);\n            return caches.delete(name);\n          })\n      )\n    ).then(() => self.clients.claim())\n  );\n});\n\n// ── Fetch : stratégie intelligente par type de ressource ──\nself.addEventListener('fetch', (event) => {\n  const { request } = event;\n  const url = new URL(request.url);\n\n  // Ignorer les requêtes non-GET\n  if (request.method !== 'GET') return;\n\n  // ── Photos Supabase : Network-First avec cache fallback ──\n  if (url.hostname.includes('supabase.co') && url.pathname.includes('/storage/')) {\n    event.respondWith(networkFirstWithCache(request, CACHE_PHOTOS, 5000));\n    return;\n  }\n\n  // ── API Supabase REST : Network-Only (données temps réel) ──\n  if (url.hostname.includes('supabase.co') && url.pathname.includes('/rest/')) {\n    return; // Laisser passer sans cache\n  }\n\n  // ── Polices Google : Cache-First (immutables) ──\n  if (url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com')) {\n    event.respondWith(cacheFirstWithNetwork(request, CACHE_STATIC));\n    return;\n  }\n\n  // ── Assets statiques locaux : Cache-First ──\n  if (url.hostname === self.location.hostname) {\n    event.respondWith(cacheFirstWithNetwork(request, CACHE_STATIC));\n    return;\n  }\n});\n\n// ── Network-First : essaie le réseau, fallback cache ──\nasync function networkFirstWithCache(request, cacheName, timeoutMs) {\n  const cache = await caches.open(cacheName);\n\n  try {\n    const controller = new AbortController();\n    const timeout    = setTimeout(() => controller.abort(), timeoutMs);\n    const response   = await fetch(request, { signal: controller.signal });\n    clearTimeout(timeout);\n\n    if (response && response.status === 200) {\n      cache.put(request, response.clone());\n    }\n    return response;\n  } catch {\n    const cached = await cache.match(request);\n    return cached || new Response('', { status: 503 });\n  }\n}\n\n// ── Cache-First : retourne le cache, fetch si absent ──\nasync function cacheFirstWithNetwork(request, cacheName) {\n  const cache  = await caches.open(cacheName);\n  const cached = await cache.match(request);\n\n  if (cached) return cached;\n\n  try {\n    const response = await fetch(request);\n    if (response && response.status === 200) {\n      cache.put(request, response.clone());\n    }\n    return response;\n  } catch {\n    return new Response('', { status: 503 });\n  }\n}\n\n// ── Background Sync : upload en attente si hors-ligne ──\nself.addEventListener('sync', (event) => {\n  if (event.tag === 'upload-photo') {\n    event.waitUntil(processPendingUploads());\n  }\n});\n\nasync function processPendingUploads() {\n  // Récupérer les uploads en attente depuis IndexedDB\n  // (à connecter avec la logique d'upload de l'app)\n  console.log('[SW] Traitement des uploads en attente...');\n}\n\n// ── Push Notifications (pour plus tard) ──\nself.addEventListener('push', (event) => {\n  if (!event.data) return;\n  const data = event.data.json();\n\n  event.waitUntil(\n    self.registration.showNotification(data.title || 'Mementos', {\n      body:    data.body || 'Nouvelle photo partagée !',\n      icon:    '/icons/icon-192.png',\n      badge:   '/icons/icon-192.png',\n      vibrate: [100, 50, 100],\n      data:    { url: data.url || '/' }\n    })\n  );\n});\n\nself.addEventListener('notificationclick', (event) => {\n  event.notification.close();\n  event.waitUntil(\n    clients.openWindow(event.notification.data.url || '/')\n  );\n});";
-  const swBlob = new Blob([swCode], {type: 'application/javascript'});
-  const swUrl  = URL.createObjectURL(swBlob);
-
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register(swUrl, {scope: '/'})
-      .then(function(reg) {
-        console.log('[PWA] Service Worker actif:', reg.scope);
-        reg.addEventListener('updatefound', function() {
-          console.log('[PWA] Mise à jour disponible');
-        });
-      })
-      .catch(function(err) {
-        console.warn('[PWA] Erreur SW:', err);
-      });
-  });
-}
-
-// ── Bannière installation ─────────────────────
-let deferredPrompt = null;
-window.addEventListener('beforeinstallprompt', function(e) {
-  e.preventDefault();
-  deferredPrompt = e;
-  try {
-    const dismissed = localStorage.getItem('pwa_dismissed');
-    if (dismissed && Date.now() - parseInt(dismissed) < 7 * 86400000) return;
-  } catch(e) {}
-  setTimeout(showInstallBanner, 30000);
-});
-
-function showInstallBanner() {
-  if (!deferredPrompt || document.getElementById('installBanner')) return;
-  const banner = document.createElement('div');
-  banner.id = 'installBanner';
-  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1C1712;border:1px solid #B8935A;border-radius:12px;padding:14px 20px;display:flex;align-items:center;gap:14px;z-index:8888;box-shadow:0 8px 32px rgba(0,0,0,.5);font-family:Jost,sans-serif;max-width:320px;width:calc(100% - 40px)';
-  banner.innerHTML = [
-    '<div style="flex:1;min-width:0">',
-      '<div style="color:#F2E9D8;font-size:13px;font-weight:500">&#128141; Installer Mementos</div>',
-      '<div style="color:#B8935A;font-size:11px;letter-spacing:.05em">Acc&#232;s rapide sur votre &#233;cran d&#39;accueil</div>',
-    '</div>',
-    '<button onclick="installPWA()" style="background:#B8935A;color:#1C1712;border:none;border-radius:8px;padding:8px 14px;font-family:Jost,sans-serif;font-size:12px;font-weight:500;cursor:pointer;flex-shrink:0">Installer</button>',
-    '<button onclick="dismissInstall()" style="background:none;border:none;color:rgba(242,233,216,.4);cursor:pointer;font-size:20px;padding:4px;flex-shrink:0;line-height:1">&times;</button>'
-  ].join('');
-  document.body.appendChild(banner);
-}
-
-async function installPWA() {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
-  deferredPrompt = null;
-  dismissInstall();
-}
-
-function dismissInstall() {
-  const b = document.getElementById('installBanner');
-  if (b) b.remove();
-  deferredPrompt = null;
-  try { localStorage.setItem('pwa_dismissed', Date.now()); } catch(e) {}
-}
-
-window.addEventListener('appinstalled', dismissInstall);
-</script>
 </body>
 </html>
