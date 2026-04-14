@@ -1005,8 +1005,9 @@ async function initVideoCamera() {
   // (l'utilisateur vient de cliquer sur l'onglet vidéo = action directe)
   stopVideoCamera();
   const tries = [
-    { video: { facingMode: 'environment', width:{ideal:854}, height:{ideal:480}, frameRate:{ideal:24} }, audio: true },
-    { video: { facingMode: 'user', width:{ideal:640}, height:{ideal:480} }, audio: true },
+    { video: { facingMode: 'environment', width:{ideal:1920}, height:{ideal:1080}, frameRate:{ideal:30} }, audio: true },
+    { video: { facingMode: 'environment', width:{ideal:1280}, height:{ideal:720},  frameRate:{ideal:30} }, audio: true },
+    { video: { facingMode: 'user',        width:{ideal:1280}, height:{ideal:720},  frameRate:{ideal:30} }, audio: true },
     { video: true, audio: true },
     { video: true, audio: false }
   ];
@@ -1036,7 +1037,7 @@ function startVideoRecord(e) {
   document.getElementById('videoCountdown').textContent='0s / 20s';
   const mimeType=['video/mp4','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm']
     .find(t=>{ try{return MediaRecorder.isTypeSupported(t)}catch(e){return false} })||'';
-  const opts={videoBitsPerSecond:400000,audioBitsPerSecond:64000};
+  const opts={videoBitsPerSecond:2500000,audioBitsPerSecond:128000};
   if(mimeType) opts.mimeType=mimeType;
   try { mediaRecorder=new MediaRecorder(videoStream,opts); } catch(e){ mediaRecorder=new MediaRecorder(videoStream); }
   mediaRecorder.ondataavailable=ev=>{ if(ev.data.size>0) videoChunks.push(ev.data); };
@@ -1071,7 +1072,11 @@ function toggleVideoRecord() {
 
 
 function showVideoPreview(blob) {
-  document.getElementById('videoPreviewEl').src=URL.createObjectURL(blob);
+  const previewEl = document.getElementById('videoPreviewEl');
+  const blobUrl   = URL.createObjectURL(blob);
+  previewEl.src   = blobUrl;
+  previewEl.load();          // forcer le rechargement du player
+  previewEl.muted  = false;  // son activé pour la preview
   document.getElementById('videoRecorderWrap').style.display='none';
   document.getElementById('videoPreviewWrap').style.display='flex';
 }
@@ -1453,9 +1458,13 @@ function addFiles(files) {
 }
 function removeFile(i) { selectedFiles.splice(i,1); renderPreviews(); }
 function renderPreviews() {
-  document.getElementById('previews').innerHTML = selectedFiles.map((f,i) => `
-    <div class="prev"><img src="${URL.createObjectURL(f)}">
-    <button class="rm" onclick="removeFile(${i})">✕</button></div>`).join('');
+  document.getElementById('previews').innerHTML = selectedFiles.map((f,i) => {
+    const burl = URL.createObjectURL(f);
+    const media = f._isVideo
+      ? `<video src="${burl}" controls playsinline muted style="width:100%;height:100%;object-fit:cover;border-radius:8px"></video>`
+      : `<img src="${burl}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`;
+    return `<div class="prev">${media}<button class="rm" onclick="removeFile(${i})">✕</button></div>`;
+  }).join('');
   document.getElementById('sbtn').style.display = selectedFiles.length ? 'block' : 'none';
 }
 
@@ -1528,8 +1537,8 @@ async function doUpload() {
       const ext      = file._isVideo ? (file.type&&file.type.includes('mp4')?'mp4':'webm') : (file.name.split('.').pop()||'jpg').toLowerCase();
       const filename = `${EVENT_ID}/${selectedCategory.id}/${Date.now()}-${Math.random().toString(36).substr(2,6)}.${ext}`;
 
-      // Compresser avant envoi
-      const fileToUpload = await compressImage(file);
+      // Compresser seulement les images (pas les vidéos)
+      const fileToUpload = file._isVideo ? file : await compressImage(file);
       const uploadRes = await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${filename}`, {
         method:'POST',
         mode:'cors',
@@ -1545,7 +1554,7 @@ async function doUpload() {
         mode:'cors',
         credentials:'omit',
         headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal' },
-        body:JSON.stringify({ event_id:EVENT_ID, uploader_name:uploaderName, category:selectedCategory.id, storage_path:filename, public_url:publicUrl, uploaded_at:new Date().toISOString() })
+        body:JSON.stringify({ event_id:EVENT_ID, uploader_name:uploaderName, category:selectedCategory.id, storage_path:filename, public_url:publicUrl, uploaded_at:new Date().toISOString(), media_type: file._isVideo ? 'video' : 'image' })
       });
       done++; setProgress(done, total);
     } catch(err) { errors.push(file.name+': '+err.message); }
