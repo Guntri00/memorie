@@ -325,6 +325,8 @@ h1 em{font-style:italic;color:var(--gold)}
 }
 .gitem:hover{transform:translateY(-3px);box-shadow:0 14px 36px rgba(28,23,18,.14)}
 .gitem img{width:100%;display:block}
+.gitem video{width:100%;display:block;aspect-ratio:9/16;object-fit:cover;background:#1a1410}
+.gitem .video-thumb{aspect-ratio:9/16;width:100%;background:#1a1410;display:flex;align-items:center;justify-content:center;position:relative}
 
 /* Overlay infos */
 .gmeta{
@@ -1855,19 +1857,32 @@ function buildPhotoItem(p) {
   const age        = Date.now() - uploadedAt;
   const remaining  = DELETE_WINDOW_MS - age;
   const canDelete  = remaining > 0;
+  const isLiked    = getLike(p.id);
+  const likeCount  = p.likes || 0;
+  const isVideo    = p.media_type === 'video';
+  const safeUrl    = p.public_url.replace(/'/g, '%27');
+  const clickFn   = isVideo ? `openLBVideo('${safeUrl}')` : `openLB('${safeUrl}')`;
+  const dlExt     = isVideo ? 'webm' : 'jpg';
 
-  const isLiked  = getLike(p.id);
-  const likeCount = p.likes || 0;
+  const mediaEl = isVideo
+    ? `<div class="video-thumb">
+         <video src="${p.public_url}" playsinline muted preload="metadata"
+                style="width:100%;height:100%;object-fit:cover;display:block"
+                onloadeddata="this.closest('.gitem').classList.add('loaded')"
+                onerror="this.closest('.gitem').classList.add('loaded')"></video>
+         <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;background:rgba(0,0,0,.15)">
+           <span style="font-size:40px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.8))">▶</span>
+         </div>
+       </div>`
+    : `<img src="${p.public_url}" alt="Photo de ${(p.uploader_name||'Invité').replace(/'/g,'')}" loading="lazy"
+            onload="this.closest('.gitem').classList.add('loaded')"
+            onerror="this.closest('.gitem').classList.add('loaded');this.closest('.gitem').style.display='none'">`;
 
   return `
-    <div class="gitem" id="photo-${p.id}" onclick="openLB('${p.public_url}')">
-      <img src="${imgUrl(p,'full')}"
-           alt="Photo de ${p.uploader_name||'Invité'}"
-           loading="lazy"
-           onload="this.parentElement.classList.add('loaded')"
-           onerror="this.parentElement.classList.add('loaded');this.parentElement.style.display='none'">
-      <div class="gmeta">par ${p.uploader_name||'Invité'}</div>
-      <button class="dl-btn" onclick="event.stopPropagation();downloadPhoto('${p.public_url}','mementos-${p.category}-${p.id.substr(0,6)}.jpg')" title="Télécharger cette photo">⬇️</button>
+    <div class="gitem" id="photo-${p.id}" onclick="${clickFn}">
+      ${mediaEl}
+      <div class="gmeta">par ${(p.uploader_name||'Invité').replace(/</g,'&lt;')}</div>
+      <button class="dl-btn" onclick="event.stopPropagation();downloadPhoto('${safeUrl}','mementos-${p.id.substr(0,6)}.${dlExt}')" title="Télécharger">⬇️</button>
       <div class="reactions">
         <button class="react-btn ${isLiked?'liked':''}" id="like-btn-${p.id}" onclick="event.stopPropagation();toggleLike('${p.id}',this)">
           ❤️ <span class="react-count" id="likes-${p.id}">${likeCount}</span>
@@ -1876,13 +1891,9 @@ function buildPhotoItem(p) {
         <button class="react-btn" onclick="event.stopPropagation();addReaction('${p.id}','😍',this)">😍</button>
       </div>
       ${canDelete ? `
-        <button class="del-btn" onclick="event.stopPropagation();askDelete('${p.id}','${p.storage_path}',this.closest('.gitem'))">🗑</button>
-        <div class="del-timer" id="timer-${p.id}">
-          <span id="timer-txt-${p.id}"></span>
-        </div>
-        <div class="del-progress">
-          <div class="del-progress-fill" id="timer-bar-${p.id}" style="width:${Math.round((remaining/DELETE_WINDOW_MS)*100)}%"></div>
-        </div>
+        <button class="del-btn" onclick="event.stopPropagation();askDelete('${p.id}','${(p.storage_path||'').replace(/'/g,'%27')}',this.closest('.gitem'))">🗑</button>
+        <div class="del-timer" id="timer-${p.id}"><span id="timer-txt-${p.id}"></span></div>
+        <div class="del-progress"><div class="del-progress-fill" id="timer-bar-${p.id}" style="width:${Math.round((remaining/DELETE_WINDOW_MS)*100)}%"></div></div>
       ` : ''}
     </div>`;
 }
