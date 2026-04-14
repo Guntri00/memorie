@@ -775,9 +775,7 @@ to{opacity:1;transform:translateY(0)}}
       <!-- Onglet vidéo (20s) -->
       <div id="upload-video-pane" style="display:none">
         <div id="videoRecorderWrap">
-          <div id="videoWrap"
-               onmousedown="startVideoRecord()" onmouseup="stopVideoRecord()"
-               ontouchstart="startVideoRecord(event)" ontouchend="stopVideoRecord()">
+          <div id="videoWrap">
             <video id="videoLive" autoplay muted playsinline></video>
             <div class="camera-overlay"><div class="camera-frame"></div></div>
             <div id="recIndicator">⏺ REC</div>
@@ -787,9 +785,7 @@ to{opacity:1;transform:translateY(0)}}
           </div>
           <div id="videoCountdown" style="font-family:Jost,sans-serif;font-size:13px;color:#C0392B;font-weight:500;text-align:center;min-height:20px;margin-top:4px"></div>
           <div class="camera-controls" style="justify-content:center;position:static;background:none;padding:12px 0">
-            <div id="btnRecord"
-                 onmousedown="startVideoRecord()" onmouseup="stopVideoRecord()"
-                 ontouchstart="startVideoRecord(event)" ontouchend="stopVideoRecord()">
+            <div id="btnRecord" onclick="toggleVideoRecord()">
               <div class="rec-dot"></div>
             </div>
           </div>
@@ -939,6 +935,7 @@ to{opacity:1;transform:translateY(0)}}
 // ══ VIDÉO — variables et fonctions ══
 let videoStream = null, mediaRecorder = null, videoChunks = [], videoBlob = null;
 let videoTimer = null, videoProgress = null, isRecording = false;
+const VIDEO_MAX_MS = 20000;
 
 async function loadEventConfig() {
   try {
@@ -1064,6 +1061,14 @@ function stopVideoRecord() {
   document.getElementById('videoCountdown').textContent='';
   if(mediaRecorder && mediaRecorder.state!=='inactive') mediaRecorder.stop();
 }
+function toggleVideoRecord() {
+  if (isRecording) {
+    stopVideoRecord();
+  } else {
+    startVideoRecord();
+  }
+}
+
 
 function showVideoPreview(blob) {
   document.getElementById('videoPreviewEl').src=URL.createObjectURL(blob);
