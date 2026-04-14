@@ -911,7 +911,8 @@ to{opacity:1;transform:translateY(0)}}
 <!-- LIGHTBOX -->
 <div class="lb" id="lb" onclick="closeLB()">
   <button class="lb-x" onclick="closeLB()">✕</button>
-  <img id="lbImg" src="" alt="" loading="lazy">
+  <img id="lbImg" src="" alt="" loading="lazy" style="display:block">
+  <video id="lbVideo" src="" controls playsinline style="display:none;max-width:100%;max-height:90vh;border-radius:8px"></video>
 </div>
 
 <!-- MODAL CONFIRMATION SUPPRESSION -->
@@ -1674,14 +1675,14 @@ async function loadGallery() {
       }
 
       const loop = photos.length===1?[...photos,...photos,...photos]:photos.length===2?[...photos,...photos]:photos;
-      document.getElementById('track-'+cat.id).innerHTML = loop.map(p => `
-        <div class="cw-thumb" id="th-${p.id}"><img
-            src="${imgUrl(p,'thumb')}"
-            alt=""
-            loading="lazy"
-            onload="this.parentElement.classList.add('loaded')"
-            onerror="this.parentElement.classList.add('loaded');this.style.display='none'">
-          </div>`).join('');
+      document.getElementById('track-'+cat.id).innerHTML = loop.map(p => {
+        const thumb = p.media_type === 'video'
+          ? '<div style="width:100%;height:100%;background:#2a1f10;display:flex;align-items:center;justify-content:center;font-size:28px;color:#B8935A;border-radius:4px">▶</div>'
+          : `<img src="${imgUrl(p,'thumb')}" alt="" loading="lazy"
+               onload="this.parentElement.classList.add('loaded')"
+               onerror="this.parentElement.classList.add('loaded')">`;
+        return `<div class="cw-thumb ${p.media_type==='video'?'loaded':''}" id="th-${p.id}">${thumb}</div>`;
+      }).join('');
 
       const names = [...new Set(photos.map(p=>p.uploader_name||'Invité'))].slice(0,4);
       document.getElementById('names-'+cat.id).textContent =
@@ -2127,19 +2128,33 @@ function downloadQR() {
   window.open('https://chart.googleapis.com/chart?cht=qr&chs=600x600&chl=https%3A%2F%2Fmemorie-one.vercel.app&choe=UTF-8&chld=Q%7C4','_blank');
 }
 function openLB(src) {
-  document.getElementById('lbImg').src=src;
+  const lbImg   = document.getElementById('lbImg');
+  const lbVideo = document.getElementById('lbVideo');
+  lbImg.src     = src;
+  lbImg.style.display   = 'block';
+  lbVideo.style.display = 'none';
+  lbVideo.pause();
+  lbVideo.src = '';
   document.getElementById('lb').classList.add('open');
 }
-function closeLB() { document.getElementById('lb').classList.remove('open'); }
-document.addEventListener('keydown', e => { if(e.key==='Escape'){ closeLB(); closeModal(); } });
 
-document.addEventListener('keydown', e => {
-  const ss = document.getElementById('slideshowOverlay');
-  if (ss && ss.classList.contains('open')) {
-    if (e.key === 'ArrowRight') { e.preventDefault(); ssNext(); }
-    if (e.key === 'ArrowLeft')  { e.preventDefault(); ssPrev(); }
-    if (e.key === ' ')          { e.preventDefault(); ssTogglePlay(); }
-  }
+function openLBVideo(src) {
+  const lbImg   = document.getElementById('lbImg');
+  const lbVideo = document.getElementById('lbVideo');
+  lbImg.style.display   = 'none';
+  lbImg.src = '';
+  lbVideo.src           = src;
+  lbVideo.style.display = 'block';
+  lbVideo.load();
+  lbVideo.play().catch(() => {});
+  document.getElementById('lb').classList.add('open');
+}
+function closeLB() {
+  document.getElementById('lb').classList.remove('open');
+  const lbVideo = document.getElementById('lbVideo');
+  if (lbVideo) { lbVideo.pause(); lbVideo.src = ''; }
+  const lbImg = document.getElementById('lbImg');
+  if (lbImg) lbImg.src = '';
 });
 
 // ══════════════════════════════════════════
