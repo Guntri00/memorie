@@ -426,7 +426,7 @@ body::after{
   z-index:200;display:none;align-items:center;justify-content:center;padding:20px;
 }
 .lb.open{display:flex;animation:fadeIn .3s ease}
-.lb img{max-width:100%;max-height:90vh;border-radius:6px;object-fit:contain}
+.lb img,.lb video{max-width:100%;max-height:90vh;border-radius:6px;object-fit:contain}
 .lb-x{
   position:absolute;top:20px;right:20px;
   background:rgba(255,252,250,.1);border:1px solid rgba(255,252,250,.2);
@@ -752,7 +752,8 @@ footer em{font-style:italic;font-family:'Playfair Display',serif;font-size:12px;
 <!-- LIGHTBOX -->
 <div class="lb" id="lb" onclick="closeLB()">
   <button class="lb-x" onclick="closeLB()">✕</button>
-  <img id="lbImg" src="" alt="">
+  <img id="lbImg" src="" alt="" style="display:none">
+  <video id="lbVideo" src="" controls playsinline style="display:none;max-width:100%;max-height:90vh;border-radius:6px"></video>
 </div>
 
 <!-- DIAPORAMA -->
@@ -1068,14 +1069,19 @@ function renderPhotos(){
   grid.innerHTML=photos.map(p=>{
     const cat=CATS[p.category]||{emoji:'📷',name:'Autre'};
     const time=new Date(p.uploaded_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    const isVideo=p.media_type==='video';
+    const safeUrl=getPhotoUrl(p).replace(/'/g,'%27');
+    const mediaEl=isVideo
+      ? `<div style="position:relative;width:100%;aspect-ratio:4/3;background:#1a1410;display:flex;align-items:center;justify-content:center;overflow:hidden"><video src="${getPhotoUrl(p)}" playsinline muted preload="metadata" style="width:100%;height:100%;object-fit:cover;display:block"></video><span style="position:absolute;font-size:30px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.8));pointer-events:none">▶</span></div>`
+      : `<img src="${getPhotoUrl(p)}" alt="" loading="lazy" crossorigin="anonymous" onerror="this.src='${getPhotoUrl(p)}';this.removeAttribute('crossorigin')">`;
     return `
-    <div class="photo-card" onclick="openLB('${getPhotoUrl(p)}')">
-      <img src="${getPhotoUrl(p)}" alt="" loading="lazy" crossorigin="anonymous" onerror="this.src='${getPhotoUrl(p)}';this.removeAttribute('crossorigin')">
+    <div class="photo-card" onclick="openLB('${safeUrl}',${isVideo})">
+      ${mediaEl}
       <div class="photo-overlay">
-        <button class="photo-dl-btn" onclick="event.stopPropagation();dlOne('${getPhotoUrl(p)}','${p.storage_path||''}','${p.category||''}')">⬇️</button>
+        <button class="photo-dl-btn" onclick="event.stopPropagation();dlOne('${safeUrl}','${p.storage_path||''}','${p.category||''}')">⬇️</button>
       </div>
       <div class="photo-card-meta">
-        <div class="photo-meta-name">${p.uploader_name||'Invité'} ${cat.emoji}</div>
+        <div class="photo-meta-name">${p.uploader_name||'Invité'} ${cat.emoji}${isVideo?' 🎬':''}</div>
         <div class="photo-meta-time">${time}</div>
       </div>
     </div>`;
@@ -1155,8 +1161,23 @@ function ssClose(){
 }
 
 // LIGHTBOX
-function openLB(src){document.getElementById('lbImg').src=src;document.getElementById('lb').classList.add('open');}
-function closeLB(){document.getElementById('lb').classList.remove('open');}
+function openLB(src,isVideo){
+  const img=document.getElementById('lbImg');
+  const vid=document.getElementById('lbVideo');
+  if(isVideo){
+    img.style.display='none';img.src='';
+    vid.src=src;vid.style.display='block';vid.load();vid.play().catch(()=>{});
+  }else{
+    vid.style.display='none';vid.pause();vid.src='';
+    img.src=src;img.style.display='block';
+  }
+  document.getElementById('lb').classList.add('open');
+}
+function closeLB(){
+  document.getElementById('lb').classList.remove('open');
+  const v=document.getElementById('lbVideo');if(v){v.pause();v.src='';v.style.display='none';}
+  const i=document.getElementById('lbImg');if(i){i.src='';i.style.display='none';}
+}
 
 // TOAST
 let toastT=null;

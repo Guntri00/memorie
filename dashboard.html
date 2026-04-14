@@ -211,7 +211,13 @@ body{background:var(--cream);font-family:'Jost',sans-serif;font-weight:300;color
   transition:all .25s;
 }
 .photo-card:hover{border-color:var(--gold);box-shadow:0 8px 24px rgba(184,147,90,.15)}
-.photo-card img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+.photo-card img,.photo-card video{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+.photo-card .video-thumb{position:relative;width:100%;aspect-ratio:4/3;background:#1a1410;display:flex;align-items:center;justify-content:center;}
+.photo-card .video-play{font-size:32px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.8));pointer-events:none;}
+.lb{position:fixed;inset:0;background:rgba(28,23,18,.95);z-index:300;display:none;align-items:center;justify-content:center;padding:20px}
+.lb.open{display:flex}
+.lb img,.lb video{max-width:100%;max-height:88vh;border-radius:4px;object-fit:contain}
+.lb-x{position:absolute;top:20px;right:20px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#fff;width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .photo-card-meta{
   padding:10px 12px;background:var(--warm);
   border-top:1px solid var(--gold-m);
@@ -536,6 +542,13 @@ footer{text-align:center;padding:24px;font-size:10px;letter-spacing:.18em;color:
   </div>
 </div>
 
+<!-- LIGHTBOX -->
+<div class="lb" id="lb" onclick="closeLB()">
+  <button class="lb-x" onclick="closeLB()">✕</button>
+  <img id="lbImg" src="" alt="" style="display:none">
+  <video id="lbVideo" src="" controls playsinline style="display:none;max-width:100%;max-height:88vh;border-radius:4px"></video>
+</div>
+
 <div class="dash-toast" id="dashToast"></div>
 
 
@@ -762,9 +775,9 @@ function toggleSelectMode() {
   renderPhotos();
 }
 
-function handleCardClick(id, url) {
+function handleCardClick(id, url, isVideo) {
   if (selectMode) toggleSelect(id);
-  else openLB(url);
+  else openLB(url, isVideo);
 }
 
 function toggleSelect(id) {
@@ -862,22 +875,50 @@ function renderPhotos() {
 
   document.getElementById('photoGrid').classList.toggle('select-mode', selectMode);
   grid.innerHTML = photos.map(p => {
-    const cat  = CATEGORIES[p.category] || { emoji:'📷', name:'Autre' };
-    const time = new Date(p.uploaded_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-    const date = new Date(p.uploaded_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'});
+    const cat     = CATEGORIES[p.category] || { emoji:'📷', name:'Autre' };
+    const time    = new Date(p.uploaded_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    const date    = new Date(p.uploaded_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'});
+    const isVideo = p.media_type === 'video';
+    const safeUrl = getPhotoUrl(p).replace(/'/g,'%27');
+    const mediaEl = isVideo
+      ? `<div class="video-thumb"><video src="${getPhotoUrl(p)}" playsinline muted preload="metadata" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.parentElement.style.background='#2a1f10'"></video><span class="video-play">▶</span></div>`
+      : `<img src="${getPhotoUrl(p)}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'">`;
     return `
-    <div class="photo-card ${selectedPhotos.has(p.id)?'selected-card':''}" id="pc-${p.id}" onclick="handleCardClick('${p.id}','${getPhotoUrl(p)}')">
-      <img src="${getPhotoUrl(p)}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'">
+    <div class="photo-card ${selectedPhotos.has(p.id)?'selected-card':''}" id="pc-${p.id}" onclick="handleCardClick('${p.id}','${safeUrl}',${isVideo})">
+      ${mediaEl}
       <div class="photo-card-actions">
-        <button class="photo-action-btn photo-dl-btn" onclick="event.stopPropagation();dlPhoto('${getPhotoUrl(p)}','${p.storage_path}')" title="Télécharger">⬇</button>
+        <button class="photo-action-btn photo-dl-btn" onclick="event.stopPropagation();dlPhoto('${safeUrl}','${p.storage_path}')" title="Télécharger">⬇</button>
         <button class="photo-action-btn photo-del-btn" onclick="event.stopPropagation();askDelete('${p.id}','${p.storage_path}')" title="Supprimer">🗑</button>
       </div>
       <div class="photo-card-meta">
-        <div class="photo-meta-name">${p.uploader_name || 'Invité'} &nbsp;<span style="color:var(--stone)">${cat.emoji}</span></div>
+        <div class="photo-meta-name">${p.uploader_name || 'Invité'} &nbsp;<span style="color:var(--stone)">${cat.emoji}</span>${isVideo ? ' <span style="color:#B8935A;font-size:10px">🎬</span>' : ''}</div>
         <div class="photo-meta-time">${date} à ${time} &nbsp;·&nbsp; ${p.likes||0} ❤️</div>
       </div>
     </div>`;
   }).join('');
+}
+
+function openLB(url, isVideo) {
+  const img   = document.getElementById('lbImg');
+  const video = document.getElementById('lbVideo');
+  if (isVideo) {
+    img.style.display   = 'none'; img.src = '';
+    video.src           = url;
+    video.style.display = 'block';
+    video.load(); video.play().catch(() => {});
+  } else {
+    video.style.display = 'none'; video.pause(); video.src = '';
+    img.src             = url;
+    img.style.display   = 'block';
+  }
+  document.getElementById('lb').classList.add('open');
+}
+function closeLB() {
+  document.getElementById('lb').classList.remove('open');
+  const v = document.getElementById('lbVideo');
+  if (v) { v.pause(); v.src = ''; v.style.display = 'none'; }
+  const i = document.getElementById('lbImg');
+  if (i) { i.src = ''; i.style.display = 'none'; }
 }
 
 // ══════════════════════════════════════════
