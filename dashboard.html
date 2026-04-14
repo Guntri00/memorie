@@ -211,9 +211,11 @@ body{background:var(--cream);font-family:'Jost',sans-serif;font-weight:300;color
   transition:all .25s;
 }
 .photo-card:hover{border-color:var(--gold);box-shadow:0 8px 24px rgba(184,147,90,.15)}
-.photo-card img,.photo-card video{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
-.photo-card .video-thumb{position:relative;width:100%;aspect-ratio:4/3;background:#1a1410;display:flex;align-items:center;justify-content:center;}
-.photo-card .video-play{font-size:32px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.8));pointer-events:none;}
+.photo-card img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+.photo-card .video-thumb{position:relative;width:100%;aspect-ratio:4/3;background:#1a1410;overflow:hidden}
+.photo-card .video-thumb video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.photo-card .video-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.photo-card .video-play span{width:48px;height:48px;background:rgba(255,255,255,.92);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(0,0,0,.5);font-size:20px;padding-left:4px;color:#1a1410}
 .lb{position:fixed;inset:0;background:rgba(28,23,18,.95);z-index:300;display:none;align-items:center;justify-content:center;padding:20px}
 .lb.open{display:flex}
 .lb img,.lb video{max-width:100%;max-height:88vh;border-radius:4px;object-fit:contain}
@@ -881,7 +883,7 @@ function renderPhotos() {
     const isVideo = p.media_type === 'video';
     const safeUrl = getPhotoUrl(p).replace(/'/g,'%27');
     const mediaEl = isVideo
-      ? `<div class="video-thumb"><video src="${getPhotoUrl(p)}" playsinline muted preload="metadata" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.parentElement.style.background='#2a1f10'"></video><span class="video-play">▶</span></div>`
+      ? `<div class="video-thumb"><video src="${getPhotoUrl(p)}" playsinline muted preload="metadata" onloadedmetadata="this.currentTime=0.5" onerror="this.style.display='none'"></video><div class="video-play"><span>▶</span></div></div>`
       : `<img src="${getPhotoUrl(p)}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'">`;
     return `
     <div class="photo-card ${selectedPhotos.has(p.id)?'selected-card':''}" id="pc-${p.id}" onclick="handleCardClick('${p.id}','${safeUrl}',${isVideo})">

@@ -386,6 +386,10 @@ body::after{
 }
 .photo-card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(44,24,16,.15)}
 .photo-card img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.video-thumb{position:relative;width:100%;aspect-ratio:1;background:#1a1410;overflow:hidden}
+.video-thumb video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.video-thumb .vplay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.video-thumb .vplay span{width:48px;height:48px;background:rgba(255,255,255,.92);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(0,0,0,.5);font-size:20px;padding-left:4px;color:#1a1410}
 .photo-card-meta{
   padding:8px 10px;background:rgba(44,24,16,.6);
   border-top:1px solid rgba(212,165,160,.15);
@@ -459,8 +463,9 @@ body::after{
 }
 .ss-img{
   max-width:100vw;max-height:82vh;object-fit:contain;
-  transition:opacity .5s ease,transform .5s ease;
 }
+img.ss-img{transition:opacity .5s ease,transform .5s ease}
+video.ss-img{transition:none;animation:none}
 .ss-footer{
   position:absolute;bottom:0;left:0;right:0;
   padding:20px 24px 32px;
@@ -762,6 +767,7 @@ footer em{font-style:italic;font-family:'Playfair Display',serif;font-size:12px;
   <div class="ss-tag" id="ssTag"></div>
   <div class="ss-num" id="ssNum"></div>
   <img class="ss-img" id="ssImg" src="" alt="">
+  <video class="ss-img" id="ssVideo" src="" playsinline muted style="display:none"></video>
   <div class="ss-footer">
     <div class="ss-footer-info">
       <strong id="ssName"></strong>
@@ -1072,7 +1078,7 @@ function renderPhotos(){
     const isVideo=p.media_type==='video';
     const safeUrl=getPhotoUrl(p).replace(/'/g,'%27');
     const mediaEl=isVideo
-      ? `<div style="position:relative;width:100%;aspect-ratio:4/3;background:#1a1410;display:flex;align-items:center;justify-content:center;overflow:hidden"><video src="${getPhotoUrl(p)}" playsinline muted preload="metadata" style="width:100%;height:100%;object-fit:cover;display:block"></video><span style="position:absolute;font-size:30px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.8));pointer-events:none">▶</span></div>`
+      ? `<div class="video-thumb"><video src="${getPhotoUrl(p)}" playsinline muted preload="metadata" onloadedmetadata="this.currentTime=0.5" onerror="this.style.display='none'"></video><div class="vplay"><span>▶</span></div></div>`
       : `<img src="${getPhotoUrl(p)}" alt="" loading="lazy" crossorigin="anonymous" onerror="this.src='${getPhotoUrl(p)}';this.removeAttribute('crossorigin')">`;
     return `
     <div class="photo-card" onclick="openLB('${safeUrl}',${isVideo})">
@@ -1106,31 +1112,46 @@ function startSlideshow(){
   ssShow(0);ssStartTimer();
 }
 function ssShow(idx){
-  const p   = ssPhotos[idx];
-  const img = document.getElementById('ssImg');
+  const p       = ssPhotos[idx];
+  const img     = document.getElementById('ssImg');
+  const vid     = document.getElementById('ssVideo');
+  const isVideo = p.media_type === 'video';
 
-  // Afficher immédiatement sans animation de fade si image déjà en cache
-  img.style.transition = 'none';
-  img.style.opacity    = '0';
-  img.style.transform  = 'scale(1)';
-  img.crossOrigin = 'anonymous';
-  img.src = p.public_url;
-  img.onload = () => {
-    img.style.transition = 'opacity 0.3s ease';
-    img.style.opacity = '1';
-  };
-  img.onerror = () => {
-    // Retry sans crossOrigin si erreur CORS
-    img.removeAttribute('crossorigin');
-    img.src = p.public_url + '?t=' + Date.now();
-    img.onload = () => { img.style.opacity = '1'; };
-    img.onerror = () => { setTimeout(() => ssNext(), 500); };
-  };
+  // Arrêter la vidéo précédente
+  if (!vid.paused) vid.pause();
+  vid.src = ''; vid.onended = null;
 
-  // Précharger la prochaine image en avance
-  const nextIdx = (idx + 1) % ssPhotos.length;
-  const preload = new Image();
-  preload.src   = ssPhotos[nextIdx].public_url;
+  if (isVideo) {
+    img.style.display = 'none'; img.src = '';
+    vid.muted     = true;
+    vid.oncanplay = null;
+    vid.style.removeProperty('opacity');
+    vid.style.removeProperty('transition');
+    vid.style.display = 'block';
+    vid.src = p.public_url;
+    vid.load();
+    vid.play().catch(() => {});
+    vid.onended = () => { clearTimeout(ssTimer); ssNext(); };
+    clearTimeout(ssTimer);
+    ssTimer = setTimeout(ssNext, 25000);
+  } else {
+    vid.style.display = 'none';
+    img.style.display = 'block';
+    img.style.transition = 'none';
+    img.style.opacity = '0';
+    img.crossOrigin = 'anonymous';
+    img.src = p.public_url;
+    img.onload = () => { img.style.transition = 'opacity 0.3s ease'; img.style.opacity = '1'; };
+    img.onerror = () => {
+      img.removeAttribute('crossorigin');
+      img.src = p.public_url + '?t=' + Date.now();
+      img.onload = () => { img.style.opacity = '1'; };
+      img.onerror = () => { setTimeout(() => ssNext(), 500); };
+    };
+    // Précharger la prochaine image
+    const preload = new Image();
+    preload.src = ssPhotos[(idx + 1) % ssPhotos.length].public_url;
+  }
 
   const cat = CATS[p.category] || {emoji:'📷', name:''};
   document.getElementById('ssTag').textContent  = `${cat.emoji} ${cat.name}`;
@@ -1139,12 +1160,13 @@ function ssShow(idx){
   document.getElementById('ssTime').textContent = new Date(p.uploaded_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
 
   const bar = document.getElementById('ssBarFill');
-  bar.style.transition = 'none';
-  bar.style.width = '0%';
-  requestAnimationFrame(() => {
-    bar.style.transition = `width ${SS_DUR}ms linear`;
-    bar.style.width = '100%';
-  });
+  bar.style.transition = 'none'; bar.style.width = '0%';
+  if (!isVideo) {
+    requestAnimationFrame(() => {
+      bar.style.transition = `width ${SS_DUR}ms linear`;
+      bar.style.width = '100%';
+    });
+  }
 }
 function ssStartTimer(){clearTimeout(ssTimer);if(!ssPlaying)return;ssTimer=setTimeout(ssNext,SS_DUR);}
 function ssNext(){ssIndex=(ssIndex+1)%ssPhotos.length;ssShow(ssIndex);ssStartTimer();}
@@ -1152,10 +1174,21 @@ function ssPrev(){ssIndex=(ssIndex-1+ssPhotos.length)%ssPhotos.length;ssShow(ssI
 function ssToggle(){
   ssPlaying=!ssPlaying;
   document.getElementById('ssPlayBtn').textContent=ssPlaying?'⏸':'▶';
-  if(ssPlaying)ssStartTimer();else clearTimeout(ssTimer);
+  const vid=document.getElementById('ssVideo');
+  if(ssPlaying){
+    if(vid&&vid.style.display!=='none'&&vid.src) vid.play().catch(()=>{});
+    ssStartTimer();
+  } else {
+    if(vid&&!vid.paused) vid.pause();
+    clearTimeout(ssTimer);
+  }
 }
 function ssClose(){
   clearTimeout(ssTimer);
+  const vid=document.getElementById('ssVideo');
+  if(vid){vid.pause();vid.src='';vid.style.display='none';vid.onended=null;}
+  const img=document.getElementById('ssImg');
+  if(img){img.src='';img.style.opacity='1';}
   document.getElementById('ssOverlay').classList.remove('open');
   document.body.style.overflow='';
 }
