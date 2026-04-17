@@ -670,6 +670,11 @@ footer a{color:var(--gold);text-decoration:none}
           <div class="cat-name">Piste de danse</div>
           <div class="cat-desc">La fête jusqu'au bout de la nuit</div>
         </div>
+        <div class="cat-card" onclick="selectCategory('murlive','📺','Le mur live',this)">
+          <span class="cat-emoji">📺</span>
+          <div class="cat-name">Le mur live</div>
+          <div class="cat-desc">Les photos projetées en direct</div>
+        </div>
       </div>
     </div>
     <div id="step-upload" class="upload-section">
@@ -1108,6 +1113,7 @@ const CATEGORIES = [
   { id:'cocktail',  emoji:'🥂', name:'Cocktail' },
   { id:'diner',     emoji:'🍽️', name:'Dîner / Soirée' },
   { id:'danse',     emoji:'💃', name:'Piste de danse' },
+  { id:'murlive',   emoji:'📺', name:'Le mur live' },
 ];
 
 // ── Échapper HTML (anti-XSS) ──
@@ -1652,13 +1658,13 @@ async function loadGallery() {
           ? `<video src="${imgUrl(p)}" muted playsinline preload="metadata"
                onloadedmetadata="this.currentTime=0.5"
                onseeked="this.closest('.cw-thumb').classList.add('loaded')"
-               onerror="this.closest('.cw-thumb').classList.add('loaded')"
+               onerror="cleanupBrokenMedia('${p.id}','${cat.id}',this.closest('.cw-thumb'))"
                style="width:100%;height:100%;object-fit:cover;display:block"></video>
              <div class="vplay-ico"><span>▶</span></div>`
           : `<img src="${imgUrl(p,'thumb')}" alt="" decoding="async" fetchpriority="high"
                onload="this.parentElement.classList.add('loaded')"
-               onerror="this.parentElement.classList.add('loaded')">`;
-        return `<div class="cw-thumb loaded" id="th-${p.id}">${thumb}</div>`;
+               onerror="cleanupBrokenMedia('${p.id}','${cat.id}',this.closest('.cw-thumb'))">`;
+        return `<div class="cw-thumb loaded" id="th-${p.id}" data-photo-id="${p.id}">${thumb}</div>`;
       }).join('');
 
       const names = [...new Set(photos.map(p=>p.uploader_name||'Invité'))].slice(0,4);
@@ -1843,22 +1849,23 @@ function buildPhotoItem(p) {
   const clickFn    = isVideo ? `openLBVideo('${safeUrl}')` : `openLB('${safeUrl}')`;
   const dlExt      = isVideo ? 'webm' : 'jpg';
 
+  const safeCat    = (p.category||'').replace(/'/g,'%27');
   const mediaEl = isVideo
     ? `<div class="video-thumb">
          <video src="${esc(url)}" playsinline muted preload="metadata"
                 style="width:100%;height:100%;object-fit:cover;display:block"
                 onloadeddata="this.closest('.gitem').classList.add('loaded')"
-                onerror="this.closest('.gitem').classList.add('loaded')"></video>
+                onerror="cleanupBrokenMedia('${safeId}','${safeCat}',this.closest('.gitem'))"></video>
          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;background:rgba(0,0,0,.15)">
            <span style="font-size:40px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.8))">▶</span>
          </div>
        </div>`
     : `<img src="${esc(url)}" alt="Photo de ${safeName}" loading="lazy"
             onload="this.closest('.gitem').classList.add('loaded')"
-            onerror="this.closest('.gitem').classList.add('loaded');this.closest('.gitem').style.display='none'">`;
+            onerror="cleanupBrokenMedia('${safeId}','${safeCat}',this.closest('.gitem'))">`;
 
   return `
-    <div class="gitem" id="photo-${safeId}" onclick="${clickFn}">
+    <div class="gitem" id="photo-${safeId}" data-photo-id="${safeId}" onclick="${clickFn}">
       ${mediaEl}
       <div class="gmeta">par ${safeName}</div>
       <button class="dl-btn" onclick="event.stopPropagation();downloadPhoto('${safeUrl}','mementos-${safeId.substring(0,6)}.${dlExt}')" title="Télécharger">⬇️</button>
@@ -1911,6 +1918,61 @@ function startDeleteTimer(photoId, remainingMs) {
 
   tick();
   timerIntervals[photoId] = setInterval(tick, 1000);
+}
+
+// ══════════════════════════════════════════
+//  NETTOYAGE AUTO DES MÉDIAS CASSÉS
+// ══════════════════════════════════════════
+const _cleanedBrokenIds = new Set();
+async function cleanupBrokenMedia(id, category, tileEl) {
+  if (!id) { if (tileEl) tileEl.style.display = 'none'; return; }
+  if (_cleanedBrokenIds.has(id)) {
+    document.querySelectorAll(`[data-photo-id="${id}"]`).forEach(n => n.remove());
+    return;
+  }
+  _cleanedBrokenIds.add(id);
+
+  document.querySelectorAll(`[data-photo-id="${id}"]`).forEach(n => n.remove());
+  if (tileEl && tileEl.parentElement) tileEl.remove();
+
+  if (Array.isArray(allPhotos)) {
+    allPhotos = allPhotos.filter(p => String(p.id) !== String(id));
+  }
+
+  const totalEl = document.getElementById('totalCount');
+  if (totalEl) totalEl.textContent = allPhotos.length;
+
+  if (category) {
+    const catCount = allPhotos.filter(p => p.category === category).length;
+    const cntEl = document.getElementById('cnt-' + category);
+    if (cntEl) cntEl.textContent = catCount === 0 ? 'Aucune photo encore' : `${catCount} photo${catCount>1?'s':''}`;
+    if (catCount === 0) {
+      const slider = document.getElementById('slider-' + category);
+      const namesEl = document.getElementById('names-' + category);
+      if (namesEl) namesEl.textContent = '';
+      if (slider) {
+        const emoji = (CATEGORIES.find(c => c.id === category) || {}).emoji || '📷';
+        const empty = document.createElement('div');
+        empty.className = 'cw-empty';
+        empty.innerHTML = `<div class="ei">${emoji}</div><span>Soyez le premier à partager !</span>`;
+        slider.replaceWith(empty);
+      }
+    }
+  }
+
+  try {
+    await fetch(`${SB_URL}/rest/v1/photos?id=eq.${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      mode: 'cors',
+      credentials: 'omit',
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': `Bearer ${SB_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      }
+    });
+  } catch (e) { /* silencieux */ }
 }
 
 // ══════════════════════════════════════════
