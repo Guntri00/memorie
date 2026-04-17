@@ -465,7 +465,7 @@ footer{text-align:center;padding:24px;font-size:10px;letter-spacing:.18em;color:
 
     <!-- PHOTOS PAR CATÉGORIE -->
     <div class="section-hdr">
-      <h2 class="section-title">Toutes les photos</h2>
+      <h2 class="section-title">Photos & Vidéos</h2>
       <div class="section-actions">
         <button class="btn btn-outline" onclick="refreshPhotos()">↻ Actualiser</button>
         <button class="btn-select-mode" id="btnSelectMode" onclick="toggleSelectMode()">☑ Sélectionner</button>
@@ -473,7 +473,7 @@ footer{text-align:center;padding:24px;font-size:10px;letter-spacing:.18em;color:
       </div>
     </div>
     <div class="select-bar" id="selectBar">
-      <div class="select-bar-info"><strong id="selectCount">0</strong> photo(s) sélectionnée(s)</div>
+      <div class="select-bar-info"><strong id="selectCount">0</strong> fichier(s) sélectionné(s)</div>
       <div class="select-bar-actions">
         <button class="btn-sb btn-sb-outline" onclick="selectAll()">Tout sélectionner</button>
         <button class="btn-sb btn-sb-outline" onclick="deselectAll()">Désélectionner</button>
@@ -545,7 +545,7 @@ footer{text-align:center;padding:24px;font-size:10px;letter-spacing:.18em;color:
 </div>
 
 <!-- LIGHTBOX -->
-<div class="lb" id="lb" onclick="closeLB()">
+<div class="lb" id="lb" onclick="if(event.target===this)closeLB()">
   <button class="lb-x" onclick="closeLB()">✕</button>
   <img id="lbImg" src="" alt="" style="display:none">
   <video id="lbVideo" src="" controls playsinline style="display:none;max-width:100%;max-height:88vh;border-radius:4px"></video>
@@ -553,7 +553,7 @@ footer{text-align:center;padding:24px;font-size:10px;letter-spacing:.18em;color:
 
 <div class="dash-toast" id="dashToast"></div>
 
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 <script>
 // ══════════════════════════════════════════
@@ -628,13 +628,21 @@ let currentFilter    = 'all';
 let pendingDeleteId  = null;
 let pendingDeletePath= null;
 
+// ── Échappement HTML ──
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
 // ══════════════════════════════════════════
 //  AUTH
 // ══════════════════════════════════════════
 
 
 
-function doLogin() {
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function doLogin() {
   const user = document.getElementById('loginInput').value.trim();
   const pwd  = document.getElementById('pwdInput').value;
   const err  = document.getElementById('loginErr');
@@ -644,8 +652,10 @@ function doLogin() {
     return;
   }
 
-  // Comparaison directe — fiable partout
-  if (user === 'Guntri' && pwd === 'Feriel01!!') {
+  const userHash = await sha256(user);
+  const pwdHash  = await sha256(pwd);
+
+  if (userHash === LOGIN_H && pwdHash === PWD_H) {
     sessionStorage.setItem('mementos_auth', '1');
     document.getElementById('loginWrap').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';
@@ -843,7 +853,7 @@ async function deleteSelected() {
   selectedPhotos.clear();
   updateStats();
   toggleSelectMode();
-  toast(`${done} photo${done>1?'s':''} supprimée${done>1?'s':''}  définitivement !`);
+  toast(`${done} photo${done>1?'s':''} supprimée${done>1?'s':''} définitivement !`);
 }
 
 function filterCat(cat, btn) {
@@ -882,18 +892,21 @@ function renderPhotos() {
     const date    = new Date(p.uploaded_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'});
     const isVideo = p.media_type === 'video';
     const safeUrl = getPhotoUrl(p).replace(/'/g,'%27');
+    const safePath = (p.storage_path||'').replace(/'/g,'%27');
+    const safeId   = esc(String(p.id));
+    const safeName = esc(p.uploader_name || 'Invité');
     const mediaEl = isVideo
-      ? `<div class="video-thumb"><video src="${getPhotoUrl(p)}" playsinline muted preload="metadata" onloadedmetadata="this.currentTime=0.5" onerror="this.style.display='none'"></video><div class="video-play"><span>▶</span></div></div>`
-      : `<img src="${getPhotoUrl(p)}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'">`;
+      ? `<div class="video-thumb"><video src="${safeUrl}" playsinline muted preload="metadata" onloadedmetadata="this.currentTime=0.5" onerror="this.style.display='none'"></video><div class="video-play"><span>▶</span></div></div>`
+      : `<img src="${safeUrl}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'">`;
     return `
-    <div class="photo-card ${selectedPhotos.has(p.id)?'selected-card':''}" id="pc-${p.id}" onclick="handleCardClick('${p.id}','${safeUrl}',${isVideo})">
+    <div class="photo-card ${selectedPhotos.has(p.id)?'selected-card':''}" id="pc-${safeId}" onclick="handleCardClick('${safeId}','${safeUrl}',${isVideo})">
       ${mediaEl}
       <div class="photo-card-actions">
-        <button class="photo-action-btn photo-dl-btn" onclick="event.stopPropagation();dlPhoto('${safeUrl}','${p.storage_path}')" title="Télécharger">⬇</button>
-        <button class="photo-action-btn photo-del-btn" onclick="event.stopPropagation();askDelete('${p.id}','${p.storage_path}')" title="Supprimer">🗑</button>
+        <button class="photo-action-btn photo-dl-btn" onclick="event.stopPropagation();dlPhoto('${safeUrl}','${safePath}')" title="Télécharger">⬇</button>
+        <button class="photo-action-btn photo-del-btn" onclick="event.stopPropagation();askDelete('${safeId}','${safePath}')" title="Supprimer">🗑</button>
       </div>
       <div class="photo-card-meta">
-        <div class="photo-meta-name">${p.uploader_name || 'Invité'} &nbsp;<span style="color:var(--stone)">${cat.emoji}</span>${isVideo ? ' <span style="color:#B8935A;font-size:10px">🎬</span>' : ''}</div>
+        <div class="photo-meta-name">${safeName} &nbsp;<span style="color:var(--stone)">${cat.emoji}</span>${isVideo ? ' <span style="color:#B8935A;font-size:10px">🎬</span>' : ''}</div>
         <div class="photo-meta-time">${date} à ${time} &nbsp;·&nbsp; ${p.likes||0} ❤️</div>
       </div>
     </div>`;
@@ -936,17 +949,17 @@ async function dlPhoto(url, path) {
     a.href     = URL.createObjectURL(blob);
     a.download = `mementos-${Date.now()}.${ext}`;
     a.click();
-    URL.revokeObjectURL(a.href);
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
     toast('✓ Photo téléchargée !');
   } catch(e) { window.open(url,'_blank'); }
 }
 
 async function downloadZip(catFilter) {
-  const photos = catFilter === 'all'
+  const items = catFilter === 'all'
     ? allPhotos
     : allPhotos.filter(p => p.category === catFilter);
 
-  if (!photos.length) { toast('Aucune photo à télécharger'); return; }
+  if (!items.length) { toast('Aucun fichier à télécharger'); return; }
 
   const prog  = document.getElementById('zipProgress');
   const bar   = document.getElementById('zipBar');
@@ -957,34 +970,46 @@ async function downloadZip(catFilter) {
   prog.classList.add('show');
   if (btn) btn.disabled = true;
 
-  const zip   = new JSZip();
-  const total = photos.length;
-  let   done  = 0;
+  const zip    = new JSZip();
+  const total  = items.length;
+  let   done   = 0;
+  let   errors = 0;
 
-  for (let i = 0; i < photos.length; i++) {
-    const p = photos[i];
-    label.textContent = `Chargement ${i+1} / ${total}...`;
+  for (let i = 0; i < items.length; i++) {
+    const p = items[i];
+    const isVideo = p.media_type === 'video';
+    label.textContent = `Chargement ${i+1} / ${total}${isVideo ? ' (vidéo)' : ''}…`;
     try {
       const controller = new AbortController();
-      const timeout    = setTimeout(() => controller.abort(), 30000);
+      // 2 min pour les vidéos, 30s pour les photos
+      const timeoutMs  = isVideo ? 120000 : 30000;
+      const timeout    = setTimeout(() => controller.abort(), timeoutMs);
       const res = await fetch(getPhotoUrl(p), { mode:'cors', credentials:'omit', signal: controller.signal });
       clearTimeout(timeout);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const blob = await res.blob();
-      const ext  = (p.storage_path || 'photo.jpg').split('.').pop().toLowerCase() || 'jpg';
-      const cat  = p.category || 'photo';
-      const name = (p.uploader_name || 'Invite').replace(/[^a-zA-Z0-9]/g, '_');
-      zip.file(`${cat}/${String(i+1).padStart(3,'0')}_${name}.${ext}`, blob);
+      const ext  = (p.storage_path || (isVideo ? 'video.webm' : 'photo.jpg')).split('.').pop().toLowerCase() || (isVideo ? 'webm' : 'jpg');
+      const cat  = p.category || 'autre';
+      const name = (p.uploader_name || 'Invite').replace(/[^a-zA-ZÀ-ÿ0-9]/g, '_');
+      const prefix = isVideo ? 'VID' : 'IMG';
+      zip.file(`${cat}/${prefix}_${String(i+1).padStart(3,'0')}_${name}.${ext}`, blob);
       done++;
-    } catch(e) { console.warn(`Photo ${i+1} echouee:`, e.message); }
+    } catch(e) {
+      console.warn(`Fichier ${i+1} échoué:`, e.message);
+      errors++;
+    }
     const p1 = Math.round(((i+1) / total) * 70);
     bar.style.width = p1 + '%'; pct.textContent = p1 + '%';
   }
 
-  label.textContent = `Compression de ${done} photos...`;
+  // STORE si vidéos présentes (compression inutile sur mp4/webm)
+  const hasVideos = items.some(p => p.media_type === 'video');
+  label.textContent = `Compression de ${done} fichier${done > 1 ? 's' : ''}…`;
   try {
     const zipBlob = await zip.generateAsync({
-      type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 5 }
+      type: 'blob',
+      compression: hasVideos ? 'STORE' : 'DEFLATE',
+      compressionOptions: hasVideos ? {} : { level: 5 }
     }, (meta) => {
       const p2 = 70 + Math.round(meta.percent * 0.3);
       bar.style.width = p2 + '%'; pct.textContent = p2 + '%';
@@ -996,7 +1021,16 @@ async function downloadZip(catFilter) {
     a.style.display = 'none';
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-    toast(`ZIP de ${done}/${total} photos telecharge !`);
+
+    const imgs = items.filter(p => p.media_type !== 'video').length;
+    const vids = items.filter(p => p.media_type === 'video').length;
+    const parts = [];
+    if (imgs) parts.push(`${imgs} photo${imgs > 1 ? 's' : ''}`);
+    if (vids) parts.push(`${vids} vidéo${vids > 1 ? 's' : ''}`);
+    toast(errors
+      ? `ZIP téléchargé (${done} fichier${done > 1 ? 's' : ''}, ${errors} échoué${errors > 1 ? 's' : ''})`
+      : `ZIP de ${parts.join(' + ')} téléchargé !`
+    );
   } catch(e) { toast('Erreur ZIP : ' + e.message); }
 
   prog.classList.remove('show'); bar.style.width = '0%';
@@ -1027,10 +1061,11 @@ async function confirmDelete() {
   if (card) card.style.opacity = '0.4';
 
   try {
-    await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${path}`, {
+    const storageRes = await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${path}`, {
       method:'DELETE', mode:'cors', credentials:'omit',
       headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json' }
     });
+    if (!storageRes.ok) console.warn('Storage delete failed:', storageRes.status);
     await fetch(`${SB_URL}/rest/v1/photos?id=eq.${id}`, {
       method:'DELETE', mode:'cors', credentials:'omit',
       headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal' }
@@ -1049,7 +1084,7 @@ async function confirmDelete() {
 // ══════════════════════════════════════════
 //  TOGGLE UPLOADS
 // ══════════════════════════════════════════
-function toggleUploads() {
+async function toggleUploads() {
   const enabled = document.getElementById('uploadToggle').checked;
   const status  = document.getElementById('toggleStatus');
   status.textContent = enabled
@@ -1057,8 +1092,19 @@ function toggleUploads() {
     : '● Désactivé — galerie verrouillée';
   status.className = 'toggle-status ' + (enabled ? 'on' : 'off');
   try {
-    localStorage.setItem('mementos_uploads_enabled', enabled ? '1' : '0');
-  } catch(e) {}
+    await fetch(`${SB_URL}/rest/v1/events?id=eq.${EVENT_ID}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': `Bearer ${SB_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ uploads_enabled: enabled })
+    });
+  } catch(e) {
+    console.warn('Toggle uploads sync failed:', e);
+  }
   toast(enabled ? '✓ Uploads activés' : '✓ Uploads désactivés');
 }
 
