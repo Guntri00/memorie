@@ -719,9 +719,40 @@ async function refreshPhotos() {
     // Afficher le total dans le bouton refresh
     const btn = document.querySelector('[onclick="refreshPhotos()"]');
     if (btn) btn.textContent = `↻ Actualiser (${allPhotos.length})`;
+    // Validation proactive en arrière-plan : nettoie les enregistrements orphelins
+    validateStorageUrls();
   } catch(err) {
     console.error('Fetch error:', err);
     toast('⚠️ ' + err.message);
+  }
+}
+
+// Validateur en tâche de fond : HEAD chaque URL, nettoie les 404
+let _validatorRunning = false;
+async function validateStorageUrls() {
+  if (_validatorRunning) return;
+  _validatorRunning = true;
+  try {
+    const photos = allPhotos.slice();
+    const CONCURRENCY = 6;
+    let idx = 0;
+    async function worker() {
+      while (idx < photos.length) {
+        const p = photos[idx++];
+        const url = getPhotoUrl(p);
+        if (!url) continue;
+        try {
+          const res = await fetch(url, { method: 'HEAD', mode: 'cors', cache: 'no-store' });
+          if (res.status === 404 || res.status === 400 || res.status === 403) {
+            const tile = document.querySelector(`[data-photo-id="${p.id}"]`);
+            cleanupBrokenMedia(p.id, tile);
+          }
+        } catch (e) { /* erreurs réseau ignorées — on se fie à onerror */ }
+      }
+    }
+    await Promise.all(Array(CONCURRENCY).fill(0).map(worker));
+  } finally {
+    _validatorRunning = false;
   }
 }
 
@@ -896,8 +927,8 @@ function renderPhotos() {
     const safeId   = esc(String(p.id));
     const safeName = esc(p.uploader_name || 'Invité');
     const mediaEl = isVideo
-      ? `<div class="video-thumb"><video src="${safeUrl}" playsinline muted preload="metadata" onloadedmetadata="this.currentTime=0.5" onerror="cleanupBrokenMedia('${safeId}',this.closest('.photo-card'))"></video><div class="video-play"><span>▶</span></div></div>`
-      : `<img src="${safeUrl}" alt="" loading="lazy" onerror="cleanupBrokenMedia('${safeId}',this.closest('.photo-card'))">`;
+      ? `<div class="video-thumb"><video src="${safeUrl}" playsinline muted preload="metadata" onloadedmetadata="if(!this.videoWidth){cleanupBrokenMedia('${safeId}',this.closest('.photo-card'));return}this.currentTime=0.5" onerror="cleanupBrokenMedia('${safeId}',this.closest('.photo-card'))" onstalled="setTimeout(()=>{if(this.networkState===3||this.readyState===0)cleanupBrokenMedia('${safeId}',this.closest('.photo-card'))},4000)"></video><div class="video-play"><span>▶</span></div></div>`
+      : `<img src="${safeUrl}" alt="" loading="lazy" onload="if(!this.naturalWidth)cleanupBrokenMedia('${safeId}',this.closest('.photo-card'))" onerror="cleanupBrokenMedia('${safeId}',this.closest('.photo-card'))">`;
     return `
     <div class="photo-card ${selectedPhotos.has(p.id)?'selected-card':''}" id="pc-${safeId}" data-photo-id="${safeId}" onclick="handleCardClick('${safeId}','${safeUrl}',${isVideo})">
       ${mediaEl}
