@@ -571,40 +571,56 @@ footer a{color:var(--gold);text-decoration:none}
 #cameraPermission { background: #1C1712; border-radius: 12px; min-height: 260px; }
 
 /* ═══════════════════════════════════════════
-   MUR LIVE
+   MUR LIVE — version intégrée (chaleureuse)
    ═══════════════════════════════════════════ */
-.wall-intro{padding:32px 18px;text-align:center}
-.wall-title{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--gold);margin-bottom:10px;letter-spacing:.01em}
-.wall-sub{font-size:13px;color:var(--stone);max-width:420px;margin:0 auto 28px;line-height:1.6;letter-spacing:.03em}
-.wall-actions{display:flex;flex-direction:column;align-items:center;gap:22px}
-.wall-launch-btn{background:var(--gold);color:var(--warm);border:none;border-radius:3px;padding:18px 44px;font-family:'Jost',sans-serif;font-size:12px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;cursor:pointer;transition:all .3s;box-shadow:0 12px 32px rgba(184,147,90,.28)}
-.wall-launch-btn:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(184,147,90,.38)}
-.wall-hints{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:6px}
-.wh-item{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--gold-m);border-radius:22px;font-size:11px;color:var(--stone);letter-spacing:.04em}
-.wh-ico{font-size:14px;color:var(--gold)}
+.wall-inline{background:linear-gradient(180deg,#FDF8F2 0%,#FAF3E8 100%);border:1px solid var(--gold-m);border-radius:10px;padding:22px;box-shadow:0 10px 32px rgba(184,147,90,.10)}
+.wall-inline-head{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid rgba(184,147,90,.18)}
+.wall-inline-title{display:flex;align-items:center;gap:14px}
+.wall-inline-emoji{font-size:34px;filter:drop-shadow(0 2px 6px rgba(184,147,90,.3))}
+.wall-inline-h1{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:var(--gold);margin:0;letter-spacing:.01em;line-height:1.2}
+.wall-inline-sub{font-size:12px;color:var(--stone);margin:3px 0 0;letter-spacing:.04em;line-height:1.4}
+.wall-inline-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.wall-inline-live{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;background:#fff;border:1px solid var(--gold-m);border-radius:22px;font-size:11px;color:var(--gold);font-weight:500;letter-spacing:.08em}
+.wall-fs-btn{background:var(--gold);color:var(--warm);border:none;border-radius:22px;padding:9px 18px;font-family:'Jost',sans-serif;font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:all .25s;box-shadow:0 6px 18px rgba(184,147,90,.25)}
+.wall-fs-btn:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(184,147,90,.35)}
 
-.wall-overlay{position:fixed;inset:0;background:#0A0806;z-index:9999;display:none;overflow:hidden}
-.wall-overlay.open{display:block}
-.wall-grid{position:absolute;inset:0;padding:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));grid-auto-rows:220px;gap:10px;overflow:hidden;align-content:start}
-@media (min-width:1400px){ .wall-grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr));grid-auto-rows:260px} }
-@media (min-width:1900px){ .wall-grid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));grid-auto-rows:300px;gap:14px} }
-.wall-tile{position:relative;border-radius:6px;overflow:hidden;background:#1C1712;box-shadow:0 8px 24px rgba(0,0,0,.5);animation:wallIn .9s cubic-bezier(.2,.8,.2,1)}
-.wall-tile.new{animation:wallPop 1.2s cubic-bezier(.2,.9,.2,1),wallGlow 2.6s ease-out}
-.wall-tile.wide{grid-column:span 2}
-.wall-tile.tall{grid-row:span 2}
+.wall-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));grid-auto-rows:180px;gap:10px;align-content:start}
+.wall-grid-inline{min-height:220px}
+.wall-tile{position:relative;border-radius:8px;overflow:hidden;background:#F5E8D0;box-shadow:0 4px 14px rgba(44,24,16,.12);animation:wallIn .9s cubic-bezier(.2,.8,.2,1);transition:transform .3s}
+.wall-tile:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(184,147,90,.25)}
+.wall-tile.new{animation:wallPop 1.2s cubic-bezier(.2,.9,.2,1),wallGlow 3s ease-out}
 .wall-tile img,.wall-tile video{width:100%;height:100%;object-fit:cover;display:block}
-.wall-tile .wt-meta{position:absolute;left:0;right:0;bottom:0;padding:16px 14px 12px;background:linear-gradient(transparent,rgba(0,0,0,.75));color:#F5E8D0;font-family:'Cormorant Garamond',serif;font-size:18px;letter-spacing:.02em;pointer-events:none}
-.wall-tile .wt-cat{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.55);color:#fff;padding:5px 11px;border-radius:22px;font-size:11px;letter-spacing:.08em;backdrop-filter:blur(6px)}
-.wall-tile .wt-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;font-size:48px;color:#fff;filter:drop-shadow(0 2px 8px rgba(0,0,0,.8))}
+.wall-tile .wt-meta{position:absolute;left:0;right:0;bottom:0;padding:14px 12px 10px;background:linear-gradient(transparent,rgba(28,23,18,.75));color:#F5E8D0;font-family:'Cormorant Garamond',serif;font-size:16px;letter-spacing:.02em;pointer-events:none}
+.wall-tile .wt-cat{position:absolute;top:8px;left:8px;background:rgba(255,255,255,.9);color:var(--gold);padding:4px 10px;border-radius:22px;font-size:10px;letter-spacing:.08em;font-weight:500;backdrop-filter:blur(6px);box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.wall-tile .wt-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;font-size:40px;color:#fff;filter:drop-shadow(0 2px 8px rgba(0,0,0,.6))}
+
 @keyframes wallIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
 @keyframes wallPop{0%{opacity:0;transform:scale(.6)}60%{opacity:1;transform:scale(1.04)}100%{transform:scale(1)}}
-@keyframes wallGlow{0%{box-shadow:0 0 0 3px var(--gold),0 12px 32px rgba(184,147,90,.6)}100%{box-shadow:0 8px 24px rgba(0,0,0,.5)}}
+@keyframes wallGlow{0%{box-shadow:0 0 0 3px var(--gold),0 12px 32px rgba(184,147,90,.5)}100%{box-shadow:0 4px 14px rgba(44,24,16,.12)}}
+
+.wall-live-dot{width:8px;height:8px;border-radius:50%;background:#E53935;box-shadow:0 0 0 0 rgba(229,57,53,.5);animation:wallPulse 1.8s ease-out infinite}
+@keyframes wallPulse{0%{box-shadow:0 0 0 0 rgba(229,57,53,.5)}100%{box-shadow:0 0 0 12px rgba(229,57,53,0)}}
+
+.wall-empty-inline{display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:48px 20px;color:var(--stone)}
+.wall-inline.empty .wall-empty-inline{display:flex}
+.wall-inline.empty .wall-grid{display:none}
+.we-ico{font-size:56px;margin-bottom:16px}
+.we-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:var(--gold);margin:0 0 8px;letter-spacing:.01em}
+.we-sub{font-size:12px;color:var(--stone);margin:0;letter-spacing:.04em;line-height:1.5;max-width:320px}
+
+/* ─── MUR LIVE — version plein écran (projection) ─── */
+.wall-overlay{position:fixed;inset:0;background:#0A0806;z-index:9999;display:none;overflow:hidden}
+.wall-overlay.open{display:block}
+.wall-overlay .wall-grid{position:absolute;inset:0;padding:14px;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));grid-auto-rows:220px;overflow:hidden}
+@media (min-width:1400px){ .wall-overlay .wall-grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr));grid-auto-rows:260px} }
+@media (min-width:1900px){ .wall-overlay .wall-grid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));grid-auto-rows:300px;gap:14px} }
+.wall-overlay .wall-tile{background:#1C1712;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.wall-overlay .wall-tile:hover{transform:none}
+.wall-overlay .wall-tile .wt-cat{background:rgba(0,0,0,.55);color:#fff}
 
 .wall-status{position:fixed;top:18px;left:22px;z-index:10001;display:flex;align-items:center;gap:10px;padding:10px 18px;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);border-radius:26px;color:#fff;font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.14em}
-.wall-live-dot{width:8px;height:8px;border-radius:50%;background:#E53935;box-shadow:0 0 0 0 rgba(229,57,53,.6);animation:wallPulse 1.6s ease-out infinite}
 .wall-live-label{font-weight:600;color:#fff}
 .wall-sep{opacity:.4}
-@keyframes wallPulse{0%{box-shadow:0 0 0 0 rgba(229,57,53,.6)}100%{box-shadow:0 0 0 14px rgba(229,57,53,0)}}
 
 .wall-close{position:fixed;top:18px;right:22px;z-index:10001;width:44px;height:44px;border:none;border-radius:50%;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);color:#fff;font-size:18px;cursor:pointer;transition:all .2s}
 .wall-close:hover{background:rgba(229,57,53,.85);transform:rotate(90deg)}
@@ -612,12 +628,16 @@ footer a{color:var(--gold);text-decoration:none}
 .wall-empty{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;color:#8b7d67;text-align:center;padding:20px}
 .wall-overlay.empty .wall-empty{display:flex}
 .wall-overlay.empty .wall-grid{display:none}
-.we-ico{font-size:72px;margin-bottom:18px;opacity:.5}
-.wall-empty p{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;margin:0}
-.we-sub{font-family:'Jost',sans-serif !important;font-size:12px !important;letter-spacing:.08em;margin-top:10px !important;opacity:.7}
+.wall-overlay .we-ico{font-size:72px;opacity:.5}
+.wall-overlay .we-title{color:#E8D9BE;font-size:26px}
 
 @media (max-width:640px){
-  .wall-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));grid-auto-rows:140px;gap:6px;padding:8px}
+  .wall-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));grid-auto-rows:130px;gap:6px}
+  .wall-inline{padding:14px}
+  .wall-inline-emoji{font-size:28px}
+  .wall-inline-h1{font-size:21px}
+  .wall-inline-sub{font-size:11px}
+  .wall-overlay .wall-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));grid-auto-rows:140px;padding:8px}
   .wall-status{top:12px;left:12px;font-size:10px;padding:7px 12px}
   .wall-close{top:12px;right:12px;width:36px;height:36px}
 }
@@ -870,16 +890,28 @@ footer a{color:var(--gold);text-decoration:none}
 
   <!-- MUR LIVE -->
   <div id="panel-wall" class="panel">
-    <div class="wall-intro">
-      <p class="wall-title">📺 Le mur live</p>
-      <p class="wall-sub">Une mosaïque plein écran qui s'actualise en temps réel — idéale à projeter sur grand écran</p>
-      <div class="wall-actions">
-        <button class="wall-launch-btn" onclick="startLiveWall()">▶  Lancer le mur live</button>
-        <div class="wall-hints">
-          <div class="wh-item"><span class="wh-ico">⎋</span> Échap pour quitter</div>
-          <div class="wh-item"><span class="wh-ico">⟳</span> Mise à jour automatique</div>
-          <div class="wh-item"><span class="wh-ico">⛶</span> Plein écran auto</div>
+    <div class="wall-inline">
+      <div class="wall-inline-head">
+        <div class="wall-inline-title">
+          <span class="wall-inline-emoji">✨</span>
+          <div>
+            <p class="wall-inline-h1">Le mur des souvenirs</p>
+            <p class="wall-inline-sub">Chaque photo partagée apparaît ici, comme par magie</p>
+          </div>
         </div>
+        <div class="wall-inline-actions">
+          <div class="wall-inline-live">
+            <div class="wall-live-dot"></div>
+            <span>En direct · <span id="wallCountInline">0</span></span>
+          </div>
+          <button class="wall-fs-btn" onclick="startLiveWallFullscreen()" title="Projeter en plein écran">⛶ Projeter</button>
+        </div>
+      </div>
+      <div class="wall-grid wall-grid-inline" id="wallGridInline"></div>
+      <div class="wall-empty-inline" id="wallEmptyInline">
+        <div class="we-ico">💛</div>
+        <p class="we-title">Les premiers souvenirs arrivent bientôt…</p>
+        <p class="we-sub">Les photos partagées par les invités s'afficheront ici en direct</p>
       </div>
     </div>
   </div>
@@ -1474,6 +1506,7 @@ function switchTab(id, btn) {
   btn.classList.add('on');
   document.getElementById('panel-' + id).classList.add('on');
   if (id === 'gallery') loadGallery();
+  else if (id === 'wall') { stopAllSliders(); stopCamera(); openInlineWall(); }
   else { stopAllSliders(); stopCamera(); }
 
   // Réinitialiser la galerie à la vue widgets quand on quitte l'onglet
@@ -1481,6 +1514,9 @@ function switchTab(id, btn) {
     document.getElementById('gallery-detail').style.display  = 'none';
     document.getElementById('gallery-widgets').style.display = 'block';
   }
+
+  // Désactiver les hooks Realtime du mur quand on quitte l'onglet
+  if (id !== 'wall') { inlineWallActive = false; }
 }
 
 // ══════════════════════════════════════════
@@ -2541,10 +2577,11 @@ function showDlToast(msg) {
 })();
 
 // ══════════════════════════════════════════
-//  MUR LIVE (projection plein écran)
+//  MUR LIVE — intégré + projection plein écran
 // ══════════════════════════════════════════
 const WALL_MAX_TILES = 80;
-let liveWallOpen = false;
+let liveWallOpen     = false;   // overlay plein écran
+let inlineWallActive = false;   // vue intégrée dans l'onglet
 
 function catMeta(catId){ return (CATEGORIES.find(c => c.id === catId)) || { emoji:'📷', name:'' }; }
 
@@ -2572,48 +2609,51 @@ function buildWallTile(p, isNew){
   return tile;
 }
 
-function refreshWallCount(){
-  const el = document.getElementById('wallCount');
-  const grid = document.getElementById('wallGrid');
-  if (el && grid) el.textContent = grid.children.length;
-  const overlay = document.getElementById('liveWallOverlay');
-  if (overlay) overlay.classList.toggle('empty', !grid.children.length);
+function refreshWallCounts(){
+  const inline = document.getElementById('wallGridInline');
+  if (inline) {
+    const n = inline.children.length;
+    const c = document.getElementById('wallCountInline');
+    if (c) c.textContent = n + ' souvenir' + (n > 1 ? 's' : '');
+    const wrap = document.querySelector('.wall-inline');
+    if (wrap) wrap.classList.toggle('empty', !n);
+  }
+  const fs = document.getElementById('wallGrid');
+  if (fs) {
+    const n = fs.children.length;
+    const c = document.getElementById('wallCount');
+    if (c) c.textContent = n;
+    const overlay = document.getElementById('liveWallOverlay');
+    if (overlay) overlay.classList.toggle('empty', !n);
+  }
 }
 
 function wallOnInsert(p){
-  if (!liveWallOpen) return;
-  const grid = document.getElementById('wallGrid');
-  if (!grid) return;
-  if (grid.querySelector(`[data-wall-id="${String(p.id).replace(/"/g,'')}"]`)) return;
-  const tile = buildWallTile(p, true);
-  grid.prepend(tile);
-  while (grid.children.length > WALL_MAX_TILES) grid.lastElementChild.remove();
-  refreshWallCount();
+  const pid = String(p.id).replace(/"/g,'');
+  [document.getElementById('wallGridInline'), document.getElementById('wallGrid')].forEach(grid => {
+    if (!grid) return;
+    // n'alimente la grille inline que si l'onglet est actif, la plein écran que si ouvert
+    if (grid.id === 'wallGridInline' && !inlineWallActive) return;
+    if (grid.id === 'wallGrid' && !liveWallOpen) return;
+    if (grid.querySelector(`[data-wall-id="${pid}"]`)) return;
+    grid.prepend(buildWallTile(p, true));
+    while (grid.children.length > WALL_MAX_TILES) grid.lastElementChild.remove();
+  });
+  refreshWallCounts();
 }
 
 function wallOnDelete(id){
-  if (!liveWallOpen) return;
-  const grid = document.getElementById('wallGrid');
-  if (!grid) return;
-  const node = grid.querySelector(`[data-wall-id="${String(id).replace(/"/g,'')}"]`);
-  if (node) node.remove();
-  refreshWallCount();
+  const pid = String(id).replace(/"/g,'');
+  [document.getElementById('wallGridInline'), document.getElementById('wallGrid')].forEach(grid => {
+    if (!grid) return;
+    const node = grid.querySelector(`[data-wall-id="${pid}"]`);
+    if (node) node.remove();
+  });
+  refreshWallCounts();
 }
 
-async function startLiveWall(){
-  const overlay = document.getElementById('liveWallOverlay');
-  const grid    = document.getElementById('wallGrid');
-  if (!overlay || !grid) return;
-
-  liveWallOpen = true;
-  overlay.classList.add('open');
-  grid.innerHTML = '';
-
-  // Assurer la connexion Realtime
-  try { if (typeof startRealtimeFull === 'function') await startRealtimeFull(); } catch(e){}
-
-  // Charger les photos (fraîches)
-  let photos = Array.isArray(allPhotos) ? allPhotos.slice() : [];
+async function fetchWallPhotos(){
+  let photos = Array.isArray(allPhotos) && allPhotos.length ? allPhotos.slice() : [];
   if (!photos.length) {
     try {
       const res = await fetch(
@@ -2624,13 +2664,38 @@ async function startLiveWall(){
       if (photos.length && !allPhotos.length) allPhotos = photos.slice();
     } catch(e){}
   }
-  // Trier du plus récent au plus ancien
   photos.sort((a,b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
-  photos = photos.slice(0, WALL_MAX_TILES);
-  photos.reverse().forEach(p => grid.prepend(buildWallTile(p, false)));
-  refreshWallCount();
+  return photos.slice(0, WALL_MAX_TILES);
+}
 
-  // Plein écran
+async function openInlineWall(){
+  const grid = document.getElementById('wallGridInline');
+  if (!grid) return;
+  inlineWallActive = true;
+
+  try { if (typeof startRealtimeFull === 'function') await startRealtimeFull(); } catch(e){}
+
+  const photos = await fetchWallPhotos();
+  grid.innerHTML = '';
+  photos.reverse().forEach(p => grid.prepend(buildWallTile(p, false)));
+  refreshWallCounts();
+}
+
+async function startLiveWallFullscreen(){
+  const overlay = document.getElementById('liveWallOverlay');
+  const grid    = document.getElementById('wallGrid');
+  if (!overlay || !grid) return;
+
+  liveWallOpen = true;
+  overlay.classList.add('open');
+  grid.innerHTML = '';
+
+  try { if (typeof startRealtimeFull === 'function') await startRealtimeFull(); } catch(e){}
+
+  const photos = await fetchWallPhotos();
+  photos.reverse().forEach(p => grid.prepend(buildWallTile(p, false)));
+  refreshWallCounts();
+
   try {
     const el = document.documentElement;
     const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
@@ -2639,6 +2704,9 @@ async function startLiveWall(){
 
   document.addEventListener('keydown', wallKeyHandler);
 }
+
+// compat : ancien nom d'appel
+function startLiveWall(){ return startLiveWallFullscreen(); }
 
 function stopLiveWall(){
   liveWallOpen = false;
@@ -2652,13 +2720,6 @@ function stopLiveWall(){
 }
 
 function wallKeyHandler(e){ if (e.key === 'Escape') stopLiveWall(); }
-
-// Fermer le mur si la sortie plein écran est déclenchée par l'utilisateur (F11/Echap)
-document.addEventListener('fullscreenchange', () => {
-  if (!document.fullscreenElement && liveWallOpen) {
-    // l'utilisateur a quitté le plein écran : on laisse le mur ouvert, on ne ferme pas automatiquement
-  }
-});
 </script>
 
 </body>
