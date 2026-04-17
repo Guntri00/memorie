@@ -896,10 +896,10 @@ function renderPhotos() {
     const safeId   = esc(String(p.id));
     const safeName = esc(p.uploader_name || 'Invité');
     const mediaEl = isVideo
-      ? `<div class="video-thumb"><video src="${safeUrl}" playsinline muted preload="metadata" onloadedmetadata="this.currentTime=0.5" onerror="this.style.display='none'"></video><div class="video-play"><span>▶</span></div></div>`
-      : `<img src="${safeUrl}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'">`;
+      ? `<div class="video-thumb"><video src="${safeUrl}" playsinline muted preload="metadata" onloadedmetadata="this.currentTime=0.5" onerror="cleanupBrokenMedia('${safeId}',this.closest('.photo-card'))"></video><div class="video-play"><span>▶</span></div></div>`
+      : `<img src="${safeUrl}" alt="" loading="lazy" onerror="cleanupBrokenMedia('${safeId}',this.closest('.photo-card'))">`;
     return `
-    <div class="photo-card ${selectedPhotos.has(p.id)?'selected-card':''}" id="pc-${safeId}" onclick="handleCardClick('${safeId}','${safeUrl}',${isVideo})">
+    <div class="photo-card ${selectedPhotos.has(p.id)?'selected-card':''}" id="pc-${safeId}" data-photo-id="${safeId}" onclick="handleCardClick('${safeId}','${safeUrl}',${isVideo})">
       ${mediaEl}
       <div class="photo-card-actions">
         <button class="photo-action-btn photo-dl-btn" onclick="event.stopPropagation();dlPhoto('${safeUrl}','${safePath}')" title="Télécharger">⬇</button>
@@ -1035,6 +1035,33 @@ async function downloadZip(catFilter) {
 
   prog.classList.remove('show'); bar.style.width = '0%';
   if (btn) btn.disabled = false;
+}
+
+// ══════════════════════════════════════════
+//  NETTOYAGE AUTO DES MÉDIAS CASSÉS
+// ══════════════════════════════════════════
+const _cleanedBrokenIds = new Set();
+async function cleanupBrokenMedia(id, tileEl) {
+  if (!id) { if (tileEl) tileEl.style.display = 'none'; return; }
+  if (_cleanedBrokenIds.has(id)) {
+    document.querySelectorAll(`[data-photo-id="${id}"]`).forEach(n => n.remove());
+    return;
+  }
+  _cleanedBrokenIds.add(id);
+
+  document.querySelectorAll(`[data-photo-id="${id}"]`).forEach(n => n.remove());
+  if (tileEl && tileEl.parentElement) tileEl.remove();
+
+  allPhotos = allPhotos.filter(p => String(p.id) !== String(id));
+  if (typeof selectedPhotos !== 'undefined' && selectedPhotos.delete) selectedPhotos.delete(id);
+  try { updateStats(); } catch(e) {}
+
+  try {
+    await fetch(`${SB_URL}/rest/v1/photos?id=eq.${encodeURIComponent(id)}`, {
+      method: 'DELETE', mode: 'cors', credentials: 'omit',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }
+    });
+  } catch (e) { /* silencieux */ }
 }
 
 // ══════════════════════════════════════════
