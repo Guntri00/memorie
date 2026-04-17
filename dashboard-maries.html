@@ -1170,6 +1170,32 @@ function getPhotoUrl(p) {
   return p.public_url || '';
 }
 
+// ══════════════════════════════════════════
+//  NETTOYAGE AUTO DES MÉDIAS CASSÉS
+// ══════════════════════════════════════════
+const _cleanedBrokenIds = new Set();
+async function cleanupBrokenMedia(id, tileEl){
+  if(!id){ if(tileEl) tileEl.style.display='none'; return; }
+  if(_cleanedBrokenIds.has(id)){
+    document.querySelectorAll(`[data-photo-id="${id}"]`).forEach(n=>n.remove());
+    return;
+  }
+  _cleanedBrokenIds.add(id);
+
+  document.querySelectorAll(`[data-photo-id="${id}"]`).forEach(n=>n.remove());
+  if(tileEl && tileEl.parentElement) tileEl.remove();
+
+  allPhotos = allPhotos.filter(p=>String(p.id)!==String(id));
+  try { updateUI(); } catch(e){}
+
+  try {
+    await fetch(`${SB_URL}/rest/v1/photos?id=eq.${encodeURIComponent(id)}`, {
+      method:'DELETE', mode:'cors', credentials:'omit',
+      headers:{ 'apikey':SB_KEY, 'Authorization':`Bearer ${SB_KEY}`, 'Content-Type':'application/json', 'Prefer':'return=minimal' }
+    });
+  } catch(e) { /* silencieux */ }
+}
+
 function renderPhotos(){
   const photos=currentFilter==='all'?allPhotos:allPhotos.filter(p=>p.category===currentFilter);
   const grid=document.getElementById('photoGrid');
@@ -1184,12 +1210,13 @@ function renderPhotos(){
     const safeUrl=getPhotoUrl(p).replace(/'/g,'%27');
     const safePath=(p.storage_path||'').replace(/'/g,'%27');
     const safeCat=(p.category||'').replace(/'/g,'%27');
+    const safeId=esc(String(p.id));
     const safeName=esc(p.uploader_name||'Invité');
     const mediaEl=isVideo
-      ? `<div class="video-thumb"><video src="${safeUrl}" playsinline muted preload="metadata" onloadedmetadata="this.currentTime=0.5" onerror="this.style.display='none'"></video><div class="vplay"><span>▶</span></div></div>`
-      : `<img data-src="${safeUrl}" alt="" decoding="async">`;
+      ? `<div class="video-thumb"><video src="${safeUrl}" playsinline muted preload="metadata" onloadedmetadata="this.currentTime=0.5" onerror="cleanupBrokenMedia('${safeId}',this.closest('.photo-card'))"></video><div class="vplay"><span>▶</span></div></div>`
+      : `<img data-src="${safeUrl}" alt="" decoding="async" onerror="cleanupBrokenMedia('${safeId}',this.closest('.photo-card'))">`;
     return `
-    <div class="photo-card" onclick="openLB('${safeUrl}',${isVideo})">
+    <div class="photo-card" data-photo-id="${safeId}" onclick="openLB('${safeUrl}',${isVideo})">
       ${mediaEl}
       <div class="photo-overlay">
         <button class="photo-dl-btn" onclick="event.stopPropagation();dlOne('${safeUrl}','${safePath}','${safeCat}',${isVideo})">⬇️</button>
