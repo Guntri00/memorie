@@ -1516,7 +1516,16 @@ function switchTab(id, btn) {
   }
 
   // Désactiver les hooks Realtime du mur quand on quitte l'onglet
-  if (id !== 'wall') { inlineWallActive = false; }
+  if (id !== 'wall') {
+    inlineWallActive = false;
+    const ig = document.getElementById('wallGridInline');
+    if (ig) {
+      ig.querySelectorAll('video').forEach(v => {
+        try { if (_wallVideoObserver) _wallVideoObserver.unobserve(v); v.pause(); v.removeAttribute('src'); v.load(); } catch(_){}
+      });
+      ig.innerHTML = '';
+    }
+  }
 }
 
 // ══════════════════════════════════════════
@@ -1748,16 +1757,6 @@ async function loadGallery() {
     allPhotos = await res.json();
     document.getElementById('totalCount').textContent = allPhotos.length;
 
-    const imageUrls = [...new Set(
-      allPhotos.filter(p => p.media_type !== 'video').map(p => imgUrl(p,'thumb'))
-    )];
-    await Promise.all(imageUrls.map(url => new Promise(resolve => {
-      const i = new Image();
-      i.onload = i.onerror = () => resolve();
-      i.decoding = 'async';
-      i.src = url;
-    })));
-
     CATEGORIES.forEach(cat => {
       const photos = allPhotos.filter(p => p.category === cat.id);
       document.getElementById('cnt-'+cat.id).textContent =
@@ -1778,7 +1777,7 @@ async function loadGallery() {
                onerror="cleanupBrokenMedia('${p.id}','${cat.id}',this.closest('.cw-thumb'))"
                style="width:100%;height:100%;object-fit:cover;display:block"></video>
              <div class="vplay-ico"><span>▶</span></div>`
-          : `<img src="${imgUrl(p,'thumb')}" alt="" decoding="async" fetchpriority="high"
+          : `<img src="${imgUrl(p,'thumb')}" alt="" decoding="async" loading="lazy"
                onload="this.parentElement.classList.add('loaded')"
                onerror="cleanupBrokenMedia('${p.id}','${cat.id}',this.closest('.cw-thumb'))">`;
         return `<div class="cw-thumb loaded" id="th-${p.id}" data-photo-id="${p.id}">${thumb}</div>`;
@@ -2041,12 +2040,14 @@ function startDeleteTimer(photoId, remainingMs) {
 //  NETTOYAGE AUTO DES MÉDIAS CASSÉS
 // ══════════════════════════════════════════
 const _cleanedBrokenIds = new Set();
+const _CLEANED_MAX = 500;
 async function cleanupBrokenMedia(id, category, tileEl) {
   if (!id) { if (tileEl) tileEl.style.display = 'none'; return; }
   if (_cleanedBrokenIds.has(id)) {
     document.querySelectorAll(`[data-photo-id="${id}"]`).forEach(n => n.remove());
     return;
   }
+  if (_cleanedBrokenIds.size >= _CLEANED_MAX) _cleanedBrokenIds.clear();
   _cleanedBrokenIds.add(id);
 
   document.querySelectorAll(`[data-photo-id="${id}"]`).forEach(n => n.remove());
@@ -2206,44 +2207,51 @@ async function startRealtimeFull() {
     }, 30000);
     return;
   }
+  // Handler commun pour supprimer une photo de l'UI
+  const handleRemotePhotoDelete = (id) => {
+    if (!id) return;
+    const existing = allPhotos.find(x => x.id === id);
+    if (!existing) return; // pas une photo de notre événement
+    const cat = existing.category;
+    allPhotos = allPhotos.filter(x => x.id !== id);
+    if (cat) {
+      const cnt = allPhotos.filter(x => x.category === cat).length;
+      const el = document.getElementById('cnt-' + cat);
+      if (el) el.textContent = cnt === 0 ? 'Aucune photo encore' : cnt + ' photo' + (cnt > 1 ? 's' : '');
+    }
+    const total = document.getElementById('totalCount');
+    if (total) total.textContent = allPhotos.length;
+    // Retirer la tuile galerie détail si présente
+    document.querySelectorAll(`[data-photo-id="${id}"]`).forEach(n => n.remove());
+    if (typeof wallOnDelete === 'function') wallOnDelete(id);
+  };
+
   realtimeChannel = client
     .channel('mementos-rt')
+    // INSERT + UPDATE filtrés par event_id (payload.new disponible)
     .on('postgres_changes', {
-      event: '*', schema: 'public', table: 'photos',
+      event: 'INSERT', schema: 'public', table: 'photos',
       filter: `event_id=eq.${EVENT_ID}`
     }, (payload) => {
-      if (payload.eventType === 'INSERT') {
-        const p = payload.new;
-        if (!allPhotos.find(x => x.id === p.id)) {
-          allPhotos.push(p);
-          // Mettre à jour le compteur de la catégorie
-          const cnt = allPhotos.filter(x => x.category === p.category).length;
-          const el = document.getElementById('cnt-' + p.category);
-          if (el) el.textContent = cnt + ' photo' + (cnt > 1 ? 's' : '');
-          const total = document.getElementById('totalCount');
-          if (total) total.textContent = allPhotos.length;
-          // Badge nouvelle photo
-          newPhotoCounts[p.category] = (newPhotoCounts[p.category] || 0) + 1;
-          showCategoryBadge(p.category, newPhotoCounts[p.category]);
-          // Mur live : ajouter la nouvelle photo en tête
-          if (typeof wallOnInsert === 'function') wallOnInsert(p);
-        }
+      const p = payload.new;
+      if (!p) return;
+      if (!allPhotos.find(x => x.id === p.id)) {
+        allPhotos.push(p);
+        const cnt = allPhotos.filter(x => x.category === p.category).length;
+        const el = document.getElementById('cnt-' + p.category);
+        if (el) el.textContent = cnt + ' photo' + (cnt > 1 ? 's' : '');
+        const total = document.getElementById('totalCount');
+        if (total) total.textContent = allPhotos.length;
+        newPhotoCounts[p.category] = (newPhotoCounts[p.category] || 0) + 1;
+        showCategoryBadge(p.category, newPhotoCounts[p.category]);
+        if (typeof wallOnInsert === 'function') wallOnInsert(p);
       }
-      if (payload.eventType === 'DELETE') {
-        const id = payload.old && payload.old.id;
-        if (id) {
-          const cat = (allPhotos.find(x => x.id === id) || {}).category;
-          allPhotos = allPhotos.filter(x => x.id !== id);
-          if (cat) {
-            const cnt = allPhotos.filter(x => x.category === cat).length;
-            const el = document.getElementById('cnt-' + cat);
-            if (el) el.textContent = cnt === 0 ? 'Aucune photo encore' : cnt + ' photo' + (cnt > 1 ? 's' : '');
-          }
-          const total = document.getElementById('totalCount');
-          if (total) total.textContent = allPhotos.length;
-          if (typeof wallOnDelete === 'function') wallOnDelete(id);
-        }
-      }
+    })
+    // DELETE sans filtre (payload.old n'a que l'id par défaut)
+    .on('postgres_changes', {
+      event: 'DELETE', schema: 'public', table: 'photos'
+    }, (payload) => {
+      handleRemotePhotoDelete(payload.old && payload.old.id);
     })
     .on('postgres_changes', {
       event: 'UPDATE', schema: 'public', table: 'events',
@@ -2585,6 +2593,24 @@ let inlineWallActive = false;   // vue intégrée dans l'onglet
 
 function catMeta(catId){ return (CATEGORIES.find(c => c.id === catId)) || { emoji:'📷', name:'' }; }
 
+let _wallVideoObserver = null;
+function getWallVideoObserver(){
+  if (_wallVideoObserver) return _wallVideoObserver;
+  if (typeof IntersectionObserver === 'undefined') return null;
+  _wallVideoObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      const v = e.target;
+      if (!v || v.tagName !== 'VIDEO') return;
+      if (e.isIntersecting) {
+        const pr = v.play(); if (pr && pr.catch) pr.catch(()=>{});
+      } else {
+        try { v.pause(); } catch(_){}
+      }
+    });
+  }, { rootMargin: '200px 0px', threshold: 0.01 });
+  return _wallVideoObserver;
+}
+
 function buildWallTile(p, isNew){
   const meta   = catMeta(p.category);
   const url    = imgUrl(p);
@@ -2592,10 +2618,10 @@ function buildWallTile(p, isNew){
   const safeId = String(p.id).replace(/"/g,'');
   const safeName = esc(p.uploader_name || 'Invité');
   const media  = isVid
-    ? `<video src="${esc(url)}" playsinline muted loop autoplay preload="metadata"
+    ? `<video src="${esc(url)}" playsinline muted loop preload="metadata"
             onerror="cleanupBrokenMedia('${safeId}','${p.category}',this.closest('.wall-tile'))"></video>
        <div class="wt-play">▶</div>`
-    : `<img src="${esc(url)}" alt="" loading="lazy"
+    : `<img src="${esc(url)}" alt="" loading="lazy" decoding="async"
             onerror="cleanupBrokenMedia('${safeId}','${p.category}',this.closest('.wall-tile'))">`;
   const tile = document.createElement('div');
   tile.className = 'wall-tile' + (isNew ? ' new' : '');
@@ -2606,6 +2632,12 @@ function buildWallTile(p, isNew){
     <div class="wt-cat">${meta.emoji} ${meta.name || ''}</div>
     <div class="wt-meta">${safeName}</div>
   `;
+  if (isVid) {
+    const v = tile.querySelector('video');
+    const obs = getWallVideoObserver();
+    if (v && obs) obs.observe(v);
+    else if (v) { try { v.autoplay = true; v.play().catch(()=>{}); } catch(_){} }
+  }
   return tile;
 }
 
@@ -2637,7 +2669,12 @@ function wallOnInsert(p){
     if (grid.id === 'wallGrid' && !liveWallOpen) return;
     if (grid.querySelector(`[data-wall-id="${pid}"]`)) return;
     grid.prepend(buildWallTile(p, true));
-    while (grid.children.length > WALL_MAX_TILES) grid.lastElementChild.remove();
+    while (grid.children.length > WALL_MAX_TILES) {
+      const last = grid.lastElementChild;
+      const v = last && last.querySelector ? last.querySelector('video') : null;
+      if (v) { try { if (_wallVideoObserver) _wallVideoObserver.unobserve(v); v.pause(); v.removeAttribute('src'); v.load(); } catch(_){} }
+      last.remove();
+    }
   });
   refreshWallCounts();
 }
@@ -2647,7 +2684,11 @@ function wallOnDelete(id){
   [document.getElementById('wallGridInline'), document.getElementById('wallGrid')].forEach(grid => {
     if (!grid) return;
     const node = grid.querySelector(`[data-wall-id="${pid}"]`);
-    if (node) node.remove();
+    if (node) {
+      const v = node.querySelector('video');
+      if (v) { try { if (_wallVideoObserver) _wallVideoObserver.unobserve(v); v.pause(); v.removeAttribute('src'); v.load(); } catch(_){} }
+      node.remove();
+    }
   });
   refreshWallCounts();
 }
@@ -2716,10 +2757,26 @@ function stopLiveWall(){
     const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
     if (document.fullscreenElement && exit) exit.call(document);
   } catch(e){}
+  const grid = document.getElementById('wallGrid');
+  if (grid) {
+    grid.querySelectorAll('video').forEach(v => {
+      try { if (_wallVideoObserver) _wallVideoObserver.unobserve(v); v.pause(); v.removeAttribute('src'); v.load(); } catch(_){}
+    });
+    grid.innerHTML = '';
+  }
+  refreshWallCounts();
   document.removeEventListener('keydown', wallKeyHandler);
 }
 
 function wallKeyHandler(e){ if (e.key === 'Escape') stopLiveWall(); }
+
+// Pause toutes les vidéos du mur quand l'onglet n'est plus visible
+document.addEventListener('visibilitychange', () => {
+  const hidden = document.hidden;
+  document.querySelectorAll('#wallGridInline video, #wallGrid video').forEach(v => {
+    try { if (hidden) v.pause(); else { const pr = v.play(); if (pr && pr.catch) pr.catch(()=>{}); } } catch(_){}
+  });
+});
 </script>
 
 </body>
