@@ -554,6 +554,7 @@ footer{text-align:center;padding:24px;font-size:10px;letter-spacing:.18em;color:
 <div class="dash-toast" id="dashToast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
 <script>
 // ══════════════════════════════════════════
@@ -692,9 +693,49 @@ async function loadDashboard() {
     await refreshPhotos();
     await loadVideoToggle();
     startAutoRefresh();
+    startRealtimeAdmin();
   } catch(e) {
     console.error('loadDashboard error:', e);
   }
+}
+
+// ══ REALTIME — synchro admin multi-onglets + propagation externe ══
+let sbClientAdmin = null;
+function startRealtimeAdmin() {
+  if (sbClientAdmin) return;
+  if (!window.supabase || !window.supabase.createClient) return;
+  sbClientAdmin = window.supabase.createClient(SB_URL, SB_KEY);
+  sbClientAdmin
+    .channel('admin-photos')
+    // DELETE sans filtre — payload.old ne contient que l'id par défaut
+    .on('postgres_changes', {
+      event: 'DELETE', schema: 'public', table: 'photos'
+    }, (payload) => {
+      const id = payload.old && payload.old.id;
+      if (!id) return;
+      const existed = allPhotos.find(p => p.id === id);
+      if (!existed) return;
+      allPhotos = allPhotos.filter(p => p.id !== id);
+      selectedPhotos.delete(id);
+      const card = document.getElementById('pc-' + id);
+      if (card) card.remove();
+      document.querySelectorAll(`[data-photo-id="${id}"]`).forEach(n => n.remove());
+      updateStats();
+      console.log('[Realtime admin] Photo supprimée:', id);
+    })
+    .on('postgres_changes', {
+      event: 'INSERT', schema: 'public', table: 'photos',
+      filter: `event_id=eq.${EVENT_ID}`
+    }, (payload) => {
+      if (payload.new && !allPhotos.find(p => p.id === payload.new.id)) {
+        allPhotos.unshift(payload.new);
+        renderPhotos();
+        updateStats();
+      }
+    })
+    .subscribe((status) => {
+      console.log('[Realtime admin] Statut:', status);
+    });
 }
 
 async function refreshPhotos() {
@@ -756,13 +797,16 @@ async function validateStorageUrls() {
   }
 }
 
-// Auto-refresh toutes les 15 secondes
+// Auto-refresh (filet de sécurité ; Realtime gère les mises à jour instantanées)
 let autoRefreshInterval = null;
 function startAutoRefresh() {
   if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+  // 120s = secours en cas de déconnexion Realtime ; les événements temps réel
+  // assurent l'actualisation instantanée en conditions normales
   autoRefreshInterval = setInterval(() => {
+    if (document.hidden) return; // inutile quand l'onglet est en arrière-plan
     refreshPhotos();
-  }, 15000);
+  }, 120000);
 }
 
 // ══════════════════════════════════════════
@@ -1072,12 +1116,14 @@ async function downloadZip(catFilter) {
 //  NETTOYAGE AUTO DES MÉDIAS CASSÉS
 // ══════════════════════════════════════════
 const _cleanedBrokenIds = new Set();
+const _CLEANED_MAX = 500;
 async function cleanupBrokenMedia(id, tileEl) {
   if (!id) { if (tileEl) tileEl.style.display = 'none'; return; }
   if (_cleanedBrokenIds.has(id)) {
     document.querySelectorAll(`[data-photo-id="${id}"]`).forEach(n => n.remove());
     return;
   }
+  if (_cleanedBrokenIds.size >= _CLEANED_MAX) _cleanedBrokenIds.clear();
   _cleanedBrokenIds.add(id);
 
   document.querySelectorAll(`[data-photo-id="${id}"]`).forEach(n => n.remove());
