@@ -1772,15 +1772,16 @@ async function loadGallery() {
       document.getElementById('track-'+cat.id).innerHTML = loop.map(p => {
         const thumb = p.media_type === 'video'
           ? `<video src="${imgUrl(p)}" muted playsinline preload="metadata"
-               onloadedmetadata="this.currentTime=0.5"
+               onloadedmetadata="if(!this.videoWidth){cleanupBrokenMedia('${p.id}','${cat.id}',this.closest('.cw-thumb'));return}this.currentTime=0.5"
                onseeked="this.closest('.cw-thumb').classList.add('loaded')"
                onerror="cleanupBrokenMedia('${p.id}','${cat.id}',this.closest('.cw-thumb'))"
+               onstalled="setTimeout(()=>{if(this.networkState===3||this.readyState===0)cleanupBrokenMedia('${p.id}','${cat.id}',this.closest('.cw-thumb'))},4000)"
                style="width:100%;height:100%;object-fit:cover;display:block"></video>
              <div class="vplay-ico"><span>▶</span></div>`
-          : `<img src="${imgUrl(p,'thumb')}" alt="" decoding="async" loading="lazy"
-               onload="this.parentElement.classList.add('loaded')"
+          : `<img src="${imgUrl(p,'thumb')}" alt="" decoding="async"
+               onload="if(!this.naturalWidth){cleanupBrokenMedia('${p.id}','${cat.id}',this.closest('.cw-thumb'))}else{this.closest('.cw-thumb').classList.add('loaded')}"
                onerror="cleanupBrokenMedia('${p.id}','${cat.id}',this.closest('.cw-thumb'))">`;
-        return `<div class="cw-thumb loaded" id="th-${p.id}" data-photo-id="${p.id}">${thumb}</div>`;
+        return `<div class="cw-thumb" id="th-${p.id}" data-photo-id="${p.id}">${thumb}</div>`;
       }).join('');
 
       const names = [...new Set(photos.map(p=>p.uploader_name||'Invité'))].slice(0,4);
@@ -1796,6 +1797,8 @@ async function loadGallery() {
   }
   // Démarrer le polling temps réel
   startRealtime();
+  // Démarrer le validateur proactif (HEAD sweep des médias cassés)
+  startValidatorLoop();
 
 }
 
@@ -1878,6 +1881,9 @@ async function openCategory(catId) {
       const remaining = DELETE_WINDOW_MS - age;
       if (remaining > 0) startDeleteTimer(p.id, remaining);
     });
+
+    // Balayage proactif : détecte les médias orphelins en arrière-plan
+    setTimeout(validateStorageUrls, 800);
 
   } catch(err) {
     grid.innerHTML = `<div class="gempty"><div class="ei">⚠️</div><p>Erreur : ${esc(err.message)}</p></div>`;
@@ -1970,14 +1976,16 @@ function buildPhotoItem(p) {
     ? `<div class="video-thumb">
          <video src="${esc(url)}" playsinline muted preload="metadata"
                 style="width:100%;height:100%;object-fit:cover;display:block"
+                onloadedmetadata="if(!this.videoWidth){cleanupBrokenMedia('${safeId}','${safeCat}',this.closest('.gitem'));return}this.currentTime=0.5"
                 onloadeddata="this.closest('.gitem').classList.add('loaded')"
-                onerror="cleanupBrokenMedia('${safeId}','${safeCat}',this.closest('.gitem'))"></video>
+                onerror="cleanupBrokenMedia('${safeId}','${safeCat}',this.closest('.gitem'))"
+                onstalled="setTimeout(()=>{if(this.networkState===3||this.readyState===0)cleanupBrokenMedia('${safeId}','${safeCat}',this.closest('.gitem'))},4000)"></video>
          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;background:rgba(0,0,0,.15)">
            <span style="font-size:40px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.8))">▶</span>
          </div>
        </div>`
-    : `<img src="${esc(url)}" alt="Photo de ${safeName}" loading="lazy"
-            onload="this.closest('.gitem').classList.add('loaded')"
+    : `<img src="${esc(url)}" alt="Photo de ${safeName}"
+            onload="if(!this.naturalWidth){cleanupBrokenMedia('${safeId}','${safeCat}',this.closest('.gitem'))}else{this.closest('.gitem').classList.add('loaded')}"
             onerror="cleanupBrokenMedia('${safeId}','${safeCat}',this.closest('.gitem'))">`;
 
   return `
@@ -2093,6 +2101,63 @@ async function cleanupBrokenMedia(id, category, tileEl) {
       }
     });
   } catch (e) { /* silencieux */ }
+}
+
+// ══════════════════════════════════════════
+//  VALIDATEUR DE MÉDIAS EN TÂCHE DE FOND
+//  Balaie allPhotos avec des HEAD requests pour détecter
+//  les orphelins (fichier supprimé mais enregistrement DB).
+// ══════════════════════════════════════════
+let _validatorRunning = false;
+let _validatorTimer   = null;
+const _recentlyValidated = new Map(); // id -> timestamp
+const _VALIDATION_TTL_MS = 60000;
+
+async function validateStorageUrls() {
+  if (_validatorRunning) return;
+  if (!Array.isArray(allPhotos) || !allPhotos.length) return;
+  _validatorRunning = true;
+  try {
+    const now    = Date.now();
+    const photos = allPhotos.filter(p => {
+      const last = _recentlyValidated.get(String(p.id));
+      return !last || (now - last) > _VALIDATION_TTL_MS;
+    });
+    const CONCURRENCY = 5;
+    let idx = 0;
+    async function worker() {
+      while (idx < photos.length) {
+        const p   = photos[idx++];
+        const url = imgUrl(p);
+        if (!url) continue;
+        try {
+          const res = await fetch(url, { method: 'HEAD', mode: 'cors', cache: 'no-store' });
+          _recentlyValidated.set(String(p.id), Date.now());
+          if (res.status === 404 || res.status === 400 || res.status === 403) {
+            const tile = document.querySelector(`[data-photo-id="${p.id}"]`);
+            cleanupBrokenMedia(p.id, p.category, tile);
+          }
+        } catch (_) { /* ignore erreurs réseau */ }
+      }
+    }
+    await Promise.all(Array(CONCURRENCY).fill(0).map(worker));
+  } finally {
+    _validatorRunning = false;
+  }
+}
+
+function startValidatorLoop() {
+  if (_validatorTimer) return;
+  // Premier passage immédiat, puis toutes les 30s quand l'onglet est visible
+  setTimeout(validateStorageUrls, 1500);
+  _validatorTimer = setInterval(() => {
+    if (document.hidden) return;
+    const gallery = document.getElementById('panel-gallery');
+    const home    = document.getElementById('panel-home');
+    const visible = (gallery && gallery.classList.contains('on'))
+                 || (home    && home.classList.contains('on'));
+    if (visible) validateStorageUrls();
+  }, 30000);
 }
 
 // ══════════════════════════════════════════
@@ -2215,8 +2280,11 @@ async function startRealtimeFull() {
   // Handler commun pour supprimer une photo de l'UI
   const handleRemotePhotoDelete = (id) => {
     if (!id) return;
+    // Toujours nettoyer le DOM, même si allPhotos est désynchronisé
+    document.querySelectorAll(`[data-photo-id="${id}"]`).forEach(n => n.remove());
+
     const existing = allPhotos.find(x => x.id === id);
-    if (!existing) return; // pas une photo de notre événement
+    if (!existing) return; // pas une photo de notre événement (ou déjà retirée)
     const cat = existing.category;
     allPhotos = allPhotos.filter(x => x.id !== id);
     if (cat) {
@@ -2226,8 +2294,6 @@ async function startRealtimeFull() {
     }
     const total = document.getElementById('totalCount');
     if (total) total.textContent = allPhotos.length;
-    // Retirer la tuile galerie détail si présente
-    document.querySelectorAll(`[data-photo-id="${id}"]`).forEach(n => n.remove());
     if (typeof wallOnDelete === 'function') wallOnDelete(id);
     try { ssOnPhotoDeleted(id); } catch(_) {}
   };
@@ -2251,6 +2317,7 @@ async function startRealtimeFull() {
         newPhotoCounts[p.category] = (newPhotoCounts[p.category] || 0) + 1;
         showCategoryBadge(p.category, newPhotoCounts[p.category]);
         if (typeof wallOnInsert === 'function') wallOnInsert(p);
+        try { ssOnPhotoInserted(p); } catch(_) {}
       }
     })
     // DELETE sans filtre (payload.old n'a que l'id par défaut)
@@ -2506,6 +2573,19 @@ function ssClose() {
   if (img) { img.src = ''; img.style.opacity = '1'; img.style.transform = 'scale(1)'; img.onerror = null; img.onload = null; }
 }
 
+// Ajouter une nouvelle photo au diaporama en cours (rafraîchit le compteur sans interruption)
+function ssOnPhotoInserted(p) {
+  if (!p || !p.id) return;
+  const overlayOpen = document.getElementById('slideshowOverlay')?.classList.contains('open');
+  if (!overlayOpen) return;
+  if (ssPhotos.some(x => String(x.id) === String(p.id))) return;
+  ssPhotos.push(p);
+  const counter = document.getElementById('ssCounter');
+  if (counter) counter.textContent = `${ssIndex + 1} / ${ssPhotos.length}`;
+  const cat = document.getElementById('ssCat');
+  if (cat) cat.textContent = `✨ Toutes les photos — ${ssPhotos.length} clichés`;
+}
+
 // Retirer une photo supprimée du diaporama en cours, sans interruption
 function ssOnPhotoDeleted(id) {
   if (!id || !ssPhotos.length) return;
@@ -2667,9 +2747,12 @@ function buildWallTile(p, isNew){
   const safeName = esc(p.uploader_name || 'Invité');
   const media  = isVid
     ? `<video src="${esc(url)}" playsinline muted loop preload="metadata"
-            onerror="cleanupBrokenMedia('${safeId}','${p.category}',this.closest('.wall-tile'))"></video>
+            onloadedmetadata="if(!this.videoWidth)cleanupBrokenMedia('${safeId}','${p.category}',this.closest('.wall-tile'))"
+            onerror="cleanupBrokenMedia('${safeId}','${p.category}',this.closest('.wall-tile'))"
+            onstalled="setTimeout(()=>{if(this.networkState===3||this.readyState===0)cleanupBrokenMedia('${safeId}','${p.category}',this.closest('.wall-tile'))},4000)"></video>
        <div class="wt-play">▶</div>`
-    : `<img src="${esc(url)}" alt="" loading="lazy" decoding="async"
+    : `<img src="${esc(url)}" alt="" decoding="async"
+            onload="if(!this.naturalWidth)cleanupBrokenMedia('${safeId}','${p.category}',this.closest('.wall-tile'))"
             onerror="cleanupBrokenMedia('${safeId}','${p.category}',this.closest('.wall-tile'))">`;
   const tile = document.createElement('div');
   tile.className = 'wall-tile' + (isNew ? ' new' : '');
