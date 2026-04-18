@@ -1221,6 +1221,7 @@ async function cleanupBrokenMedia(id, tileEl){
   if(tileEl && tileEl.parentElement) tileEl.remove();
 
   allPhotos = allPhotos.filter(p=>String(p.id)!==String(id));
+  try { if (typeof ssOnPhotoDeleted === 'function') ssOnPhotoDeleted(id); } catch(_) {}
   try { updateUI(); } catch(e){}
 
   try {
@@ -1384,6 +1385,12 @@ function ssShow(idx) {
     vid.load();
     vid.play().catch(() => {});
     vid.onended = () => { clearTimeout(ssTimer); ssNext(); };
+    // Média cassé (404/supprimé) : nettoyer puis retirer du diaporama
+    vid.onerror = () => {
+      vid.onerror = null;
+      try { cleanupBrokenMedia(p.id); } catch(_) {}
+      ssOnPhotoDeleted(p.id);
+    };
     // Sécurité : skip si vidéo bloque > 25s
     clearTimeout(ssTimer);
     ssTimer = setTimeout(ssNext, 25000);
@@ -1398,9 +1405,15 @@ function ssShow(idx) {
     // Ken Burns aléatoire
     nextLayer.classList.add(KB_CLASSES[idx % KB_CLASSES.length]);
 
+    // Première erreur : tentative de rechargement avec cachebuster.
+    // Deuxième erreur : média vraiment manquant → nettoyer + skip
     img.onerror = () => {
       img.src = url + '?t=' + Date.now();
-      img.onerror = () => setTimeout(ssNext, 400);
+      img.onerror = () => {
+        img.onerror = null;
+        try { cleanupBrokenMedia(p.id); } catch(_) {}
+        ssOnPhotoDeleted(p.id);
+      };
     };
 
     // Précharger la suivante
@@ -1499,6 +1512,40 @@ function ssClose() {
   if (document.fullscreenElement) {
     document.exitFullscreen().catch(() => {});
   }
+}
+
+// Retirer une photo supprimée du diaporama en cours, sans interruption
+function ssOnPhotoDeleted(id) {
+  if (!id || !ssPhotos.length) return;
+  const overlayOpen = document.getElementById('ssOverlay')?.classList.contains('open');
+  if (!overlayOpen) { ssPhotos = []; return; }
+
+  const idx = ssPhotos.findIndex(p => String(p.id) === String(id));
+  if (idx === -1) return;
+
+  const wasCurrent = (idx === ssIndex);
+  ssPhotos.splice(idx, 1);
+
+  if (!ssPhotos.length) { ssClose(); return; }
+
+  if (idx < ssIndex) {
+    ssIndex -= 1;
+  } else if (wasCurrent) {
+    if (ssIndex >= ssPhotos.length) ssIndex = 0;
+    clearTimeout(ssTimer);
+    // Forcer la suppression du média courant (couche encore active après decrement swap)
+    const currentLayer = document.getElementById('ssLayer' + (1 - ssActiveLayer));
+    if (currentLayer) {
+      const v = currentLayer.querySelector('video');
+      if (v) { v.pause(); v.onended = null; v.onerror = null; v.src = ''; }
+    }
+    ssShow(ssIndex);
+    ssStartTimer();
+    return;
+  }
+
+  const numEl = document.getElementById('ssNum');
+  if (numEl) numEl.textContent = `${ssIndex + 1} / ${ssPhotos.length}`;
 }
 
 // ── Fullscreen API ──
@@ -1733,6 +1780,7 @@ function startRealtimeMaries() {
       if (!allPhotos.find(p => p.id === deletedId)) return;
       allPhotos = allPhotos.filter(p => p.id !== deletedId);
       removePhotoCardIncremental(deletedId);
+      try { ssOnPhotoDeleted(deletedId); } catch(_) {}
       updateUI();
     })
     .on('postgres_changes', {
