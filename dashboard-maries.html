@@ -1242,7 +1242,7 @@ function buildPhotoCardHTML(p){
   const safeId=esc(String(p.id));
   const safeName=esc(p.uploader_name||'Invité');
   const mediaEl=isVideo
-    ? `<div class="video-thumb"><video src="${safeUrl}" playsinline muted preload="metadata" onloadedmetadata="if(!this.videoWidth){cleanupBrokenMedia('${safeId}',this.closest('.photo-card'));return}this.currentTime=0.5" onerror="cleanupBrokenMedia('${safeId}',this.closest('.photo-card'))"></video><div class="vplay"><span>▶</span></div></div>`
+    ? `<div class="video-thumb"><video src="${safeUrl}" playsinline muted preload="metadata" onloadedmetadata="if(!this.videoWidth){cleanupBrokenMedia('${safeId}',this.closest('.photo-card'));return}this.currentTime=0.5" onerror="cleanupBrokenMedia('${safeId}',this.closest('.photo-card'))" onstalled="setTimeout(()=>{if(this.networkState===3||this.readyState===0)cleanupBrokenMedia('${safeId}',this.closest('.photo-card'))},4000)"></video><div class="vplay"><span>▶</span></div></div>`
     : `<img data-src="${safeUrl}" alt="" decoding="async" onload="if(!this.naturalWidth)cleanupBrokenMedia('${safeId}',this.closest('.photo-card'))" onerror="cleanupBrokenMedia('${safeId}',this.closest('.photo-card'))">`;
   return `
     <div class="photo-card" data-photo-id="${safeId}" onclick="openLB('${safeUrl}',${isVideo})">
@@ -1512,6 +1512,17 @@ function ssClose() {
   if (document.fullscreenElement) {
     document.exitFullscreen().catch(() => {});
   }
+}
+
+// Ajouter une nouvelle photo au diaporama en cours (compteur auto)
+function ssOnPhotoInserted(p) {
+  if (!p || !p.id) return;
+  const overlayOpen = document.getElementById('ssOverlay')?.classList.contains('open');
+  if (!overlayOpen) return;
+  if (ssPhotos.some(x => String(x.id) === String(p.id))) return;
+  ssPhotos.push(p);
+  const numEl = document.getElementById('ssNum');
+  if (numEl) numEl.textContent = `${ssIndex + 1} / ${ssPhotos.length}`;
 }
 
 // Retirer une photo supprimée du diaporama en cours, sans interruption
@@ -1790,6 +1801,7 @@ function startRealtimeMaries() {
       if (payload.new && !allPhotos.find(p => p.id === payload.new.id)) {
         allPhotos.unshift(payload.new);
         addPhotoCardIncremental(payload.new);
+        try { ssOnPhotoInserted(payload.new); } catch(_) {}
         updateUI();
       }
     })
