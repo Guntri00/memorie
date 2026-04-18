@@ -4,13 +4,13 @@
 //              Network-First pour photos Supabase
 // ══════════════════════════════════════════════
 
-const CACHE_NAME    = 'mementos-v1';
-const CACHE_STATIC  = 'mementos-static-v1';
-const CACHE_PHOTOS  = 'mementos-photos-v1';
+const CACHE_NAME    = 'mementos-v2';
+const CACHE_STATIC  = 'mementos-static-v2';
+const CACHE_PHOTOS  = 'mementos-photos-v2';
 
 // Assets statiques à mettre en cache immédiatement
 const STATIC_ASSETS = [
-  '/mementos-app.html',
+  '/index.html',
   '/ring-intro.png',
   '/manifest.json',
   'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap'
@@ -70,7 +70,15 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // ── Assets statiques locaux : Cache-First ──
+  // ── HTML locaux : Network-First (pour recevoir les déploiements instantanément) ──
+  const isHTML = url.hostname === self.location.hostname
+              && (url.pathname === '/' || url.pathname.endsWith('.html') || request.mode === 'navigate');
+  if (isHTML) {
+    event.respondWith(networkFirstWithCache(request, CACHE_STATIC, 4000));
+    return;
+  }
+
+  // ── Autres assets statiques locaux (icônes, manifest, images) : Cache-First ──
   if (url.hostname === self.location.hostname) {
     event.respondWith(cacheFirstWithNetwork(request, CACHE_STATIC));
     return;
