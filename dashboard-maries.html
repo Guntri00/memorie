@@ -1113,17 +1113,50 @@ async function loadPhotos(){
     allPhotos = await res.json();
     updateUI();
     renderPhotos();
+    validateStorageUrls();
   } catch(e){
     console.error('Fetch error:', e);
     showToast('⚠️ Erreur connexion : ' + e.message);
   }
 }
 
-// Auto-refresh toutes les 30 secondes (fallback si Realtime déconnecté)
+// Validateur en tâche de fond : HEAD chaque URL, nettoie les 404
+let _validatorRunning = false;
+async function validateStorageUrls(){
+  if (_validatorRunning) return;
+  _validatorRunning = true;
+  try {
+    const photos = allPhotos.slice();
+    const CONCURRENCY = 6;
+    let idx = 0;
+    async function worker(){
+      while (idx < photos.length) {
+        const p = photos[idx++];
+        const url = getPhotoUrl(p);
+        if (!url) continue;
+        try {
+          const res = await fetch(url, { method:'HEAD', mode:'cors', cache:'no-store' });
+          if (res.status === 404 || res.status === 400 || res.status === 403) {
+            const tile = document.querySelector(`[data-photo-id="${p.id}"]`);
+            cleanupBrokenMedia(p.id, tile);
+          }
+        } catch(e) { /* ignore */ }
+      }
+    }
+    await Promise.all(Array(CONCURRENCY).fill(0).map(worker));
+  } finally {
+    _validatorRunning = false;
+  }
+}
+
+// Auto-refresh (filet de sécurité ; Realtime gère les mises à jour normales)
 let autoRefreshInterval = null;
 function startAutoRefresh(){
   if(autoRefreshInterval) clearInterval(autoRefreshInterval);
-  autoRefreshInterval = setInterval(loadPhotos, 30000);
+  autoRefreshInterval = setInterval(() => {
+    if (document.hidden) return;
+    loadPhotos();
+  }, 120000);
 }
 
 function updateUI(){
@@ -1174,12 +1207,14 @@ function getPhotoUrl(p) {
 //  NETTOYAGE AUTO DES MÉDIAS CASSÉS
 // ══════════════════════════════════════════
 const _cleanedBrokenIds = new Set();
+const _CLEANED_MAX = 500;
 async function cleanupBrokenMedia(id, tileEl){
   if(!id){ if(tileEl) tileEl.style.display='none'; return; }
   if(_cleanedBrokenIds.has(id)){
     document.querySelectorAll(`[data-photo-id="${id}"]`).forEach(n=>n.remove());
     return;
   }
+  if(_cleanedBrokenIds.size >= _CLEANED_MAX) _cleanedBrokenIds.clear();
   _cleanedBrokenIds.add(id);
 
   document.querySelectorAll(`[data-photo-id="${id}"]`).forEach(n=>n.remove());
@@ -1196,26 +1231,19 @@ async function cleanupBrokenMedia(id, tileEl){
   } catch(e) { /* silencieux */ }
 }
 
-function renderPhotos(){
-  const photos=currentFilter==='all'?allPhotos:allPhotos.filter(p=>p.category===currentFilter);
-  const grid=document.getElementById('photoGrid');
-  if(!photos.length){
-    grid.innerHTML=`<div class="photo-empty"><span class="ei">📷</span><p>Aucune photo dans cette catégorie</p></div>`;
-    return;
-  }
-  grid.innerHTML=photos.map(p=>{
-    const cat=CATS[p.category]||{emoji:'📷',name:'Autre'};
-    const time=new Date(p.uploaded_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-    const isVideo=p.media_type==='video';
-    const safeUrl=getPhotoUrl(p).replace(/'/g,'%27');
-    const safePath=(p.storage_path||'').replace(/'/g,'%27');
-    const safeCat=(p.category||'').replace(/'/g,'%27');
-    const safeId=esc(String(p.id));
-    const safeName=esc(p.uploader_name||'Invité');
-    const mediaEl=isVideo
-      ? `<div class="video-thumb"><video src="${safeUrl}" playsinline muted preload="metadata" onloadedmetadata="this.currentTime=0.5" onerror="cleanupBrokenMedia('${safeId}',this.closest('.photo-card'))"></video><div class="vplay"><span>▶</span></div></div>`
-      : `<img data-src="${safeUrl}" alt="" decoding="async" onerror="cleanupBrokenMedia('${safeId}',this.closest('.photo-card'))">`;
-    return `
+function buildPhotoCardHTML(p){
+  const cat=CATS[p.category]||{emoji:'📷',name:'Autre'};
+  const time=new Date(p.uploaded_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  const isVideo=p.media_type==='video';
+  const safeUrl=getPhotoUrl(p).replace(/'/g,'%27');
+  const safePath=(p.storage_path||'').replace(/'/g,'%27');
+  const safeCat=(p.category||'').replace(/'/g,'%27');
+  const safeId=esc(String(p.id));
+  const safeName=esc(p.uploader_name||'Invité');
+  const mediaEl=isVideo
+    ? `<div class="video-thumb"><video src="${safeUrl}" playsinline muted preload="metadata" onloadedmetadata="if(!this.videoWidth){cleanupBrokenMedia('${safeId}',this.closest('.photo-card'));return}this.currentTime=0.5" onerror="cleanupBrokenMedia('${safeId}',this.closest('.photo-card'))"></video><div class="vplay"><span>▶</span></div></div>`
+    : `<img data-src="${safeUrl}" alt="" decoding="async" onload="if(!this.naturalWidth)cleanupBrokenMedia('${safeId}',this.closest('.photo-card'))" onerror="cleanupBrokenMedia('${safeId}',this.closest('.photo-card'))">`;
+  return `
     <div class="photo-card" data-photo-id="${safeId}" onclick="openLB('${safeUrl}',${isVideo})">
       ${mediaEl}
       <div class="photo-overlay">
@@ -1226,8 +1254,42 @@ function renderPhotos(){
         <div class="photo-meta-time">${time}</div>
       </div>
     </div>`;
-  }).join('');
+}
+
+function renderPhotos(){
+  const photos=currentFilter==='all'?allPhotos:allPhotos.filter(p=>p.category===currentFilter);
+  const grid=document.getElementById('photoGrid');
+  if(!photos.length){
+    grid.innerHTML=`<div class="photo-empty"><span class="ei">📷</span><p>Aucune photo dans cette catégorie</p></div>`;
+    return;
+  }
+  grid.innerHTML=photos.map(buildPhotoCardHTML).join('');
   observeLazyImages();
+}
+
+// Ajout / suppression incrémentale — évite de reconstruire toute la grille
+function addPhotoCardIncremental(p){
+  const grid=document.getElementById('photoGrid');
+  if(!grid) return;
+  if(currentFilter!=='all' && p.category!==currentFilter) return;
+  if(grid.querySelector(`[data-photo-id="${esc(String(p.id))}"]`)) return;
+  const empty=grid.querySelector('.photo-empty');
+  if(empty) grid.innerHTML='';
+  const wrap=document.createElement('div');
+  wrap.innerHTML=buildPhotoCardHTML(p);
+  const card=wrap.firstElementChild;
+  grid.prepend(card);
+  observeLazyImages();
+}
+
+function removePhotoCardIncremental(id){
+  const grid=document.getElementById('photoGrid');
+  if(!grid) return;
+  const card=grid.querySelector(`[data-photo-id="${esc(String(id))}"]`);
+  if(card) card.remove();
+  if(!grid.children.length){
+    grid.innerHTML=`<div class="photo-empty"><span class="ei">📷</span><p>Aucune photo dans cette catégorie</p></div>`;
+  }
 }
 
 let _lazyObs=null;
@@ -1655,33 +1717,31 @@ document.addEventListener('keydown',e=>{
 let sbClientMaries = null;
 function startRealtimeMaries() {
   if (!window.supabase || !window.supabase.createClient) {
-    // fallback : refresh toutes les 10s
-    setInterval(loadPhotos, 10000);
+    // fallback si SDK indisponible : refresh périodique discret
+    setInterval(() => { if (!document.hidden) loadPhotos(); }, 60000);
     return;
   }
   sbClientMaries = window.supabase.createClient(SB_URL, SB_KEY);
   sbClientMaries
     .channel('maries-photos')
+    // DELETE sans filtre — payload.old n'a que l'id par défaut ; on vérifie contre allPhotos
     .on('postgres_changes', {
-      event: 'DELETE', schema: 'public', table: 'photos',
-      filter: `event_id=eq.${EVENT_ID}`
+      event: 'DELETE', schema: 'public', table: 'photos'
     }, (payload) => {
-      // Supprimer la photo de l'affichage immédiatement
       const deletedId = payload.old && payload.old.id;
-      if (deletedId) {
-        allPhotos = allPhotos.filter(p => p.id !== deletedId);
-        renderPhotos();
-        updateUI();
-        console.log('[Realtime mariés] Photo supprimée:', deletedId);
-      }
+      if (!deletedId) return;
+      if (!allPhotos.find(p => p.id === deletedId)) return;
+      allPhotos = allPhotos.filter(p => p.id !== deletedId);
+      removePhotoCardIncremental(deletedId);
+      updateUI();
     })
     .on('postgres_changes', {
       event: 'INSERT', schema: 'public', table: 'photos',
       filter: `event_id=eq.${EVENT_ID}`
     }, (payload) => {
       if (payload.new && !allPhotos.find(p => p.id === payload.new.id)) {
-        allPhotos.push(payload.new);
-        renderPhotos();
+        allPhotos.unshift(payload.new);
+        addPhotoCardIncremental(payload.new);
         updateUI();
       }
     })
