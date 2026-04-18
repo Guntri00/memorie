@@ -1754,7 +1754,7 @@ async function loadGallery() {
       { method:'GET', mode:'cors', credentials:'omit', headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Accept':'application/json' } }
     );
     if (!res.ok) throw new Error(await res.text());
-    allPhotos = await res.json();
+    allPhotos = filterOutBlocked(await res.json());
     document.getElementById('totalCount').textContent = allPhotos.length;
 
     CATEGORIES.forEach(cat => {
@@ -1854,7 +1854,7 @@ async function openCategory(catId) {
       { method:'GET', mode:'cors', credentials:'omit', headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Accept': 'application/json' } }
     );
     if (!res.ok) throw new Error(await res.text());
-    const photos = await res.json();
+    const photos = filterOutBlocked(await res.json());
 
     // Mettre à jour allPhotos pour cette catégorie
     allPhotos = allPhotos.filter(p => p.category !== catId).concat(photos);
@@ -2046,17 +2046,39 @@ function startDeleteTimer(photoId, remainingMs) {
 
 // ══════════════════════════════════════════
 //  NETTOYAGE AUTO DES MÉDIAS CASSÉS
+//  Liste noire persistante (localStorage) — survit aux refresh
+//  pour éviter que les tuiles fantômes réapparaissent quand la DB
+//  refuse la suppression (RLS / 401).
 // ══════════════════════════════════════════
-const _cleanedBrokenIds = new Set();
-const _CLEANED_MAX = 500;
+const _BLOCKLIST_KEY = 'mementos_broken_ids_v1';
+const _CLEANED_MAX   = 500;
+function _loadBlocklist() {
+  try { return new Set((JSON.parse(localStorage.getItem(_BLOCKLIST_KEY) || '[]') || []).map(String)); }
+  catch(_) { return new Set(); }
+}
+function _saveBlocklist(set) {
+  try { localStorage.setItem(_BLOCKLIST_KEY, JSON.stringify([...set].map(String).slice(-_CLEANED_MAX))); }
+  catch(_) {}
+}
+const _cleanedBrokenIds = _loadBlocklist();
+function isPhotoBlocked(id) { return _cleanedBrokenIds.has(String(id)); }
+function filterOutBlocked(arr) { return Array.isArray(arr) ? arr.filter(p => !isPhotoBlocked(p.id)) : arr; }
+
 async function cleanupBrokenMedia(id, category, tileEl) {
   if (!id) { if (tileEl) tileEl.style.display = 'none'; return; }
-  if (_cleanedBrokenIds.has(id)) {
+  const sid = String(id);
+  if (_cleanedBrokenIds.has(sid)) {
     document.querySelectorAll(`[data-photo-id="${id}"]`).forEach(n => n.remove());
     return;
   }
-  if (_cleanedBrokenIds.size >= _CLEANED_MAX) _cleanedBrokenIds.clear();
-  _cleanedBrokenIds.add(id);
+  if (_cleanedBrokenIds.size >= _CLEANED_MAX) {
+    // Garde seulement les plus récents
+    const arr = Array.from(_cleanedBrokenIds).slice(-Math.floor(_CLEANED_MAX/2));
+    _cleanedBrokenIds.clear();
+    arr.forEach(x => _cleanedBrokenIds.add(x));
+  }
+  _cleanedBrokenIds.add(sid);
+  _saveBlocklist(_cleanedBrokenIds);
 
   document.querySelectorAll(`[data-photo-id="${id}"]`).forEach(n => n.remove());
   if (tileEl && tileEl.parentElement) tileEl.remove();
@@ -2133,7 +2155,7 @@ async function validateStorageUrls() {
         try {
           const res = await fetch(url, { method: 'HEAD', mode: 'cors', cache: 'no-store' });
           _recentlyValidated.set(String(p.id), Date.now());
-          if (res.status === 404 || res.status === 400 || res.status === 403) {
+          if (!res.ok) {
             const tile = document.querySelector(`[data-photo-id="${p.id}"]`);
             cleanupBrokenMedia(p.id, p.category, tile);
           }
@@ -2307,6 +2329,7 @@ async function startRealtimeFull() {
     }, (payload) => {
       const p = payload.new;
       if (!p) return;
+      if (isPhotoBlocked(p.id)) return; // ignore les photos dont le média est cassé
       if (!allPhotos.find(x => x.id === p.id)) {
         allPhotos.push(p);
         const cnt = allPhotos.filter(x => x.category === p.category).length;
@@ -2427,11 +2450,19 @@ async function startSlideshowAll() {
       { method:'GET', mode:'cors', credentials:'omit', headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Accept': 'application/json' } }
     );
     if (!res.ok) throw new Error(await res.text());
-    ssPhotos = await res.json();
+    ssPhotos = filterOutBlocked(await res.json());
   } catch(e) {
-    ssPhotos = [...allPhotos].sort((a,b) => new Date(a.uploaded_at) - new Date(b.uploaded_at));
+    ssPhotos = filterOutBlocked([...allPhotos]).sort((a,b) => new Date(a.uploaded_at) - new Date(b.uploaded_at));
   }
 
+  if (!ssPhotos.length) {
+    showDlToast('Aucune photo à afficher pour le moment');
+    return;
+  }
+
+  // Pré-validation : HEAD sweep en parallèle pour retirer les orphelins AVANT de démarrer
+  // → compteur correct dès la première frame
+  try { await ssPreflightValidate(); } catch(_) {}
   if (!ssPhotos.length) {
     showDlToast('Aucune photo à afficher pour le moment');
     return;
@@ -2445,6 +2476,36 @@ async function startSlideshowAll() {
   document.body.style.overflow = 'hidden';
   ssShow(ssIndex);
   ssStartTimer();
+}
+
+// Valide chaque photo du diaporama par HEAD avant démarrage.
+// Retire ssPhotos les orphelins (400/401/403/404/410) et les ajoute au blocklist.
+async function ssPreflightValidate() {
+  if (!ssPhotos.length) return;
+  const snapshot = ssPhotos.slice();
+  const badIds   = new Set();
+  const CONCURRENCY = 8;
+  let idx = 0;
+  async function worker() {
+    while (idx < snapshot.length) {
+      const p   = snapshot[idx++];
+      const url = imgUrl(p);
+      if (!url) { badIds.add(String(p.id)); continue; }
+      try {
+        const res = await fetch(url, { method: 'HEAD', mode: 'cors', cache: 'no-store' });
+        if ([400, 401, 403, 404, 410].includes(res.status)) badIds.add(String(p.id));
+      } catch(_) { /* erreurs réseau ignorées */ }
+    }
+  }
+  await Promise.all(Array(CONCURRENCY).fill(0).map(worker));
+  if (!badIds.size) return;
+  // Ajoute au blocklist persistant + purge ssPhotos/allPhotos
+  badIds.forEach(id => _cleanedBrokenIds.add(id));
+  _saveBlocklist(_cleanedBrokenIds);
+  ssPhotos  = ssPhotos.filter(p => !badIds.has(String(p.id)));
+  if (Array.isArray(allPhotos)) allPhotos = allPhotos.filter(p => !badIds.has(String(p.id)));
+  // Nettoyage DOM silencieux (toutes les tuiles avec un id banni)
+  badIds.forEach(id => document.querySelectorAll(`[data-photo-id="${id}"]`).forEach(n => n.remove()));
 }
 
 function ssShow(idx) {
@@ -2506,6 +2567,8 @@ function ssShow(idx) {
   document.getElementById('ssName').textContent    = `par ${p.uploader_name || 'Invité'}`;
   document.getElementById('ssTime').textContent    = cat ? `${cat.emoji} ${cat.name}` : '';
   document.getElementById('ssCounter').textContent = `${idx + 1} / ${ssPhotos.length}`;
+  const catLbl = document.getElementById('ssCat');
+  if (catLbl) catLbl.textContent = `✨ Toutes les photos — ${ssPhotos.length} clichés`;
 
   // Barre de progression (photos seulement — la vidéo a sa propre durée)
   const bar = document.getElementById('ssProgress');
