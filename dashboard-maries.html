@@ -1136,7 +1136,7 @@ async function validateStorageUrls(){
         if (!url) continue;
         try {
           const res = await fetch(url, { method:'HEAD', mode:'cors', cache:'no-store' });
-          if (res.status === 404 || res.status === 400 || res.status === 403) {
+          if (!res.ok) {
             const tile = document.querySelector(`[data-photo-id="${p.id}"]`);
             cleanupBrokenMedia(p.id, tile);
           }
