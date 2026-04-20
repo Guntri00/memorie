@@ -1309,7 +1309,20 @@ async function startCamera() {
     return;
   }
 
-  // Pas de stream → afficher l'écran de demande de permission
+  // Tentative silencieuse : si permission déjà accordée, getUserMedia() passe
+  // sans popup → on affiche la caméra directement (pas besoin de recliquer).
+  try {
+    const fresh = await _reacquireMediaStream(false);
+    if (fresh) {
+      cameraStream = fresh;
+      if (permEl)  permEl.style.display = 'none';
+      wrapEl.style.display = 'block';
+      await _attachStreamToVideo(video, fresh);
+      return;
+    }
+  } catch(_) {}
+
+  // Permission pas accordée → afficher l'écran avec bouton
   wrapEl.style.display = 'none';
   if (permEl) permEl.style.display = 'flex';
 }
@@ -2964,23 +2977,43 @@ function stopLiveWall(){
 function wallKeyHandler(e){ if (e.key === 'Escape') stopLiveWall(); }
 
 // ══════════════════════════════════════════════════════════════════════════
-// CAMÉRA : libération ACTIVE au départ d'onglet + réacquisition INSTANTANÉE
-// au retour. Clé du fix : si on ne libère pas nous-mêmes, le hardware reste
-// verrouillé ~1 min par l'OS → c'est ce qui cause l'attente.
+// CAMÉRA — Recovery robuste multi-navigateur (iOS Safari / Chrome Android)
+//   • Libère hardware caméra quand on quitte l'onglet (évite lock OS)
+//   • Sur retour : reacquire avec retry infini tant que visible
+//   • Attach stream avec video.load() (force reset état interne)
 // ══════════════════════════════════════════════════════════════════════════
-let _cameraWasActive = false;  // photo tab était visible + stream ok
-let _videoWasActive  = false;  // video tab était visible + stream ok
-let _reacquiring     = false;
+let _cameraWasActive   = false;
+let _videoWasActive    = false;
+let _reacquireBusy     = false;
+let _reacquireRetryId  = null;
 
-function _forcePlay(v) {
-  if (!v) return;
-  try { v.muted = true; v.playsInline = true; v.setAttribute('playsinline',''); v.setAttribute('autoplay',''); } catch(_){}
-  const p = v.play();
-  if (p && p.catch) p.catch(() => {
-    const handler = () => { v.play().catch(()=>{}); };
+async function _attachStreamToVideo(videoEl, stream) {
+  if (!videoEl) return;
+  try { videoEl.pause(); } catch(_){}
+  try { videoEl.srcObject = null; } catch(_){}
+  try { videoEl.removeAttribute('src'); } catch(_){}
+  try { videoEl.load(); } catch(_){}
+  try {
+    videoEl.muted = true;
+    videoEl.playsInline = true;
+    videoEl.setAttribute('playsinline','');
+    videoEl.setAttribute('autoplay','');
+    videoEl.setAttribute('muted','');
+    videoEl.srcObject = stream;
+  } catch(_){}
+  // Play avec plusieurs tentatives (mobile autoplay flakiness)
+  const delays = [0, 100, 300, 800, 1800];
+  for (const d of delays) {
+    await new Promise(r => setTimeout(r, d));
+    if (!videoEl.paused && videoEl.readyState >= 2) return;
+    try { await videoEl.play(); } catch(_){}
+  }
+  // Dernier recours : tap-to-resume
+  if (videoEl.paused) {
+    const handler = () => { videoEl.play().catch(()=>{}); };
     document.addEventListener('touchstart', handler, { once:true, capture:true });
     document.addEventListener('click',      handler, { once:true, capture:true });
-  });
+  }
 }
 
 async function _reacquireMediaStream(wantAudio) {
@@ -2998,7 +3031,6 @@ async function _reacquireMediaStream(wantAudio) {
   return null;
 }
 
-// Libérer TOUT le hardware caméra quand on quitte l'onglet
 function _releaseAllCameraHardware() {
   const photoPane = document.getElementById('upload-camera-pane');
   const vidPane   = document.getElementById('upload-video-pane');
@@ -3007,29 +3039,30 @@ function _releaseAllCameraHardware() {
   _videoWasActive  = !!(vidPane && vidPane.style.display !== 'none' &&
                         recWrap && recWrap.style.display !== 'none' &&
                         videoStream);
-
-  // Si enregistrement en cours : arrêter proprement la capture
   if (isRecording && typeof stopVideoRecord === 'function') {
     try { stopVideoRecord(); } catch(_){}
   }
-
   try { if (cameraStream) cameraStream.getTracks().forEach(t => { try { t.stop(); } catch(_){} }); } catch(_){}
   try { if (videoStream)  videoStream.getTracks().forEach(t => { try { t.stop();  } catch(_){} }); } catch(_){}
   cameraStream = null;
   videoStream  = null;
-  const pv = document.getElementById('cameraVideo'); if (pv) { try { pv.srcObject = null; } catch(_){} }
-  const lv = document.getElementById('videoLive');   if (lv) { try { lv.srcObject = null; } catch(_){} }
+  const pv = document.getElementById('cameraVideo'); if (pv) { try { pv.pause(); pv.srcObject = null; pv.load(); } catch(_){} }
+  const lv = document.getElementById('videoLive');   if (lv) { try { lv.pause(); lv.srcObject = null; lv.load(); } catch(_){} }
 }
 
-// Réacquérir immédiatement au retour d'onglet
-async function _reacquireCameraImmediately() {
-  if (_reacquiring) return;
-  if (!_cameraWasActive && !_videoWasActive) return;
+function _stopReacquireRetry() {
+  if (_reacquireRetryId) { clearInterval(_reacquireRetryId); _reacquireRetryId = null; }
+}
 
-  _reacquiring = true;
+async function _reacquireCameraOnce() {
+  if (_reacquireBusy) return false;
+  if (!_cameraWasActive && !_videoWasActive) return true;   // rien à faire
+  if (document.hidden) return false;
+
+  _reacquireBusy = true;
   try {
     const fresh = await _reacquireMediaStream(_videoWasActive);
-    if (!fresh) return;
+    if (!fresh) return false;
 
     const photoVid = document.getElementById('cameraVideo');
     const liveVid  = document.getElementById('videoLive');
@@ -3037,33 +3070,49 @@ async function _reacquireCameraImmediately() {
     if (_videoWasActive) {
       videoStream  = fresh;
       cameraStream = new MediaStream(fresh.getVideoTracks());
-      if (liveVid)  { liveVid.srcObject  = fresh;        _forcePlay(liveVid);  }
-      if (photoVid) { photoVid.srcObject = cameraStream; _forcePlay(photoVid); }
+      if (liveVid)  await _attachStreamToVideo(liveVid,  fresh);
+      if (photoVid) await _attachStreamToVideo(photoVid, cameraStream);
     } else {
       cameraStream = fresh;
-      if (photoVid) { photoVid.srcObject = fresh; _forcePlay(photoVid); }
+      if (photoVid) await _attachStreamToVideo(photoVid, fresh);
     }
     _cameraWasActive = _videoWasActive = false;
+    return true;
   } finally {
-    _reacquiring = false;
+    _reacquireBusy = false;
   }
 }
 
+async function _reacquireCameraWithRetry() {
+  _stopReacquireRetry();
+  if (await _reacquireCameraOnce()) return;
+  // Retry toutes les 1.5s tant qu'on est visible et qu'on n'a pas réussi
+  _reacquireRetryId = setInterval(async () => {
+    if (document.hidden) { _stopReacquireRetry(); return; }
+    if (!_cameraWasActive && !_videoWasActive) { _stopReacquireRetry(); return; }
+    if (await _reacquireCameraOnce()) _stopReacquireRetry();
+  }, 1500);
+}
+
+// ── Événements : on couvre TOUS les cas (iOS+Android, BFCache, focus) ──
+function _onHidden() {
+  _stopReacquireRetry();
+  _releaseAllCameraHardware();
+}
+function _onVisible() {
+  _reacquireCameraWithRetry();
+}
 document.addEventListener('visibilitychange', () => {
   const hidden = document.hidden;
-  // Pause vidéos du mur
   document.querySelectorAll('#wallGridInline video, #wallGrid video').forEach(v => {
     try { if (hidden) v.pause(); else { const pr = v.play(); if (pr && pr.catch) pr.catch(()=>{}); } } catch(_){}
   });
-  if (hidden) {
-    // Libérer IMMÉDIATEMENT le hardware → évite le lock 1-min de l'OS
-    _releaseAllCameraHardware();
-  } else {
-    // Réacquérir SANS DÉLAI (hardware libre = instantané)
-    _reacquireCameraImmediately();
-  }
+  if (hidden) _onHidden(); else _onVisible();
 });
-window.addEventListener('pageshow', (e) => { if (e.persisted) _reacquireCameraImmediately(); });
+window.addEventListener('pagehide', _onHidden);
+window.addEventListener('pageshow', (e) => { _onVisible(); });
+window.addEventListener('blur',     _onHidden);
+window.addEventListener('focus',    _onVisible);
 </script>
 
 </body>
