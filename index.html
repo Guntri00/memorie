@@ -813,6 +813,12 @@ footer a{color:var(--gold);text-decoration:none}
 
       <!-- Onglet vidéo (20s) -->
       <div id="upload-video-pane" style="display:none">
+        <div id="videoPermission" style="display:none;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;min-height:260px;background:#1C1712;border-radius:12px">
+          <div style="font-size:52px;margin-bottom:16px">🎬</div>
+          <p style="font-size:16px;font-weight:500;color:var(--gold);margin-bottom:8px">Accès à la caméra et au micro</p>
+          <p style="font-size:13px;color:var(--stone);margin-bottom:24px;line-height:1.5">Pour enregistrer des vidéos, autorisez l'accès à votre caméra et micro</p>
+          <button onclick="requestVideoPermission()" style="background:var(--gold);color:#1C1712;border:none;border-radius:12px;padding:14px 32px;font-size:15px;font-weight:600;font-family:Jost,sans-serif;cursor:pointer;letter-spacing:.05em">Activer</button>
+        </div>
         <div id="videoRecorderWrap">
           <div id="videoWrap">
             <video id="videoLive" autoplay muted playsinline></video>
@@ -1068,11 +1074,21 @@ function stopVideoCamera() {
   clearTimeout(videoTimer);
 }
 async function initVideoCamera() {
-  const vid    = document.getElementById('videoLive');
-  const permEl = document.getElementById('cameraPermission');
+  const vid     = document.getElementById('videoLive');
+  const permEl  = document.getElementById('videoPermission');
+  const recWrap = document.getElementById('videoRecorderWrap');
   if (!vid) return;
 
-  // Si stream photo déjà actif → réutiliser (pas de redemande de permission)
+  // Si stream vidéo déjà actif → afficher directement
+  if (videoStream && videoStream.active) {
+    if (permEl)  permEl.style.display = 'none';
+    if (recWrap) recWrap.style.display = 'block';
+    vid.srcObject = videoStream;
+    await vid.play().catch(() => {});
+    return;
+  }
+
+  // Si stream photo déjà actif → réutiliser (ajouter juste le micro)
   if (cameraStream && cameraStream.active) {
     try {
       const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
@@ -1083,14 +1099,36 @@ async function initVideoCamera() {
     } catch(e) {
       videoStream = new MediaStream(cameraStream.getVideoTracks());
     }
+    if (permEl)  permEl.style.display = 'none';
+    if (recWrap) recWrap.style.display = 'block';
     vid.srcObject = videoStream;
     await vid.play().catch(() => {});
     return;
   }
 
-  // Pas de stream → demander les permissions via getUserMedia directement
-  // (l'utilisateur vient de cliquer sur l'onglet vidéo = action directe)
-  stopVideoCamera();
+  // Permission déjà accordée → reacquire silencieux
+  const granted = await _wasCameraEverGranted();
+  if (granted) {
+    if (permEl)  permEl.style.display = 'none';
+    if (recWrap) recWrap.style.display = 'block';
+    _videoWasActive = true;
+    const ok = await _reacquireCameraOnce();
+    if (!ok) _reacquireCameraWithRetry();
+    return;
+  }
+
+  // Première visite → afficher le bouton "Activer" (identique à l'onglet photo)
+  if (recWrap) recWrap.style.display = 'none';
+  if (permEl)  permEl.style.display = 'flex';
+}
+
+async function requestVideoPermission() {
+  const vid     = document.getElementById('videoLive');
+  const permEl  = document.getElementById('videoPermission');
+  const recWrap = document.getElementById('videoRecorderWrap');
+  const btn = permEl ? permEl.querySelector('button') : null;
+  if (btn) { btn.disabled = true; btn.textContent = 'Activation…'; }
+
   const tries = [
     { video: { facingMode: 'environment', width:{ideal:1920}, height:{ideal:1080}, frameRate:{ideal:30} }, audio: true },
     { video: { facingMode: 'environment', width:{ideal:1280}, height:{ideal:720},  frameRate:{ideal:30} }, audio: true },
@@ -1102,11 +1140,23 @@ async function initVideoCamera() {
     try {
       videoStream  = await navigator.mediaDevices.getUserMedia(c);
       cameraStream = new MediaStream(videoStream.getVideoTracks());
+      try { localStorage.setItem('mementos_cam_granted','1'); } catch(_){}
+      videoStream.getTracks().forEach(t => {
+        t.addEventListener('ended', () => {
+          if (document.hidden) return;
+          _videoWasActive = true;
+          _reacquireCameraWithRetry();
+        });
+      });
+      if (permEl)  permEl.style.display = 'none';
+      if (recWrap) recWrap.style.display = 'block';
       vid.srcObject = videoStream;
       await vid.play().catch(() => {});
+      if (btn) { btn.disabled = false; btn.textContent = 'Activer'; }
       return;
-    } catch(err) {}
+    } catch(err) { videoStream = null; }
   }
+  if (btn) { btn.disabled = false; btn.textContent = 'Activer'; }
   showToast('Caméra non disponible — vérifiez les permissions dans votre navigateur');
 }
 
