@@ -45,14 +45,93 @@ h1 em{font-style:italic;color:var(--gold)}
 .back-btn{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--stone);background:none;border:none;cursor:pointer;margin-bottom:20px;transition:color .2s}
 .back-btn:hover{color:var(--gold)}
 .selected-cat-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;background:linear-gradient(135deg,#FDF8F2,#FAF3E8);border:1px solid var(--gold-m);border-radius:20px;font-size:12px;color:var(--charcoal);margin-bottom:20px}
-.zone{border:1.5px dashed var(--gold-m);border-radius:4px;padding:40px 24px;text-align:center;cursor:pointer;transition:all .3s;background:var(--warm)}
-.zone:hover,.zone.drag{border-color:var(--gold);background:#FEFCF8;transform:translateY(-2px);box-shadow:0 12px 40px rgba(184,147,90,.1)}
-.uico{width:48px;height:48px;margin:0 auto 16px;background:linear-gradient(135deg,var(--gold-m),#E8D5CC);border-radius:50%;display:flex;align-items:center;justify-content:center}
-.uico svg{width:22px;height:22px;stroke:var(--gold);fill:none;stroke-width:1.5}
-.utitle{font-family:'Cormorant Garamond',serif;font-size:20px;margin-bottom:6px}
+/* ── Zone de drop ── */
+@keyframes dashMove{to{stroke-dashoffset:-24}}
+@keyframes dzGlow{0%,100%{box-shadow:0 0 0 0 rgba(184,147,90,.0)}50%{box-shadow:0 0 22px 4px rgba(184,147,90,.18)}}
+@keyframes iconBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+.zone{
+  position:relative;
+  border-radius:8px;
+  padding:40px 24px;
+  text-align:center;
+  cursor:pointer;
+  background:var(--warm);
+  transition:background .25s,transform .25s;
+  /* Bordure SVG en tirets dessinée via outline invisible */
+  outline:none;
+  /* Bordure en tirets via box-shadow simulé + pseudo-élément */
+}
+/* Bordure tirets via SVG inline en background */
+.zone::before{
+  content:'';
+  position:absolute;inset:0;
+  border-radius:8px;
+  border:2px dashed var(--gold-m);
+  transition:border-color .25s,opacity .25s;
+  pointer-events:none;
+}
+.zone:hover::before{border-color:var(--gold)}
+
+/* État dragover : fond doré + tirets animés */
+.zone.drag{
+  background:rgba(184,147,90,.07);
+  transform:scale(1.01);
+}
+.zone.drag::before{
+  border-color:var(--gold);
+  border-width:2.5px;
+  animation:dzGlow .9s ease-in-out infinite;
+}
+/* Animation des tirets via SVG superposé */
+.zone.drag .dz-border{
+  stroke-dashoffset:0;
+  animation:dashMove 1.4s linear infinite;
+}
+.zone.drag .uico{
+  animation:iconBounce .7s ease-in-out infinite;
+}
+.zone.drag .utitle{color:var(--gold)}
+
+/* Icône upload */
+.uico{
+  width:52px;height:52px;
+  margin:0 auto 18px;
+  background:rgba(184,147,90,.12);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .3s,background .25s;
+}
+.zone:hover .uico{background:rgba(184,147,90,.2)}
+.uico svg{width:24px;height:24px;stroke:var(--gold);fill:none;stroke-width:1.5;transition:stroke .2s}
+
+/* SVG de bordure animée */
+.dz-svg{
+  position:absolute;inset:0;width:100%;height:100%;
+  pointer-events:none;overflow:visible;border-radius:8px;
+  opacity:0;transition:opacity .2s;
+}
+.zone.drag .dz-svg{opacity:1}
+.dz-border{
+  fill:none;stroke:var(--gold);stroke-width:2.5;
+  stroke-dasharray:12 8;stroke-dashoffset:0;
+  stroke-linecap:round;
+}
+
+.utitle{font-family:'Cormorant Garamond',serif;font-size:20px;margin-bottom:6px;transition:color .25s}
 .usub{font-size:12px;color:var(--stone);line-height:1.6}
-.ubtn{display:inline-block;margin-top:20px;padding:12px 32px;background:var(--gold);color:var(--warm);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.25em;text-transform:uppercase;border:none;border-radius:2px;cursor:pointer;transition:all .25s}
-.ubtn:hover{background:var(--charcoal)}
+.dz-hint{
+  display:inline-flex;align-items:center;gap:6px;
+  margin-top:14px;padding:8px 18px;
+  border:1px solid var(--gold-m);border-radius:100px;
+  font-size:11px;letter-spacing:.08em;color:var(--gold);
+  background:rgba(184,147,90,.06);
+  transition:all .2s;
+}
+.zone:hover .dz-hint,.zone.drag .dz-hint{
+  background:var(--gold);color:var(--warm);border-color:var(--gold);
+}
+.ubtn{display:none}/* masqué — remplacé par .dz-hint */
 /* UPLOAD SOUS-ONGLETS */
 .upload-tabs{display:flex;gap:0;margin-bottom:20px;border:1px solid var(--gold-m);border-radius:4px;overflow:hidden}
 .upload-tab{flex:1;padding:11px 8px;background:none;border:none;font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--stone);cursor:pointer;transition:all .25s;font-weight:400}
@@ -263,45 +342,10 @@ h1 em{font-style:italic;color:var(--gold)}
 .nfield label{display:block;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--stone);margin-bottom:7px}
 .nfield input{width:100%;padding:12px 14px;border:1px solid var(--gold-m);border-radius:2px;background:var(--warm);font-family:'Jost',sans-serif;font-size:14px;color:var(--dark);font-weight:300;outline:none;transition:border-color .25s}
 .nfield input:focus{border-color:var(--gold)}
-.previews{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
-.prev{
-  border-radius:6px;overflow:hidden;position:relative;
-  background:var(--gold-m);cursor:default;
-  transition:transform .2s,box-shadow .2s;
-}
-.prev:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(28,23,18,.15)}
-.prev-media{aspect-ratio:1;overflow:hidden;position:relative;border-radius:6px 6px 0 0}
-.prev-media img,.prev-media video{width:100%;height:100%;object-fit:cover;display:block}
-.prev-info{
-  padding:5px 7px 6px;
-  background:#FDFAF6;
-  border-top:1px solid rgba(184,147,90,.15);
-  display:flex;align-items:center;justify-content:space-between;gap:4px;
-}
-.prev-name{
-  font-size:9px;color:var(--stone);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  flex:1;letter-spacing:.02em
-}
-.prev-size{
-  font-size:9px;font-weight:500;
-  white-space:nowrap;flex-shrink:0;
-}
-.prev-size.compressing{color:var(--stone);animation:sizePulse 1s infinite}
-.prev-size.done{color:#5a8a5a}
-.prev-size.video{color:var(--gold)}
-@keyframes sizePulse{0%,100%{opacity:.5}50%{opacity:1}}
-.prev .rm{
-  position:absolute;top:5px;right:5px;
-  width:22px;height:22px;
-  background:rgba(28,23,18,.72);
-  border:1.5px solid rgba(253,250,246,.3);
-  border-radius:50%;color:#fff;font-size:11px;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  transition:background .15s,transform .15s;
-  z-index:3;line-height:1;padding:0;
-}
-.prev .rm:hover{background:rgba(192,57,43,.85);transform:scale(1.12)}
+.previews{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px}
+.prev{aspect-ratio:1;border-radius:3px;overflow:hidden;position:relative;background:var(--gold-m)}
+.prev img{width:100%;height:100%;object-fit:cover}
+.prev .rm{position:absolute;top:4px;right:4px;width:20px;height:20px;background:rgba(28,23,18,.75);border:none;border-radius:50%;color:#fff;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .prog{margin-top:18px}
 .prog-row{display:flex;justify-content:space-between;font-size:11px;color:var(--stone);margin-bottom:7px}
 .prog-bar{height:2px;background:var(--gold-m);border-radius:1px;overflow:hidden}
@@ -842,15 +886,25 @@ to{opacity:1;transform:translateY(0)}}
         <div class="zone" id="dropzone"
           ondragover="event.preventDefault();this.classList.add('drag')"
           ondragleave="this.classList.remove('drag')"
+          ondragend="this.classList.remove('drag')"
           ondrop="onDrop(event)"
           onclick="document.getElementById('fi').click()">
+
+          <!-- Bordure SVG animée (visible uniquement en dragover) -->
+          <svg class="dz-svg" id="dzSvg" preserveAspectRatio="none">
+            <rect class="dz-border" id="dzBorder" x="2" y="2" width="calc(100% - 4px)" height="calc(100% - 4px)" rx="7"/>
+          </svg>
+
           <div class="uico">
             <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           </div>
-          <p class="utitle">Déposez vos photos ici</p>
-          <p class="usub">ou cliquez pour choisir depuis votre galerie<br>JPG, PNG, HEIC · Jusqu'à 20 Mo</p>
-          <button class="ubtn" onclick="event.stopPropagation();document.getElementById('fi').click()">Choisir des photos</button>
-          <input id="fi" type="file" multiple accept="image/*" style="display:none" onchange="onFileSelect(event)">
+          <p class="utitle" id="dzTitle">Déposez vos photos ici</p>
+          <p class="usub" id="dzSub">ou appuyez pour choisir depuis votre galerie<br>JPG, PNG, HEIC &middot; Jusqu'à 20 Mo</p>
+          <span class="dz-hint" id="dzBtn">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span id="dzBtnLabel">Choisir des photos</span>
+          </span>
+          <input id="fi" type="file" multiple accept="image/*,video/*" style="display:none" onchange="onFileSelect(event)">
         </div>
       </div>
       <div class="previews" id="previews"></div>
@@ -1520,76 +1574,16 @@ function addFiles(files) {
   renderPreviews();
   document.getElementById('toast').style.display = 'none';
 }
-function removeFile(i) { selectedFiles.splice(i,1); renderPreviews(); updateQuotaUI && updateQuotaUI(); }
+function removeFile(i) { selectedFiles.splice(i,1); renderPreviews(); }
 function renderPreviews() {
-  const container = document.getElementById('previews');
-  if (!container) return;
-
-  if (!selectedFiles.length) {
-    container.innerHTML = '';
-    const sbtn = document.getElementById('sbtn');
-    if (sbtn) sbtn.style.display = 'none';
-    return;
-  }
-
-  // Construire les miniatures
-  container.innerHTML = selectedFiles.map((f, i) => {
-    const burl    = URL.createObjectURL(f);
-    const isVideo = f._isVideo || (f.type && f.type.startsWith('video/'));
-    const origKo  = Math.round(f.size / 1024);
-    const name    = f.name.length > 18 ? f.name.slice(0, 15) + '...' : f.name;
-
-    const media = isVideo
-      ? '<video src="' + burl + '" playsinline muted style="width:100%;height:100%;object-fit:cover;display:block"></video>'
-      : '<img src="' + burl + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block">';
-
-    const sizeLabel = isVideo
-      ? '<span class="prev-size video">' + (origKo > 1024 ? (origKo/1024).toFixed(1) + 'Mo' : origKo + 'ko') + '</span>'
-      : '<span class="prev-size compressing" id="sz-' + i + '">...</span>';
-
-    return '<div class="prev" id="prev-' + i + '">'
-      + '<div class="prev-media">' + media
-      + '<button class="rm" onclick="event.stopPropagation();removeFile(' + i + ')" title="Supprimer">&times;</button>'
-      + '</div>'
-      + '<div class="prev-info">'
-      + '<span class="prev-name">' + name + '</span>'
-      + sizeLabel
-      + '</div>'
-      + '</div>';
+  document.getElementById('previews').innerHTML = selectedFiles.map((f,i) => {
+    const burl = URL.createObjectURL(f);
+    const media = f._isVideo
+      ? `<video src="${burl}" controls playsinline muted style="width:100%;height:100%;object-fit:cover;border-radius:8px"></video>`
+      : `<img src="${burl}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`;
+    return `<div class="prev">${media}<button class="rm" onclick="removeFile(${i})">✕</button></div>`;
   }).join('');
-
-  const sbtn = document.getElementById('sbtn');
-  if (sbtn) sbtn.style.display = 'block';
-
-  // Lancer compression en background pour afficher le poids final
-  selectedFiles.forEach((f, i) => {
-    if (f._isVideo || (f.type && f.type.startsWith('video/'))) return;
-    const szEl = document.getElementById('sz-' + i);
-    if (!szEl) return;
-    const origKo = Math.round(f.size / 1024);
-    szEl.textContent = origKo + 'ko';
-    szEl.classList.remove('compressing');
-    szEl.classList.add('done');
-    // Simuler la compression pour afficher le poids estimé
-    compressImage(f).then(compressed => {
-      if (!document.getElementById('sz-' + i)) return; // supprimé entre-temps
-      const compKo = Math.round(compressed.size / 1024);
-      const szEl2  = document.getElementById('sz-' + i);
-      if (!szEl2) return;
-      if (compKo < origKo) {
-        szEl2.textContent = origKo + '→' + compKo + 'ko';
-        szEl2.style.color = '#5a8a5a';
-      } else {
-        szEl2.textContent = origKo + 'ko';
-        szEl2.style.color = 'var(--stone)';
-      }
-      szEl2.classList.remove('compressing');
-      szEl2.classList.add('done');
-    }).catch(() => {
-      const szEl2 = document.getElementById('sz-' + i);
-      if (szEl2) { szEl2.textContent = Math.round(f.size/1024) + 'ko'; szEl2.classList.remove('compressing'); }
-    });
-  });
+  document.getElementById('sbtn').style.display = selectedFiles.length ? 'block' : 'none';
 }
 
 // ══════════════════════════════════════════
@@ -2477,6 +2471,99 @@ function showDlToast(msg) {
   window._observeThumb = (el) => observer.observe(el);
 })();
 
+
+
+// ── Adaptation zone de drop mobile / desktop ──────────
+(function() {
+  var isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+
+  function initDropZone() {
+    var title  = document.getElementById('dzTitle');
+    var sub    = document.getElementById('dzSub');
+    var btnLbl = document.getElementById('dzBtnLabel');
+
+    if (isTouch) {
+      // Mobile : pas de drag & drop — adapter le message
+      if (title)  title.textContent  = 'Appuyez pour partager vos photos';
+      if (sub)    sub.innerHTML = 'Choisissez depuis votre galerie ou prenez une photo<br><span style="opacity:.7">JPG, PNG, HEIC &middot; Jusqu&apos;à 20 Mo</span>';
+      if (btnLbl) btnLbl.textContent = 'Ouvrir la galerie';
+      // Masquer l'icône upload et agrandir la zone tactile
+      var dz = document.getElementById('dropzone');
+      if (dz) {
+        dz.style.padding = '48px 24px';
+        // Retirer les gestionnaires drag inutiles sur mobile
+        dz.removeAttribute('ondragover');
+        dz.removeAttribute('ondragleave');
+        dz.removeAttribute('ondrop');
+      }
+    } else {
+      // Desktop : texte drag & drop classique
+      if (title)  title.textContent  = 'Déposez vos photos ici';
+      if (btnLbl) btnLbl.textContent = 'Choisir des photos';
+    }
+
+    // Redimensionner le rect SVG de la bordure animée
+    var dz2 = document.getElementById('dropzone');
+    var svg  = document.getElementById('dzSvg');
+    var rect = document.getElementById('dzBorder');
+    if (dz2 && svg && rect) {
+      var updateRect = function() {
+        var w = dz2.offsetWidth;
+        var h = dz2.offsetHeight;
+        svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+        rect.setAttribute('width',  w - 4);
+        rect.setAttribute('height', h - 4);
+        // Calcul du dash pour que les tirets couvrent tout le périmètre
+        var perimeter = 2 * (w + h);
+        rect.setAttribute('stroke-dasharray', '14 8');
+      };
+      updateRect();
+      window.addEventListener('resize', updateRect);
+    }
+  }
+
+  // Lancer après que le DOM soit prêt
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initDropZone);
+  } else {
+    initDropZone();
+  }
+
+  // Feedback visuel amélioré au dragover — changer aussi le texte
+  document.addEventListener('dragover', function(e) {
+    var dz = document.getElementById('dropzone');
+    if (!dz) return;
+    // Vérifier que le drag est au-dessus de la zone
+    var rect = dz.getBoundingClientRect();
+    if (e.clientX >= rect.left && e.clientX <= rect.right &&
+        e.clientY >= rect.top  && e.clientY <= rect.bottom) {
+      dz.classList.add('drag');
+      var title = document.getElementById('dzTitle');
+      if (title) title.textContent = 'Lâchez pour partager !';
+    }
+  });
+
+  document.addEventListener('dragleave', function(e) {
+    var dz = document.getElementById('dropzone');
+    if (!dz || !dz.classList.contains('drag')) return;
+    // Vérifier qu'on sort vraiment de la zone
+    var rect = dz.getBoundingClientRect();
+    if (e.clientX < rect.left || e.clientX > rect.right ||
+        e.clientY < rect.top  || e.clientY > rect.bottom) {
+      dz.classList.remove('drag');
+      var title = document.getElementById('dzTitle');
+      if (title) title.textContent = 'Déposez vos photos ici';
+    }
+  });
+
+  document.addEventListener('drop', function() {
+    var dz = document.getElementById('dropzone');
+    if (dz) dz.classList.remove('drag');
+    var title = document.getElementById('dzTitle');
+    if (title) title.textContent = 'Déposez vos photos ici';
+  });
+
+})();
 
 </script>
 
