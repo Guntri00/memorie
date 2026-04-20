@@ -4,11 +4,14 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: blob: data: wss:; img-src 'self' https: blob: data:; media-src 'self' https: blob: data:; connect-src 'self' https: wss: blob:; script-src 'self' 'unsafe-inline' https:; worker-src 'self' blob:;">
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
 <title>Mélodie & Thomas — Partage Photos</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--cream:#F7F3EE;--warm:#FDFAF6;--gold:#B8935A;--gold-l:#D4AE7A;--gold-m:#E8D5B7;--dark:#1C1712;--stone:#8A8078;--charcoal:#3A3530}
+html{color-scheme:light}
+:root{color-scheme:light;--cream:#F7F3EE;--warm:#FDFAF6;--gold:#B8935A;--gold-l:#D4AE7A;--gold-m:#E8D5B7;--dark:#1C1712;--stone:#8A8078;--charcoal:#3A3530}
 body{background:var(--cream);font-family:'Jost',sans-serif;font-weight:300;color:var(--dark);min-height:100vh}
 .wrap{max-width:680px;margin:0 auto;padding:0 20px 80px}
 header{text-align:center;padding:48px 24px 32px}
@@ -1522,7 +1525,9 @@ function renderPreviews() {
 async function compressImage(file) {
   if (file._isVideo || (file.type && file.type.startsWith('video/'))) return file;
 
-  const TARGET_MAX_BYTES = 280 * 1024; // cible 280 Ko max
+  // Cible plus basse sur mobile (4G/3G) pour un chargement rapide de la galerie
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const TARGET_MAX_BYTES = (isMobile ? 160 : 280) * 1024;
   const MAX_W            = 1200;
   const MAX_H            = 1600;
   const QUALITY_START    = 0.82;
@@ -1696,7 +1701,7 @@ async function loadGallery() {
       document.getElementById('track-'+cat.id).innerHTML = loop.map(p => {
         const thumb = p.media_type === 'video'
           ? '<div style="width:100%;height:100%;background:#2a1f10;display:flex;align-items:center;justify-content:center;font-size:28px;color:#B8935A;border-radius:4px">▶</div>'
-          : `<img src="${imgUrl(p,'thumb')}" alt="" loading="lazy"
+          : `<img src="${imgUrl(p,'thumb')}" alt="" loading="lazy" decoding="async" fetchpriority="low"
                onload="this.parentElement.classList.add('loaded')"
                onerror="this.parentElement.classList.add('loaded')">`;
         return `<div class="cw-thumb ${p.media_type==='video'?'loaded':''}" id="th-${p.id}">${thumb}</div>`;
@@ -1898,7 +1903,7 @@ function buildPhotoItem(p) {
            <span style="font-size:40px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.8))">▶</span>
          </div>
        </div>`
-    : `<img src="${p.public_url}" alt="Photo de ${(p.uploader_name||'Invité').replace(/'/g,'')}" loading="lazy"
+    : `<img src="${p.public_url}" alt="Photo de ${(p.uploader_name||'Invité').replace(/'/g,'')}" loading="lazy" decoding="async"
             onload="this.closest('.gitem').classList.add('loaded')"
             onerror="this.closest('.gitem').classList.add('loaded');this.closest('.gitem').style.display='none'">`;
 
@@ -2474,6 +2479,49 @@ function showDlToast(msg) {
   window._observeThumb = (el) => observer.observe(el);
 })();
 
+// Récupération caméra après changement d'onglet (iOS/Android)
+async function _recoverCamera() {
+  if (typeof cameraStream !== 'undefined' && cameraStream) {
+    const vid    = document.getElementById('cameraVideo');
+    const tracks = cameraStream.getVideoTracks();
+    const dead   = !cameraStream.active || tracks.some(t => t.readyState === 'ended');
+    const muted  = !dead && tracks.some(t => t.muted);
+    if (dead) {
+      cameraStream = null;
+      if (typeof requestCameraPermission === 'function') await requestCameraPermission();
+    } else if (muted || (vid && vid.paused)) {
+      vid.srcObject = null;
+      vid.srcObject = cameraStream;
+      vid.play().catch(async () => {
+        cameraStream = null;
+        if (typeof requestCameraPermission === 'function') await requestCameraPermission();
+      });
+    }
+  }
+  if (typeof videoStream !== 'undefined' && videoStream && !isRecording) {
+    const recWrap = document.getElementById('videoRecorderWrap');
+    if (recWrap && recWrap.style.display !== 'none') {
+      const vid    = document.getElementById('videoLive');
+      const tracks = videoStream.getVideoTracks();
+      const dead   = !videoStream.active || tracks.some(t => t.readyState === 'ended');
+      const muted  = !dead && tracks.some(t => t.muted);
+      if (dead) {
+        videoStream = null;
+        if (typeof initVideoCamera === 'function') await initVideoCamera();
+      } else if (muted || (vid && vid.paused)) {
+        vid.srcObject = null;
+        vid.srcObject = videoStream;
+        vid.play().catch(async () => {
+          videoStream = null;
+          if (typeof initVideoCamera === 'function') await initVideoCamera();
+        });
+      }
+    }
+  }
+}
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) setTimeout(_recoverCamera, 300);
+});
 
 </script>
 
