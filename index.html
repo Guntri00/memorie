@@ -653,6 +653,36 @@ to{opacity:1;transform:translateY(0)}}
   <meta name="msapplication-TileImage" content="/icons/icon-192.png">
   <meta name="msapplication-TileColor" content="#1C1712">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+// Service Worker : register + auto-update quand nouvelle version déployée
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', async () => {
+    try {
+      const reg = await navigator.serviceWorker.register('/sw.js');
+      // Détection de nouvelle version
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        if (!nw) return;
+        nw.addEventListener('statechange', () => {
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+            // Nouvelle version prête → l'activer et recharger la page
+            nw.postMessage({ type: 'SKIP_WAITING' });
+          }
+        });
+      });
+      // Reload auto quand le SW actif change (après skipWaiting)
+      let reloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (reloaded) return;
+        reloaded = true;
+        window.location.reload();
+      });
+      // Check update toutes les 15 min si l'onglet reste ouvert
+      setInterval(() => { reg.update().catch(()=>{}); }, 15 * 60 * 1000);
+    } catch(_) {}
+  });
+}
+</script>
 </head>
 <body>
 <!-- 🩷💍 -->
@@ -1220,6 +1250,26 @@ const log = {
   window.addEventListener('online',  update);
   window.addEventListener('offline', update);
   update();
+})();
+
+// ══ MONITORING ERREURS (lightweight, sans dépendance externe) ══
+// Capture les erreurs non gérées et les promesses rejetées pour pouvoir
+// les envoyer vers Sentry ou un autre service plus tard.
+// Pour activer Sentry : définir window.SENTRY_DSN puis brancher le SDK.
+(function() {
+  const capture = (payload) => {
+    log.error('[App error]', payload);
+    // Hook vers Sentry si chargé
+    if (window.Sentry && window.Sentry.captureException) {
+      try { window.Sentry.captureException(payload.error || payload); } catch(_) {}
+    }
+  };
+  window.addEventListener('error', (e) => {
+    capture({ type: 'error', message: e.message, filename: e.filename, line: e.lineno, col: e.colno, error: e.error });
+  });
+  window.addEventListener('unhandledrejection', (e) => {
+    capture({ type: 'unhandledrejection', reason: e.reason });
+  });
 })();
 
 const SB_URL   = 'https://hmytqbgnjpugqeslnuvk.supabase.co';
@@ -1935,24 +1985,31 @@ async function toggleLike(photoId, btn) {
   const liked    = getLike(photoId);
   const countEl  = document.getElementById('likes-' + photoId);
   const current  = parseInt(countEl ? countEl.textContent : '0') || 0;
-  const newVal   = liked ? Math.max(0, current - 1) : current + 1;
+  // Mise à jour optimiste UI
+  const optimistic = liked ? Math.max(0, current - 1) : current + 1;
 
   setLike(photoId, !liked);
   if (btn) btn.classList.toggle('liked', !liked);
-  if (countEl) countEl.textContent = newVal;
+  if (countEl) countEl.textContent = optimistic;
   if (!liked) floatEmoji('❤️', btn);
 
+  // Appel RPC atomique — garantit l'incrémentation correcte même en concurrence
   try {
-    await fetch(`${SB_URL}/rest/v1/photos?id=eq.${photoId}&event_id=eq.${EVENT_ID}`, {
-      method: 'PATCH',
+    const res = await fetch(`${SB_URL}/rest/v1/rpc/toggle_photo_like`, {
+      method: 'POST',
       mode: 'cors',
       credentials: 'omit',
       headers: {
         'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`,
-        'Content-Type': 'application/json', 'Prefer': 'return=minimal'
+        'Content-Type': 'application/json', 'Accept': 'application/json'
       },
-      body: JSON.stringify({ likes: newVal })
+      body: JSON.stringify({ p_id: photoId, p_event: EVENT_ID, p_delta: liked ? -1 : 1 })
     });
+    if (res.ok) {
+      // Recaler avec la vraie valeur serveur
+      const realCount = await res.json();
+      if (countEl && typeof realCount === 'number') countEl.textContent = realCount;
+    }
   } catch(e) { log.warn('Like update failed:', e); }
 }
 
