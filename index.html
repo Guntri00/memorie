@@ -45,93 +45,14 @@ h1 em{font-style:italic;color:var(--gold)}
 .back-btn{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--stone);background:none;border:none;cursor:pointer;margin-bottom:20px;transition:color .2s}
 .back-btn:hover{color:var(--gold)}
 .selected-cat-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;background:linear-gradient(135deg,#FDF8F2,#FAF3E8);border:1px solid var(--gold-m);border-radius:20px;font-size:12px;color:var(--charcoal);margin-bottom:20px}
-/* ── Zone de drop ── */
-@keyframes dashMove{to{stroke-dashoffset:-24}}
-@keyframes dzGlow{0%,100%{box-shadow:0 0 0 0 rgba(184,147,90,.0)}50%{box-shadow:0 0 22px 4px rgba(184,147,90,.18)}}
-@keyframes iconBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-
-.zone{
-  position:relative;
-  border-radius:8px;
-  padding:40px 24px;
-  text-align:center;
-  cursor:pointer;
-  background:var(--warm);
-  transition:background .25s,transform .25s;
-  /* Bordure SVG en tirets dessinée via outline invisible */
-  outline:none;
-  /* Bordure en tirets via box-shadow simulé + pseudo-élément */
-}
-/* Bordure tirets via SVG inline en background */
-.zone::before{
-  content:'';
-  position:absolute;inset:0;
-  border-radius:8px;
-  border:2px dashed var(--gold-m);
-  transition:border-color .25s,opacity .25s;
-  pointer-events:none;
-}
-.zone:hover::before{border-color:var(--gold)}
-
-/* État dragover : fond doré + tirets animés */
-.zone.drag{
-  background:rgba(184,147,90,.07);
-  transform:scale(1.01);
-}
-.zone.drag::before{
-  border-color:var(--gold);
-  border-width:2.5px;
-  animation:dzGlow .9s ease-in-out infinite;
-}
-/* Animation des tirets via SVG superposé */
-.zone.drag .dz-border{
-  stroke-dashoffset:0;
-  animation:dashMove 1.4s linear infinite;
-}
-.zone.drag .uico{
-  animation:iconBounce .7s ease-in-out infinite;
-}
-.zone.drag .utitle{color:var(--gold)}
-
-/* Icône upload */
-.uico{
-  width:52px;height:52px;
-  margin:0 auto 18px;
-  background:rgba(184,147,90,.12);
-  border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  transition:transform .3s,background .25s;
-}
-.zone:hover .uico{background:rgba(184,147,90,.2)}
-.uico svg{width:24px;height:24px;stroke:var(--gold);fill:none;stroke-width:1.5;transition:stroke .2s}
-
-/* SVG de bordure animée */
-.dz-svg{
-  position:absolute;inset:0;width:100%;height:100%;
-  pointer-events:none;overflow:visible;border-radius:8px;
-  opacity:0;transition:opacity .2s;
-}
-.zone.drag .dz-svg{opacity:1}
-.dz-border{
-  fill:none;stroke:var(--gold);stroke-width:2.5;
-  stroke-dasharray:12 8;stroke-dashoffset:0;
-  stroke-linecap:round;
-}
-
-.utitle{font-family:'Cormorant Garamond',serif;font-size:20px;margin-bottom:6px;transition:color .25s}
+.zone{border:1.5px dashed var(--gold-m);border-radius:4px;padding:40px 24px;text-align:center;cursor:pointer;transition:all .3s;background:var(--warm)}
+.zone:hover,.zone.drag{border-color:var(--gold);background:#FEFCF8;transform:translateY(-2px);box-shadow:0 12px 40px rgba(184,147,90,.1)}
+.uico{width:48px;height:48px;margin:0 auto 16px;background:linear-gradient(135deg,var(--gold-m),#E8D5CC);border-radius:50%;display:flex;align-items:center;justify-content:center}
+.uico svg{width:22px;height:22px;stroke:var(--gold);fill:none;stroke-width:1.5}
+.utitle{font-family:'Cormorant Garamond',serif;font-size:20px;margin-bottom:6px}
 .usub{font-size:12px;color:var(--stone);line-height:1.6}
-.dz-hint{
-  display:inline-flex;align-items:center;gap:6px;
-  margin-top:14px;padding:8px 18px;
-  border:1px solid var(--gold-m);border-radius:100px;
-  font-size:11px;letter-spacing:.08em;color:var(--gold);
-  background:rgba(184,147,90,.06);
-  transition:all .2s;
-}
-.zone:hover .dz-hint,.zone.drag .dz-hint{
-  background:var(--gold);color:var(--warm);border-color:var(--gold);
-}
-.ubtn{display:none}/* masqué — remplacé par .dz-hint */
+.ubtn{display:inline-block;margin-top:20px;padding:12px 32px;background:var(--gold);color:var(--warm);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.25em;text-transform:uppercase;border:none;border-radius:2px;cursor:pointer;transition:all .25s}
+.ubtn:hover{background:var(--charcoal)}
 /* UPLOAD SOUS-ONGLETS */
 .upload-tabs{display:flex;gap:0;margin-bottom:20px;border:1px solid var(--gold-m);border-radius:4px;overflow:hidden}
 .upload-tab{flex:1;padding:11px 8px;background:none;border:none;font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--stone);cursor:pointer;transition:all .25s;font-weight:400}
@@ -401,8 +322,24 @@ h1 em{font-style:italic;color:var(--gold)}
   break-inside:avoid;margin-bottom:10px;border-radius:3px;
   overflow:hidden;cursor:pointer;position:relative;
   transition:transform .3s,box-shadow .3s;
+  /* Scroll reveal — état initial caché */
+  opacity:0;
+  transform:translateY(22px);
+  transition:opacity .45s ease,transform .45s cubic-bezier(.22,.61,.36,1),box-shadow .3s;
+  will-change:opacity,transform;
 }
 .gitem:hover{transform:translateY(-3px);box-shadow:0 14px 36px rgba(28,23,18,.14)}
+
+/* État visible après reveal — la classe .revealed est ajoutée par l'IntersectionObserver */
+.gitem.revealed{
+  opacity:1;
+  transform:translateY(0);
+}
+/* Hover uniquement quand déjà révélé (pas de conflit) */
+.gitem.revealed:hover{
+  transform:translateY(-3px);
+  box-shadow:0 14px 36px rgba(28,23,18,.14);
+}
 .gitem img{width:100%;display:block}
 .gitem video{width:100%;display:block;aspect-ratio:9/16;object-fit:cover;background:#1a1410}
 .gitem .video-thumb{aspect-ratio:9/16;width:100%;background:#1a1410;display:flex;align-items:center;justify-content:center;position:relative}
@@ -886,25 +823,15 @@ to{opacity:1;transform:translateY(0)}}
         <div class="zone" id="dropzone"
           ondragover="event.preventDefault();this.classList.add('drag')"
           ondragleave="this.classList.remove('drag')"
-          ondragend="this.classList.remove('drag')"
           ondrop="onDrop(event)"
           onclick="document.getElementById('fi').click()">
-
-          <!-- Bordure SVG animée (visible uniquement en dragover) -->
-          <svg class="dz-svg" id="dzSvg" preserveAspectRatio="none">
-            <rect class="dz-border" id="dzBorder" x="2" y="2" width="calc(100% - 4px)" height="calc(100% - 4px)" rx="7"/>
-          </svg>
-
           <div class="uico">
             <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           </div>
-          <p class="utitle" id="dzTitle">Déposez vos photos ici</p>
-          <p class="usub" id="dzSub">ou appuyez pour choisir depuis votre galerie<br>JPG, PNG, HEIC &middot; Jusqu'à 20 Mo</p>
-          <span class="dz-hint" id="dzBtn">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            <span id="dzBtnLabel">Choisir des photos</span>
-          </span>
-          <input id="fi" type="file" multiple accept="image/*,video/*" style="display:none" onchange="onFileSelect(event)">
+          <p class="utitle">Déposez vos photos ici</p>
+          <p class="usub">ou cliquez pour choisir depuis votre galerie<br>JPG, PNG, HEIC · Jusqu'à 20 Mo</p>
+          <button class="ubtn" onclick="event.stopPropagation();document.getElementById('fi').click()">Choisir des photos</button>
+          <input id="fi" type="file" multiple accept="image/*" style="display:none" onchange="onFileSelect(event)">
         </div>
       </div>
       <div class="previews" id="previews"></div>
@@ -1864,6 +1791,14 @@ async function openCategory(catId) {
     // Afficher les photos
     grid.innerHTML = photos.map(p => buildPhotoItem(p)).join('');
 
+    // Scroll reveal — observer chaque item après rendu
+    if (typeof window._resetRevealBatch === 'function') window._resetRevealBatch();
+    if (typeof window._revealItem === 'function') {
+      Array.from(grid.querySelectorAll('.gitem')).forEach(function(el) {
+        window._revealItem(el);
+      });
+    }
+
     // Comptes à rebours suppression
     photos.forEach(p => {
       const age       = Date.now() - new Date(p.uploaded_at).getTime();
@@ -2156,6 +2091,28 @@ async function startRealtimeFull() {
           // Badge nouvelle photo
           newPhotoCounts[p.category] = (newPhotoCounts[p.category] || 0) + 1;
           showCategoryBadge(p.category, newPhotoCounts[p.category]);
+          // Insérer la photo en tête de galerie si la catégorie est ouverte
+          const currentCat = document.getElementById('panel-gallery').dataset.currentCat;
+          if (currentCat === p.category) {
+            const grid = document.getElementById('gGrid');
+            if (grid && !document.getElementById('photo-' + p.id)) {
+              const tmp = document.createElement('div');
+              tmp.innerHTML = buildPhotoItem(p);
+              const newEl = tmp.firstElementChild;
+              grid.insertBefore(newEl, grid.firstChild);
+              // Scroll reveal sur la nouvelle photo
+              if (typeof window._revealItem === 'function') window._revealItem(newEl);
+              // Masonry si activé
+              if (typeof setMasonrySpan === 'function') {
+                const img = newEl.querySelector('img');
+                if (img) img.addEventListener('load', function() { setMasonrySpan(newEl); }, { once: true });
+                else setMasonrySpan(newEl);
+              }
+              // Mettre à jour le compteur affiché
+              const detailTitle = document.getElementById('detail-title');
+              if (detailTitle) detailTitle.innerHTML = '<span style="color:var(--gold)">' + cnt + '</span>&nbsp;photo' + (cnt !== 1 ? 's' : '');
+            }
+          }
         }
       }
       if (payload.eventType === 'DELETE') {
@@ -2452,6 +2409,52 @@ function showDlToast(msg) {
 }
 
 // Intersection Observer pour images hors écran
+
+// ── Scroll reveal galerie — IntersectionObserver ──────
+(function() {
+  var _revealObserver = null;
+
+  // Délai en cascade pour les photos visibles d'emblée (sans scroll)
+  var _revealDelay = 0;
+  var _revealBatch = 0;
+
+  function createRevealObserver() {
+    if (!('IntersectionObserver' in window)) {
+      // Fallback : tout révéler immédiatement
+      window._revealItem = function(el) { el.classList.add('revealed'); };
+      return;
+    }
+
+    _revealObserver = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (!entry.isIntersecting) return;
+        var el = entry.target;
+        // Délai en cascade : 0, 60, 120, 180ms… puis reset tous les 6
+        var delay = (_revealBatch % 6) * 60;
+        _revealBatch++;
+        setTimeout(function() {
+          el.classList.add('revealed');
+        }, delay);
+        _revealObserver.unobserve(el);
+      });
+    }, {
+      rootMargin: '0px 0px -40px 0px',  // déclencher 40px avant le bas du viewport
+      threshold: 0.05
+    });
+
+    window._revealItem = function(el) {
+      if (_revealObserver) _revealObserver.observe(el);
+    };
+  }
+
+  // Réinitialiser le compteur de batch à chaque ouverture de catégorie
+  window._resetRevealBatch = function() {
+    _revealBatch = 0;
+  };
+
+  createRevealObserver();
+})();
+
 (function() {
   if (!('IntersectionObserver' in window)) return;
   const observer = new IntersectionObserver((entries) => {
@@ -2471,99 +2474,6 @@ function showDlToast(msg) {
   window._observeThumb = (el) => observer.observe(el);
 })();
 
-
-
-// ── Adaptation zone de drop mobile / desktop ──────────
-(function() {
-  var isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
-
-  function initDropZone() {
-    var title  = document.getElementById('dzTitle');
-    var sub    = document.getElementById('dzSub');
-    var btnLbl = document.getElementById('dzBtnLabel');
-
-    if (isTouch) {
-      // Mobile : pas de drag & drop — adapter le message
-      if (title)  title.textContent  = 'Appuyez pour partager vos photos';
-      if (sub)    sub.innerHTML = 'Choisissez depuis votre galerie ou prenez une photo<br><span style="opacity:.7">JPG, PNG, HEIC &middot; Jusqu&apos;à 20 Mo</span>';
-      if (btnLbl) btnLbl.textContent = 'Ouvrir la galerie';
-      // Masquer l'icône upload et agrandir la zone tactile
-      var dz = document.getElementById('dropzone');
-      if (dz) {
-        dz.style.padding = '48px 24px';
-        // Retirer les gestionnaires drag inutiles sur mobile
-        dz.removeAttribute('ondragover');
-        dz.removeAttribute('ondragleave');
-        dz.removeAttribute('ondrop');
-      }
-    } else {
-      // Desktop : texte drag & drop classique
-      if (title)  title.textContent  = 'Déposez vos photos ici';
-      if (btnLbl) btnLbl.textContent = 'Choisir des photos';
-    }
-
-    // Redimensionner le rect SVG de la bordure animée
-    var dz2 = document.getElementById('dropzone');
-    var svg  = document.getElementById('dzSvg');
-    var rect = document.getElementById('dzBorder');
-    if (dz2 && svg && rect) {
-      var updateRect = function() {
-        var w = dz2.offsetWidth;
-        var h = dz2.offsetHeight;
-        svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
-        rect.setAttribute('width',  w - 4);
-        rect.setAttribute('height', h - 4);
-        // Calcul du dash pour que les tirets couvrent tout le périmètre
-        var perimeter = 2 * (w + h);
-        rect.setAttribute('stroke-dasharray', '14 8');
-      };
-      updateRect();
-      window.addEventListener('resize', updateRect);
-    }
-  }
-
-  // Lancer après que le DOM soit prêt
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initDropZone);
-  } else {
-    initDropZone();
-  }
-
-  // Feedback visuel amélioré au dragover — changer aussi le texte
-  document.addEventListener('dragover', function(e) {
-    var dz = document.getElementById('dropzone');
-    if (!dz) return;
-    // Vérifier que le drag est au-dessus de la zone
-    var rect = dz.getBoundingClientRect();
-    if (e.clientX >= rect.left && e.clientX <= rect.right &&
-        e.clientY >= rect.top  && e.clientY <= rect.bottom) {
-      dz.classList.add('drag');
-      var title = document.getElementById('dzTitle');
-      if (title) title.textContent = 'Lâchez pour partager !';
-    }
-  });
-
-  document.addEventListener('dragleave', function(e) {
-    var dz = document.getElementById('dropzone');
-    if (!dz || !dz.classList.contains('drag')) return;
-    // Vérifier qu'on sort vraiment de la zone
-    var rect = dz.getBoundingClientRect();
-    if (e.clientX < rect.left || e.clientX > rect.right ||
-        e.clientY < rect.top  || e.clientY > rect.bottom) {
-      dz.classList.remove('drag');
-      var title = document.getElementById('dzTitle');
-      if (title) title.textContent = 'Déposez vos photos ici';
-    }
-  });
-
-  document.addEventListener('drop', function() {
-    var dz = document.getElementById('dropzone');
-    if (dz) dz.classList.remove('drag');
-    var title = document.getElementById('dzTitle');
-    if (title) title.textContent = 'Déposez vos photos ici';
-  });
-
-})();
 
 </script>
 
