@@ -929,15 +929,19 @@ to{opacity:1;transform:translateY(0)}}
       <button class="ss-btn" onclick="ssPrev()">‹</button>
       <button class="ss-btn" id="ssPlayBtn" onclick="ssTogglePlay()">⏸</button>
       <button class="ss-btn" onclick="ssNext()">›</button>
-      <button class="ss-btn" onclick="ssClose()">✕</button>
+      <button class="ss-btn" aria-label="Fermer le diaporama" onclick="ssClose()">✕</button>
     </div>
   </div>
 </div>
 
 <div class="dl-toast" id="dlToast"></div>
+<!-- BANNIÈRE OFFLINE -->
+<div id="offlineBanner" role="status" aria-live="polite" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9998;background:#3A3530;color:#FDFAF6;font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.15em;text-transform:uppercase;text-align:center;padding:10px 16px;box-shadow:0 2px 10px rgba(0,0,0,.25)">
+  ⚠︎ Connexion perdue — vos actions reprendront dès le retour du réseau
+</div>
 <!-- LIGHTBOX -->
 <div class="lb" id="lb" onclick="closeLB()">
-  <button class="lb-x" onclick="closeLB()">✕</button>
+  <button class="lb-x" aria-label="Fermer l'image" onclick="closeLB()">✕</button>
   <img id="lbImg" src="" alt="" loading="lazy" style="display:block">
   <video id="lbVideo" src="" controls playsinline style="display:none;max-width:100%;max-height:90vh;border-radius:8px"></video>
 </div>
@@ -1157,15 +1161,17 @@ function toggleVideoRecord() {
 function showVideoPreview(blob) {
   const previewEl = document.getElementById('videoPreviewEl');
 
+  // Libérer l'URL précédente si on avait déjà une preview
+  if (previewEl._objectUrl) { try { URL.revokeObjectURL(previewEl._objectUrl); } catch(_){} previewEl._objectUrl = null; }
+
   // Technique seekable : charger tout le blob en mémoire
-  // pour que le player puisse scrubber sans saccades
   const reader = new FileReader();
   reader.onload = function(e) {
-    // Utiliser ArrayBuffer converti en blob avec le bon type
-    // pour forcer le navigateur à indexer la durée
     const arrayBuf = e.target.result;
     const seekableBlob = new Blob([arrayBuf], { type: blob.type });
-    previewEl.src   = URL.createObjectURL(seekableBlob);
+    const url = URL.createObjectURL(seekableBlob);
+    previewEl._objectUrl = url;
+    previewEl.src   = url;
     previewEl.muted = false;
     previewEl.load();
   };
@@ -1177,9 +1183,11 @@ function showVideoPreview(blob) {
 
 function retakeVideo() {
   videoBlob=null;
+  const previewEl = document.getElementById('videoPreviewEl');
+  if (previewEl && previewEl._objectUrl) { try { URL.revokeObjectURL(previewEl._objectUrl); } catch(_){} previewEl._objectUrl = null; }
   document.getElementById('videoPreviewWrap').style.display='none';
   document.getElementById('videoRecorderWrap').style.display='block';
-  document.getElementById('videoPreviewEl').src='';
+  if (previewEl) previewEl.src='';
 }
 
 async function useVideo() {
@@ -1195,6 +1203,25 @@ async function useVideo() {
 // ══════════════════════════════════════════
 //  CONFIG
 // ══════════════════════════════════════════
+// Wrapper console — silencieux en prod (?debug=1 pour activer)
+const DEV = /[?&]debug=1/.test(location.search) || /localhost|127\.0\.0\.1/.test(location.hostname);
+const log = {
+  log:   DEV ? console.log.bind(console)   : () => {},
+  warn:  DEV ? console.warn.bind(console)  : () => {},
+  error: console.error.bind(console),   // erreurs toujours visibles
+  info:  DEV ? console.info.bind(console)  : () => {}
+};
+
+// Bannière offline : écoute online/offline
+(function() {
+  const banner = document.getElementById('offlineBanner');
+  if (!banner) return;
+  const update = () => { banner.style.display = navigator.onLine ? 'none' : 'block'; };
+  window.addEventListener('online',  update);
+  window.addEventListener('offline', update);
+  update();
+})();
+
 const SB_URL   = 'https://hmytqbgnjpugqeslnuvk.supabase.co';
 const SB_KEY   = 'sb_publishable_59uI3S3lCP0xyVtvrR6ZZA_vXsiF27o';
 
@@ -1228,6 +1255,7 @@ const CATEGORIES = [
 //  STATE
 // ══════════════════════════════════════════
 let selectedFiles    = [];
+let _previewUrls     = [];   // URLs des previews pour libération mémoire
 let selectedCategory = null;
 let allPhotos        = [];
 let VIDEO_ENABLED    = false;
@@ -1386,7 +1414,7 @@ async function toggleFlash() {
       btn.textContent = flashEnabled ? '🔦' : '⚡';
       showDlToast(flashEnabled ? '🔦 Flash activé' : 'Flash désactivé');
     } catch(e) {
-      console.warn('Torch error:', e);
+      log.warn('Torch error:', e);
       flashEnabled = false;
       showDlToast('Flash non disponible sur cet appareil');
     }
@@ -1480,8 +1508,12 @@ function captureFrame(video, isSelfie) {
 
   canvas.toBlob(blob => {
     capturedBlob = blob;
+    const img = document.getElementById('camPreviewImg');
+    // Révoquer l'URL précédente pour éviter le memory-leak
+    if (img._objectUrl) { try { URL.revokeObjectURL(img._objectUrl); } catch(_){} }
     const url = URL.createObjectURL(blob);
-    document.getElementById('camPreviewImg').src = url;
+    img._objectUrl = url;
+    img.src = url;
     document.getElementById('cameraWrap').style.display    = 'none';
     document.getElementById('cameraPreview').style.display = 'block';
   }, 'image/jpeg', 0.92);
@@ -1489,6 +1521,8 @@ function captureFrame(video, isSelfie) {
 
 function retakePhoto() {
   capturedBlob = null;
+  const img = document.getElementById('camPreviewImg');
+  if (img && img._objectUrl) { try { URL.revokeObjectURL(img._objectUrl); } catch(_){} img._objectUrl = null; img.src = ''; }
   document.getElementById('cameraPreview').style.display = 'none';
   document.getElementById('cameraWrap').style.display    = 'block';
 }
@@ -1562,12 +1596,18 @@ function addFiles(files) {
 }
 function removeFile(i) { selectedFiles.splice(i,1); renderPreviews(); }
 function renderPreviews() {
+  // Révoquer les URLs précédentes pour éviter le memory-leak
+  if (Array.isArray(_previewUrls)) {
+    _previewUrls.forEach(u => { try { URL.revokeObjectURL(u); } catch(_){} });
+  }
+  _previewUrls = [];
   document.getElementById('previews').innerHTML = selectedFiles.map((f,i) => {
     const burl = URL.createObjectURL(f);
+    _previewUrls.push(burl);
     const media = f._isVideo
       ? `<video src="${burl}" controls playsinline muted style="width:100%;height:100%;object-fit:cover;border-radius:8px"></video>`
       : `<img src="${burl}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`;
-    return `<div class="prev">${media}<button class="rm" onclick="removeFile(${i})">✕</button></div>`;
+    return `<div class="prev">${media}<button class="rm" aria-label="Retirer ce fichier" onclick="removeFile(${i})">✕</button></div>`;
   }).join('');
   document.getElementById('sbtn').style.display = selectedFiles.length ? 'block' : 'none';
 }
@@ -1695,7 +1735,7 @@ async function refreshAllPhotos() {
       const curCat = galPanel.dataset.currentCat;
       if (curCat) openCategory(curCat);
     }
-  } catch(e) { console.warn('Refresh failed:', e); }
+  } catch(e) { log.warn('Refresh failed:', e); }
 }
 
 function setProgress(done, total, label) {
@@ -1757,7 +1797,7 @@ async function loadGallery() {
       document.getElementById('track-'+cat.id).innerHTML = loop.map(p => {
         const thumb = p.media_type === 'video'
           ? '<div style="width:100%;height:100%;background:#2a1f10;display:flex;align-items:center;justify-content:center;font-size:28px;color:#B8935A;border-radius:4px">▶</div>'
-          : `<img src="${imgUrl(p,'thumb')}" alt="" loading="lazy" decoding="async" fetchpriority="low"
+          : `<img src="${imgUrl(p,'thumb')}" alt="" width="143" height="143" loading="lazy" decoding="async" fetchpriority="low"
                onload="this.parentElement.classList.add('loaded')"
                onerror="this.parentElement.classList.add('loaded')">`;
         return `<div class="cw-thumb ${p.media_type==='video'?'loaded':''}" id="th-${p.id}">${thumb}</div>`;
@@ -1903,7 +1943,7 @@ async function toggleLike(photoId, btn) {
   if (!liked) floatEmoji('❤️', btn);
 
   try {
-    await fetch(`${SB_URL}/rest/v1/photos?id=eq.${photoId}`, {
+    await fetch(`${SB_URL}/rest/v1/photos?id=eq.${photoId}&event_id=eq.${EVENT_ID}`, {
       method: 'PATCH',
       mode: 'cors',
       credentials: 'omit',
@@ -1913,7 +1953,7 @@ async function toggleLike(photoId, btn) {
       },
       body: JSON.stringify({ likes: newVal })
     });
-  } catch(e) { console.warn('Like update failed:', e); }
+  } catch(e) { log.warn('Like update failed:', e); }
 }
 
 function addReaction(photoId, emoji, btn) {
@@ -1959,7 +1999,7 @@ function buildPhotoItem(p) {
            <span style="font-size:40px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.8))">▶</span>
          </div>
        </div>`
-    : `<img src="${p.public_url}" alt="Photo de ${(p.uploader_name||'Invité').replace(/'/g,'')}" loading="lazy" decoding="async"
+    : `<img src="${p.public_url}" alt="Photo de ${(p.uploader_name||'Invité').replace(/'/g,'')}" width="600" height="600" loading="lazy" decoding="async"
             onload="this.closest('.gitem').classList.add('loaded')"
             onerror="this.closest('.gitem').classList.add('loaded');this.closest('.gitem').style.display='none'">`;
 
@@ -1967,16 +2007,16 @@ function buildPhotoItem(p) {
     <div class="gitem" id="photo-${p.id}" onclick="${clickFn}">
       ${mediaEl}
       <div class="gmeta">par ${(p.uploader_name||'Invité').replace(/</g,'&lt;')}</div>
-      <button class="dl-btn" onclick="event.stopPropagation();downloadPhoto('${safeUrl}','mementos-${p.id.substr(0,6)}.${dlExt}')" title="Télécharger">⬇️</button>
+      <button class="dl-btn" aria-label="Télécharger la photo" onclick="event.stopPropagation();downloadPhoto('${safeUrl}','mementos-${p.id.substr(0,6)}.${dlExt}')" title="Télécharger">⬇️</button>
       <div class="reactions">
-        <button class="react-btn ${isLiked?'liked':''}" id="like-btn-${p.id}" onclick="event.stopPropagation();toggleLike('${p.id}',this)">
+        <button class="react-btn ${isLiked?'liked':''}" id="like-btn-${p.id}" aria-label="J'aime cette photo" aria-pressed="${isLiked?'true':'false'}" onclick="event.stopPropagation();toggleLike('${p.id}',this)">
           ❤️ <span class="react-count" id="likes-${p.id}">${likeCount}</span>
         </button>
-        <button class="react-btn" onclick="event.stopPropagation();addReaction('${p.id}','🔥',this)">🔥</button>
-        <button class="react-btn" onclick="event.stopPropagation();addReaction('${p.id}','😍',this)">😍</button>
+        <button class="react-btn" aria-label="Réaction feu" onclick="event.stopPropagation();addReaction('${p.id}','🔥',this)">🔥</button>
+        <button class="react-btn" aria-label="Réaction coup de cœur" onclick="event.stopPropagation();addReaction('${p.id}','😍',this)">😍</button>
       </div>
       ${canDelete ? `
-        <button class="del-btn" onclick="event.stopPropagation();askDelete('${p.id}','${(p.storage_path||'').replace(/'/g,'%27')}',this.closest('.gitem'))">🗑</button>
+        <button class="del-btn" aria-label="Supprimer la photo" onclick="event.stopPropagation();askDelete('${p.id}','${(p.storage_path||'').replace(/'/g,'%27')}',this.closest('.gitem'))">🗑</button>
         <div class="del-timer" id="timer-${p.id}"><span id="timer-txt-${p.id}"></span></div>
         <div class="del-progress"><div class="del-progress-fill" id="timer-bar-${p.id}" style="width:${Math.round((remaining/DELETE_WINDOW_MS)*100)}%"></div></div>
       ` : ''}
@@ -2035,6 +2075,12 @@ function closeModal() {
 
 async function confirmDelete() {
   if (!pendingDeleteId) return;
+  // Double-click guard : empêche la double suppression
+  const confirmBtn = document.querySelector('.modal-confirm');
+  if (confirmBtn) {
+    if (confirmBtn.disabled) return;
+    confirmBtn.disabled = true;
+  }
 
   const { id, path } = pendingDeleteId;
   const el = pendingDeleteEl;
@@ -2043,6 +2089,14 @@ async function confirmDelete() {
   document.getElementById('modalBg').classList.remove('open');
   pendingDeleteId = null;
   pendingDeleteEl = null;
+
+  // Garde-fou : refuser tout path qui n'appartient pas à cet event
+  if (!path || !path.startsWith(EVENT_ID + '/')) {
+    log.warn('Delete refusé : path hors event', path);
+    if (el) el.classList.remove('deleting');
+    if (confirmBtn) confirmBtn.disabled = false;
+    return;
+  }
 
   // Animation de suppression
   if (el) el.classList.add('deleting');
@@ -2059,10 +2113,10 @@ async function confirmDelete() {
         'Content-Type':  'application/json'
       }
     });
-    if (!storageRes.ok) console.warn('Storage delete warning:', await storageRes.text());
+    if (!storageRes.ok) log.warn('Storage delete warning:', await storageRes.text());
 
-    // 2. Supprimer de la DB
-    const dbRes = await fetch(`${SB_URL}/rest/v1/photos?id=eq.${id}`, {
+    // 2. Supprimer de la DB — filtre event_id pour éviter cross-event delete
+    const dbRes = await fetch(`${SB_URL}/rest/v1/photos?id=eq.${id}&event_id=eq.${EVENT_ID}`, {
       method: 'DELETE',
       mode: 'cors',
       credentials: 'omit',
@@ -2073,7 +2127,7 @@ async function confirmDelete() {
         'Prefer':        'return=minimal'
       }
     });
-    if (!dbRes.ok) console.warn('DB delete warning:', await dbRes.text());
+    if (!dbRes.ok) log.warn('DB delete warning:', await dbRes.text());
 
     // 3. Retirer du DOM après animation
     setTimeout(() => { if (el) el.remove(); }, 400);
@@ -2100,8 +2154,10 @@ async function confirmDelete() {
 
   } catch (err) {
     if (el) el.classList.remove('deleting');
-    console.error('Delete error:', err);
+    log.error('Delete error:', err);
     alert('Erreur lors de la suppression : ' + err.message);
+  } finally {
+    if (confirmBtn) confirmBtn.disabled = false;
   }
 }
 
@@ -2453,7 +2509,7 @@ async function downloadAllPhotos() {
       done++;
       await new Promise(r => setTimeout(r, 500));
     } catch(e) {
-      console.warn('Download failed:', p.public_url, e);
+      log.warn('Download failed:', p.public_url, e);
     }
   }
 
