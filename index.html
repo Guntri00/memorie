@@ -1309,20 +1309,21 @@ async function startCamera() {
     return;
   }
 
-  // Tentative silencieuse : si permission déjà accordée, getUserMedia() passe
-  // sans popup → on affiche la caméra directement (pas besoin de recliquer).
-  try {
-    const fresh = await _reacquireMediaStream(false);
-    if (fresh) {
-      cameraStream = fresh;
-      if (permEl)  permEl.style.display = 'none';
-      wrapEl.style.display = 'block';
-      await _attachStreamToVideo(video, fresh);
-      return;
-    }
-  } catch(_) {}
+  const granted = await _wasCameraEverGranted();
 
-  // Permission pas accordée → afficher l'écran avec bouton
+  if (granted) {
+    // Permission DÉJÀ accordée → ne JAMAIS montrer le bouton.
+    // On affiche le wrap (noir temporairement) + retry silencieux en boucle
+    // jusqu'à ce que le hardware soit libre.
+    wrapEl.style.display = 'block';
+    if (permEl) permEl.style.display = 'none';
+    _cameraWasActive = true;
+    const ok = await _reacquireCameraOnce();
+    if (!ok) _reacquireCameraWithRetry();
+    return;
+  }
+
+  // Première visite → montrer le bouton pour demander la permission
   wrapEl.style.display = 'none';
   if (permEl) permEl.style.display = 'flex';
 }
@@ -1348,7 +1349,8 @@ async function requestCameraPermission() {
       cameraStream = await navigator.mediaDevices.getUserMedia(constraint);
       video.srcObject = cameraStream;
       await video.play().catch(() => {});
-      // Succès → cacher la demande, montrer la caméra
+      // Succès → mémoriser définitivement + cacher la demande
+      try { localStorage.setItem('mementos_cam_granted','1'); } catch(_){}
       if (permEl) permEl.style.display = 'none';
       wrapEl.style.display = 'block';
       errEl.style.display  = 'none';
@@ -3026,9 +3028,26 @@ async function _reacquireMediaStream(wantAudio) {
         { video: { facingMode: facingMode }, audio: false },
         { video: true, audio: false } ];
   for (const c of tries) {
-    try { return await navigator.mediaDevices.getUserMedia(c); } catch(e) {}
+    try {
+      const s = await navigator.mediaDevices.getUserMedia(c);
+      // Succès → mémoriser que la permission a été accordée
+      try { localStorage.setItem('mementos_cam_granted','1'); } catch(_){}
+      return s;
+    } catch(e) {}
   }
   return null;
+}
+
+// Vérifie si la permission caméra a déjà été accordée (évite ré-affichage bouton)
+async function _wasCameraEverGranted() {
+  try {
+    if (navigator.permissions && navigator.permissions.query) {
+      const st = await navigator.permissions.query({ name: 'camera' });
+      if (st.state === 'granted') return true;
+      if (st.state === 'denied')  return false;
+    }
+  } catch(_) {}
+  try { return localStorage.getItem('mementos_cam_granted') === '1'; } catch(_) { return false; }
 }
 
 function _releaseAllCameraHardware() {
