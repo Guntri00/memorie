@@ -212,14 +212,6 @@ body{background:var(--cream);font-family:'Jost',sans-serif;font-weight:300;color
 }
 .photo-card:hover{border-color:var(--gold);box-shadow:0 8px 24px rgba(184,147,90,.15)}
 .photo-card img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
-.photo-card .video-thumb{position:relative;width:100%;aspect-ratio:4/3;background:#1a1410;overflow:hidden}
-.photo-card .video-thumb video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
-.photo-card .video-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
-.photo-card .video-play span{width:48px;height:48px;background:rgba(255,255,255,.92);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(0,0,0,.5);font-size:20px;padding-left:4px;color:#1a1410}
-.lb{position:fixed;inset:0;background:rgba(28,23,18,.95);z-index:300;display:none;align-items:center;justify-content:center;padding:20px}
-.lb.open{display:flex}
-.lb img,.lb video{max-width:100%;max-height:88vh;border-radius:4px;object-fit:contain}
-.lb-x{position:absolute;top:20px;right:20px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#fff;width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .photo-card-meta{
   padding:10px 12px;background:var(--warm);
   border-top:1px solid var(--gold-m);
@@ -350,6 +342,7 @@ footer{text-align:center;padding:24px;font-size:10px;letter-spacing:.18em;color:
 
 
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💍</text></svg>">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 
@@ -362,7 +355,7 @@ footer{text-align:center;padding:24px;font-size:10px;letter-spacing:.18em;color:
     </div>
     <div class="login-field">
       <label>Identifiant</label>
-      <input type="text" id="loginInput" placeholder="Votre identifiant" onkeydown="if(event.key==='Enter')doLogin()" autocomplete="username">
+      <input type="text" id="loginInput" type="email" autocomplete="email" placeholder="Votre identifiant" onkeydown="if(event.key==='Enter')doLogin()" autocomplete="username">
     </div>
     <div class="login-field">
       <label>Mot de passe</label>
@@ -465,15 +458,104 @@ footer{text-align:center;padding:24px;font-size:10px;letter-spacing:.18em;color:
 
     <!-- PHOTOS PAR CATÉGORIE -->
     <div class="section-hdr">
-      <h2 class="section-title">Photos & Vidéos</h2>
+      <h2 class="section-title">Toutes les photos</h2>
       <div class="section-actions">
         <button class="btn btn-outline" onclick="refreshPhotos()">↻ Actualiser</button>
         <button class="btn-select-mode" id="btnSelectMode" onclick="toggleSelectMode()">☑ Sélectionner</button>
         <button class="btn btn-dark" id="dlAllZipBtn" onclick="downloadZip('all')">⬇ ZIP complet</button>
       </div>
     </div>
+
+    <!-- PERSONNALISATION DU MARIAGE -->
+    <div class="toggle-video-card" id="persoCard" style="margin-bottom:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <div class="toggle-title">Personnalisation du mariage</div>
+          <div class="toggle-sub">Modifiez les informations affichées aux invités</div>
+        </div>
+        <button onclick="togglePersoForm()" id="persoToggleBtn"
+          style="background:none;border:1px solid var(--gold-m);color:var(--gold);
+                 border-radius:6px;padding:6px 14px;font-size:12px;cursor:pointer;
+                 font-family:Jost,sans-serif;letter-spacing:.04em">
+          MODIFIER
+        </button>
+      </div>
+
+      <!-- Aperçu readonly -->
+      <div id="persoPreview" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="background:var(--warm-deep);border-radius:6px;padding:10px 14px">
+          <div style="font-size:10px;letter-spacing:.08em;color:var(--muted);margin-bottom:4px">NOMS DU COUPLE</div>
+          <div id="prevCouple" style="font-size:14px;color:var(--text)">—</div>
+        </div>
+        <div style="background:var(--warm-deep);border-radius:6px;padding:10px 14px">
+          <div style="font-size:10px;letter-spacing:.08em;color:var(--muted);margin-bottom:4px">DATE</div>
+          <div id="prevDate" style="font-size:14px;color:var(--text)">—</div>
+        </div>
+        <div style="background:var(--warm-deep);border-radius:6px;padding:10px 14px;grid-column:1/-1">
+          <div style="font-size:10px;letter-spacing:.08em;color:var(--muted);margin-bottom:4px">LIEU</div>
+          <div id="prevVenue" style="font-size:14px;color:var(--text)">—</div>
+        </div>
+        <div style="background:var(--warm-deep);border-radius:6px;padding:10px 14px;grid-column:1/-1">
+          <div style="font-size:10px;letter-spacing:.08em;color:var(--muted);margin-bottom:4px">EXPIRATION DU SITE</div>
+          <div id="prevExpires" style="font-size:14px;color:var(--text)">—</div>
+        </div>
+      </div>
+
+      <!-- Formulaire édition (caché par défaut) -->
+      <div id="persoForm" style="display:none;margin-top:16px;border-top:1px solid var(--gold-m);padding-top:16px">
+        <div style="display:grid;gap:12px">
+          <label style="font-size:11px;letter-spacing:.07em;color:var(--muted)">NOMS DU COUPLE
+            <input type="text" id="inputCouple" placeholder="Mélodie & Thomas"
+              style="display:block;width:100%;margin-top:6px;padding:10px 12px;border-radius:6px;
+                     border:1px solid var(--gold-m);background:var(--warm-deep);color:var(--text);
+                     font-family:Jost,sans-serif;font-size:14px">
+          </label>
+          <label style="font-size:11px;letter-spacing:.07em;color:var(--muted)">DATE DU MARIAGE
+            <input type="text" id="inputDate" placeholder="21 Juin 2025"
+              style="display:block;width:100%;margin-top:6px;padding:10px 12px;border-radius:6px;
+                     border:1px solid var(--gold-m);background:var(--warm-deep);color:var(--text);
+                     font-family:Jost,sans-serif;font-size:14px">
+          </label>
+          <label style="font-size:11px;letter-spacing:.07em;color:var(--muted)">LIEU / SALLE
+            <input type="text" id="inputVenue" placeholder="Château de Valmirande"
+              style="display:block;width:100%;margin-top:6px;padding:10px 12px;border-radius:6px;
+                     border:1px solid var(--gold-m);background:var(--warm-deep);color:var(--text);
+                     font-family:Jost,sans-serif;font-size:14px">
+          </label>
+          <label style="font-size:11px;letter-spacing:.07em;color:var(--muted)">DATE D'EXPIRATION
+            <div style="font-size:10px;color:var(--muted);margin-top:4px;margin-bottom:6px;opacity:.7">Le site se désactive automatiquement après cette date</div>
+            <input type="datetime-local" id="inputExpires"
+              style="display:block;width:100%;margin-top:2px;padding:10px 12px;border-radius:6px;
+                     border:1px solid var(--gold-m);background:var(--warm-deep);color:var(--text);
+                     font-family:Jost,sans-serif;font-size:13px">
+          </label>
+          <label style="font-size:11px;letter-spacing:.07em;color:var(--muted)">COULEUR PRINCIPALE
+            <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
+              <input type="color" id="inputColor" value="#B8935A"
+                style="width:44px;height:36px;border:1px solid var(--gold-m);border-radius:6px;
+                       background:none;cursor:pointer;padding:2px">
+              <span id="colorHexLabel" style="font-size:13px;color:var(--muted)">#B8935A</span>
+            </div>
+          </label>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:16px">
+          <button onclick="saveEventConfig()"
+            style="flex:1;background:var(--gold);color:#1C1712;border:none;border-radius:6px;
+                   padding:11px;font-size:13px;font-weight:600;cursor:pointer;font-family:Jost,sans-serif;
+                   letter-spacing:.05em">
+            ENREGISTRER
+          </button>
+          <button onclick="togglePersoForm()"
+            style="background:none;border:1px solid var(--gold-m);color:var(--muted);border-radius:6px;
+                   padding:11px 18px;font-size:13px;cursor:pointer;font-family:Jost,sans-serif">
+            ANNULER
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div class="select-bar" id="selectBar">
-      <div class="select-bar-info"><strong id="selectCount">0</strong> fichier(s) sélectionné(s)</div>
+      <div class="select-bar-info"><strong id="selectCount">0</strong> photo(s) sélectionnée(s)</div>
       <div class="select-bar-actions">
         <button class="btn-sb btn-sb-outline" onclick="selectAll()">Tout sélectionner</button>
         <button class="btn-sb btn-sb-outline" onclick="deselectAll()">Désélectionner</button>
@@ -544,19 +626,9 @@ footer{text-align:center;padding:24px;font-size:10px;letter-spacing:.18em;color:
   </div>
 </div>
 
-<!-- LIGHTBOX -->
-<div class="lb" id="lb" onclick="if(event.target===this)closeLB()">
-  <button class="lb-x" onclick="closeLB()">✕</button>
-  <img id="lbImg" src="" alt="" style="display:none">
-  <video id="lbVideo" src="" controls playsinline style="display:none;max-width:100%;max-height:88vh;border-radius:4px"></video>
-</div>
-
 <div class="dash-toast" id="dashToast"></div>
 
-<link rel="preconnect" href="https://hmytqbgnjpugqeslnuvk.supabase.co" crossorigin>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
 
 <script>
 // ══════════════════════════════════════════
@@ -572,6 +644,20 @@ const LOGIN_H  = '5d6ada4655ef0223d6391f5aeac433c04fc9db4d6fe8b3055fc0f49092a2fd
 // ══════════════════════════════════════════
 //  TOGGLE VIDÉO
 // ══════════════════════════════════════════
+
+// ── Headers admin sécurisés ──────────────────────────
+function adminHeaders(extra) {
+  // Utiliser le JWT Supabase Auth stocké en sessionStorage au login
+  // La policy events_update_admin vérifie auth.role() = 'authenticated'
+  // + user_metadata.role = 'organisateur' via le JWT — plus besoin de secret
+  const jwt = sessionStorage.getItem('mementos_token') || SB_KEY;
+  return Object.assign({
+    'apikey':        SB_KEY,
+    'Authorization': 'Bearer ' + jwt,
+    'Content-Type':  'application/json',
+    'Prefer':        'return=minimal'
+  }, extra || {});
+}
 async function loadVideoToggle() {
   try {
     const r = await fetch(
@@ -597,10 +683,7 @@ async function toggleVideo() {
       `${SB_URL}/rest/v1/events?id=eq.${EVENT_ID}`,
       {
         method:'PATCH', mode:'cors', credentials:'omit',
-        headers:{
-          'apikey':SB_KEY, 'Authorization':`Bearer ${SB_KEY}`,
-          'Content-Type':'application/json', 'Prefer':'return=minimal'
-        },
+        headers: adminHeaders(),
         body: JSON.stringify({ video_enabled: enabled })
       }
     );
@@ -630,50 +713,66 @@ let currentFilter    = 'all';
 let pendingDeleteId  = null;
 let pendingDeletePath= null;
 
-// ── Échappement HTML ──
-function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-
 // ══════════════════════════════════════════
 //  AUTH
 // ══════════════════════════════════════════
 
 
 
-async function sha256(str) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-}
-
 async function doLogin() {
-  const user = document.getElementById('loginInput').value.trim();
-  const pwd  = document.getElementById('pwdInput').value;
-  const err  = document.getElementById('loginErr');
+  const email = document.getElementById('loginInput').value.trim();
+  const pwd   = document.getElementById('pwdInput').value;
+  const err   = document.getElementById('loginErr');
 
-  if (!user || !pwd) {
-    err.classList.add('show');
-    return;
-  }
+  if (!email || !pwd) { err.classList.add('show'); return; }
 
-  const userHash = await sha256(user);
-  const pwdHash  = await sha256(pwd);
+  const btn = document.querySelector('.login-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Connexion…'; }
 
-  if (userHash === LOGIN_H && pwdHash === PWD_H) {
+  try {
+    // Authentification via Supabase Auth
+    const sbClient = window.supabase
+      ? window.supabase.createClient(SB_URL, SB_KEY)
+      : null;
+
+    if (!sbClient) throw new Error('SDK non disponible');
+
+    const { data, error } = await sbClient.auth.signInWithPassword({ email, password: pwd });
+
+    if (error || !data.user) throw new Error(error ? error.message : 'Identifiants incorrects');
+
+    // Vérifier le rôle
+    const role = data.user.user_metadata?.role;
+    if (role !== 'organisateur') throw new Error('Accès non autorisé pour ce compte');
+
+    // Stocker le token de session
     sessionStorage.setItem('mementos_auth', '1');
+    sessionStorage.setItem('mementos_token', data.session.access_token);
+
     document.getElementById('loginWrap').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';
     err.classList.remove('show');
     loadDashboard();
-  } else {
+
+  } catch(e) {
     err.classList.add('show');
+    const errMsg = document.getElementById('loginErrMsg');
+    if (errMsg) errMsg.textContent = e.message || 'Identifiants incorrects';
     document.getElementById('pwdInput').value = '';
     document.getElementById('loginInput').focus();
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Connexion'; }
   }
 }
 
-function doLogout() {
+async function doLogout() {
+  try {
+    const sbClient = window.supabase ? window.supabase.createClient(SB_URL, SB_KEY) : null;
+    if (sbClient) await sbClient.auth.signOut();
+  } catch(e) {}
   sessionStorage.removeItem('mementos_auth');
-  document.getElementById('loginWrap').style.display = 'flex';
-  document.getElementById('dashboard').style.display = 'none';
+  sessionStorage.removeItem('mementos_token');
+  location.reload();
 }
 
 // Vérifier session au chargement
@@ -690,50 +789,14 @@ window.addEventListener('DOMContentLoaded', () => {
 //  CHARGEMENT
 // ══════════════════════════════════════════
 async function loadDashboard() {
+  loadEventConfig();
   try {
     await refreshPhotos();
     await loadVideoToggle();
     startAutoRefresh();
-    startRealtimeAdmin();
   } catch(e) {
     console.error('loadDashboard error:', e);
   }
-}
-
-// ══ REALTIME — synchro admin multi-onglets + propagation externe ══
-let sbClientAdmin = null;
-function startRealtimeAdmin() {
-  if (sbClientAdmin) return;
-  if (!window.supabase || !window.supabase.createClient) return;
-  sbClientAdmin = window.supabase.createClient(SB_URL, SB_KEY);
-  sbClientAdmin
-    .channel('admin-photos')
-    // DELETE sans filtre — payload.old ne contient que l'id par défaut
-    .on('postgres_changes', {
-      event: 'DELETE', schema: 'public', table: 'photos'
-    }, (payload) => {
-      const id = payload.old && payload.old.id;
-      if (!id) return;
-      const existed = allPhotos.find(p => p.id === id);
-      if (!existed) return;
-      allPhotos = allPhotos.filter(p => p.id !== id);
-      selectedPhotos.delete(id);
-      const card = document.getElementById('pc-' + id);
-      if (card) card.remove();
-      document.querySelectorAll(`[data-photo-id="${id}"]`).forEach(n => n.remove());
-      updateStats();
-    })
-    .on('postgres_changes', {
-      event: 'INSERT', schema: 'public', table: 'photos',
-      filter: `event_id=eq.${EVENT_ID}`
-    }, (payload) => {
-      if (payload.new && !allPhotos.find(p => p.id === payload.new.id)) {
-        allPhotos.unshift(payload.new);
-        prependPhotoCard(payload.new);
-        updateStats();
-      }
-    })
-    .subscribe();
 }
 
 async function refreshPhotos() {
@@ -758,53 +821,19 @@ async function refreshPhotos() {
     // Afficher le total dans le bouton refresh
     const btn = document.querySelector('[onclick="refreshPhotos()"]');
     if (btn) btn.textContent = `↻ Actualiser (${allPhotos.length})`;
-    // Validation proactive en arrière-plan : nettoie les enregistrements orphelins
-    validateStorageUrls();
   } catch(err) {
     console.error('Fetch error:', err);
     toast('⚠️ ' + err.message);
   }
 }
 
-// Validateur en tâche de fond : HEAD chaque URL, nettoie les 404
-let _validatorRunning = false;
-async function validateStorageUrls() {
-  if (_validatorRunning) return;
-  _validatorRunning = true;
-  try {
-    const photos = allPhotos.slice();
-    const CONCURRENCY = 6;
-    let idx = 0;
-    async function worker() {
-      while (idx < photos.length) {
-        const p = photos[idx++];
-        const url = getPhotoUrl(p);
-        if (!url) continue;
-        try {
-          const res = await fetch(url, { method: 'HEAD', mode: 'cors', cache: 'no-store' });
-          if (!res.ok) {
-            const tile = document.querySelector(`[data-photo-id="${p.id}"]`);
-            cleanupBrokenMedia(p.id, tile);
-          }
-        } catch (e) { /* erreurs réseau ignorées — on se fie à onerror */ }
-      }
-    }
-    await Promise.all(Array(CONCURRENCY).fill(0).map(worker));
-  } finally {
-    _validatorRunning = false;
-  }
-}
-
-// Auto-refresh (filet de sécurité ; Realtime gère les mises à jour instantanées)
+// Auto-refresh toutes les 15 secondes
 let autoRefreshInterval = null;
 function startAutoRefresh() {
   if (autoRefreshInterval) clearInterval(autoRefreshInterval);
-  // 120s = secours en cas de déconnexion Realtime ; les événements temps réel
-  // assurent l'actualisation instantanée en conditions normales
   autoRefreshInterval = setInterval(() => {
-    if (document.hidden) return; // inutile quand l'onglet est en arrière-plan
     refreshPhotos();
-  }, 120000);
+  }, 15000);
 }
 
 // ══════════════════════════════════════════
@@ -860,9 +889,9 @@ function toggleSelectMode() {
   renderPhotos();
 }
 
-function handleCardClick(id, url, isVideo) {
+function handleCardClick(id, url) {
   if (selectMode) toggleSelect(id);
-  else openLB(url, isVideo);
+  else openLB(url);
 }
 
 function toggleSelect(id) {
@@ -896,35 +925,37 @@ async function deleteSelected() {
 
   const ids    = [...selectedPhotos];
   const photos = allPhotos.filter(p => ids.includes(p.id));
+  let   done   = 0;
 
-  // UI optimiste : retirer cartes et stats tout de suite
-  ids.forEach(id => {
-    const card = document.getElementById('pc-' + id);
-    if (card) card.remove();
-  });
+  for (const p of photos) {
+    try {
+      // 1. Supprimer du storage en premier (explicite)
+      if (p.storage_path) {
+        await fetch(
+          `${SB_URL}/storage/v1/object/${BUCKET}/${p.storage_path}`,
+          {
+            method: 'DELETE', mode: 'cors', credentials: 'omit',
+            headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+          }
+        );
+      }
+      // 2. Supprimer de la DB (le trigger tentera aussi storage, sans impact)
+      await fetch(`${SB_URL}/rest/v1/photos?id=eq.${p.id}`, {
+        method: 'DELETE', mode: 'cors', credentials: 'omit',
+        headers: { 'apikey':SB_KEY, 'Authorization':`Bearer ${SB_KEY}`,
+                   'Content-Type':'application/json', 'Prefer':'return=minimal' }
+      });
+      const card = document.getElementById('pc-' + p.id);
+      if (card) card.remove();
+      done++;
+    } catch(e) { console.warn('Delete failed:', p.id, e.message); }
+  }
+
   allPhotos = allPhotos.filter(p => !ids.includes(p.id));
   selectedPhotos.clear();
   updateStats();
   toggleSelectMode();
-  toast(`${count} photo${count>1?'s':''} supprimée${count>1?'s':''} !`);
-
-  // Backend : DELETE en parallèle. Le trigger nettoie le storage.
-  const results = await Promise.allSettled(photos.map(p =>
-    fetch(`${SB_URL}/rest/v1/photos?id=eq.${p.id}`, {
-      method:'DELETE', mode:'cors', credentials:'omit',
-      headers:{ 'apikey':SB_KEY, 'Authorization':`Bearer ${SB_KEY}`,
-                'Content-Type':'application/json', 'Prefer':'return=minimal' }
-    }).then(r => { if (!r.ok) throw new Error(`DB ${r.status}`); return p; })
-  ));
-  const failed = results.filter(r => r.status === 'rejected');
-  if (failed.length) {
-    // Rollback des échecs
-    const failedPhotos = photos.filter((_, i) => results[i].status === 'rejected');
-    allPhotos.push(...failedPhotos);
-    renderPhotos();
-    updateStats();
-    toast(`⚠️ ${failed.length} suppression(s) échouée(s)`);
-  }
+  toast(`${done} photo${done>1?'s':''} supprimée${done>1?'s':''}  définitivement !`);
 }
 
 function filterCat(cat, btn) {
@@ -944,32 +975,6 @@ function getPhotoUrl(p) {
   return p.public_url || '';
 }
 
-function buildPhotoCardHTML(p) {
-  const cat     = CATEGORIES[p.category] || { emoji:'📷', name:'Autre' };
-  const time    = new Date(p.uploaded_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-  const date    = new Date(p.uploaded_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'});
-  const isVideo = p.media_type === 'video';
-  const safeUrl = getPhotoUrl(p).replace(/'/g,'%27');
-  const safePath = (p.storage_path||'').replace(/'/g,'%27');
-  const safeId   = esc(String(p.id));
-  const safeName = esc(p.uploader_name || 'Invité');
-  const mediaEl = isVideo
-    ? `<div class="video-thumb"><video src="${safeUrl}" playsinline muted preload="metadata" onloadedmetadata="if(!this.videoWidth){cleanupBrokenMedia('${safeId}',this.closest('.photo-card'));return}this.currentTime=0.5" onerror="cleanupBrokenMedia('${safeId}',this.closest('.photo-card'))" onstalled="setTimeout(()=>{if(this.networkState===3||this.readyState===0)cleanupBrokenMedia('${safeId}',this.closest('.photo-card'))},4000)"></video><div class="video-play"><span>▶</span></div></div>`
-    : `<img data-src="${safeUrl}" alt="" decoding="async" onload="if(!this.naturalWidth)cleanupBrokenMedia('${safeId}',this.closest('.photo-card'))" onerror="cleanupBrokenMedia('${safeId}',this.closest('.photo-card'))">`;
-  return `
-    <div class="photo-card ${selectedPhotos.has(p.id)?'selected-card':''}" id="pc-${safeId}" data-photo-id="${safeId}" onclick="handleCardClick('${safeId}','${safeUrl}',${isVideo})">
-      ${mediaEl}
-      <div class="photo-card-actions">
-        <button class="photo-action-btn photo-dl-btn" onclick="event.stopPropagation();dlPhoto('${safeUrl}','${safePath}')" title="Télécharger">⬇</button>
-        <button class="photo-action-btn photo-del-btn" onclick="event.stopPropagation();askDelete('${safeId}','${safePath}')" title="Supprimer">🗑</button>
-      </div>
-      <div class="photo-card-meta">
-        <div class="photo-meta-name">${safeName} &nbsp;<span style="color:var(--stone)">${cat.emoji}</span>${isVideo ? ' <span style="color:#B8935A;font-size:10px">🎬</span>' : ''}</div>
-        <div class="photo-meta-time">${date} à ${time} &nbsp;·&nbsp; ${p.likes||0} ❤️</div>
-      </div>
-    </div>`;
-}
-
 function renderPhotos() {
   const photos = currentFilter === 'all'
     ? allPhotos
@@ -982,60 +987,24 @@ function renderPhotos() {
     return;
   }
 
-  grid.classList.toggle('select-mode', selectMode);
-  grid.innerHTML = photos.map(buildPhotoCardHTML).join('');
-  observeLazyImages();
-}
-
-function prependPhotoCard(p) {
-  if (currentFilter !== 'all' && p.category !== currentFilter) return;
-  const grid = document.getElementById('photoGrid');
-  if (!grid) return;
-  const empty = grid.querySelector('.photo-empty');
-  if (empty) { grid.innerHTML = ''; }
-  grid.insertAdjacentHTML('afterbegin', buildPhotoCardHTML(p));
-  observeLazyImages();
-}
-
-// Lazy-load via IntersectionObserver : ne charge que les images proches du viewport
-let _lazyObs = null;
-function observeLazyImages() {
-  if (!_lazyObs) {
-    _lazyObs = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          const img = e.target;
-          const src = img.getAttribute('data-src');
-          if (src) { img.src = src; img.removeAttribute('data-src'); }
-          _lazyObs.unobserve(img);
-        }
-      });
-    }, { rootMargin: '1200px 0px', threshold: 0.01 });
-  }
-  document.querySelectorAll('#photoGrid img[data-src]').forEach(img => _lazyObs.observe(img));
-}
-
-function openLB(url, isVideo) {
-  const img   = document.getElementById('lbImg');
-  const video = document.getElementById('lbVideo');
-  if (isVideo) {
-    img.style.display   = 'none'; img.src = '';
-    video.src           = url;
-    video.style.display = 'block';
-    video.load(); video.play().catch(() => {});
-  } else {
-    video.style.display = 'none'; video.pause(); video.src = '';
-    img.src             = url;
-    img.style.display   = 'block';
-  }
-  document.getElementById('lb').classList.add('open');
-}
-function closeLB() {
-  document.getElementById('lb').classList.remove('open');
-  const v = document.getElementById('lbVideo');
-  if (v) { v.pause(); v.src = ''; v.style.display = 'none'; }
-  const i = document.getElementById('lbImg');
-  if (i) { i.src = ''; i.style.display = 'none'; }
+  document.getElementById('photoGrid').classList.toggle('select-mode', selectMode);
+  grid.innerHTML = photos.map(p => {
+    const cat  = CATEGORIES[p.category] || { emoji:'📷', name:'Autre' };
+    const time = new Date(p.uploaded_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    const date = new Date(p.uploaded_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'});
+    return `
+    <div class="photo-card ${selectedPhotos.has(p.id)?'selected-card':''}" id="pc-${p.id}" onclick="handleCardClick('${p.id}','${getPhotoUrl(p)}')">
+      <img src="${getPhotoUrl(p)}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'">
+      <div class="photo-card-actions">
+        <button class="photo-action-btn photo-dl-btn" onclick="event.stopPropagation();dlPhoto('${getPhotoUrl(p)}','${p.storage_path}')" title="Télécharger">⬇</button>
+        <button class="photo-action-btn photo-del-btn" onclick="event.stopPropagation();askDelete('${p.id}','${p.storage_path}')" title="Supprimer">🗑</button>
+      </div>
+      <div class="photo-card-meta">
+        <div class="photo-meta-name">${p.uploader_name || 'Invité'} &nbsp;<span style="color:var(--stone)">${cat.emoji}</span></div>
+        <div class="photo-meta-time">${date} à ${time} &nbsp;·&nbsp; ${p.likes||0} ❤️</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ══════════════════════════════════════════
@@ -1051,17 +1020,17 @@ async function dlPhoto(url, path) {
     a.href     = URL.createObjectURL(blob);
     a.download = `mementos-${Date.now()}.${ext}`;
     a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+    URL.revokeObjectURL(a.href);
     toast('✓ Photo téléchargée !');
   } catch(e) { window.open(url,'_blank'); }
 }
 
 async function downloadZip(catFilter) {
-  const items = catFilter === 'all'
+  const photos = catFilter === 'all'
     ? allPhotos
     : allPhotos.filter(p => p.category === catFilter);
 
-  if (!items.length) { toast('Aucun fichier à télécharger'); return; }
+  if (!photos.length) { toast('Aucune photo à télécharger'); return; }
 
   const prog  = document.getElementById('zipProgress');
   const bar   = document.getElementById('zipBar');
@@ -1072,46 +1041,34 @@ async function downloadZip(catFilter) {
   prog.classList.add('show');
   if (btn) btn.disabled = true;
 
-  const zip    = new JSZip();
-  const total  = items.length;
-  let   done   = 0;
-  let   errors = 0;
+  const zip   = new JSZip();
+  const total = photos.length;
+  let   done  = 0;
 
-  for (let i = 0; i < items.length; i++) {
-    const p = items[i];
-    const isVideo = p.media_type === 'video';
-    label.textContent = `Chargement ${i+1} / ${total}${isVideo ? ' (vidéo)' : ''}…`;
+  for (let i = 0; i < photos.length; i++) {
+    const p = photos[i];
+    label.textContent = `Chargement ${i+1} / ${total}...`;
     try {
       const controller = new AbortController();
-      // 2 min pour les vidéos, 30s pour les photos
-      const timeoutMs  = isVideo ? 120000 : 30000;
-      const timeout    = setTimeout(() => controller.abort(), timeoutMs);
+      const timeout    = setTimeout(() => controller.abort(), 30000);
       const res = await fetch(getPhotoUrl(p), { mode:'cors', credentials:'omit', signal: controller.signal });
       clearTimeout(timeout);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const blob = await res.blob();
-      const ext  = (p.storage_path || (isVideo ? 'video.webm' : 'photo.jpg')).split('.').pop().toLowerCase() || (isVideo ? 'webm' : 'jpg');
-      const cat  = p.category || 'autre';
-      const name = (p.uploader_name || 'Invite').replace(/[^a-zA-ZÀ-ÿ0-9]/g, '_');
-      const prefix = isVideo ? 'VID' : 'IMG';
-      zip.file(`${cat}/${prefix}_${String(i+1).padStart(3,'0')}_${name}.${ext}`, blob);
+      const ext  = (p.storage_path || 'photo.jpg').split('.').pop().toLowerCase() || 'jpg';
+      const cat  = p.category || 'photo';
+      const name = (p.uploader_name || 'Invite').replace(/[^a-zA-Z0-9]/g, '_');
+      zip.file(`${cat}/${String(i+1).padStart(3,'0')}_${name}.${ext}`, blob);
       done++;
-    } catch(e) {
-      console.warn(`Fichier ${i+1} échoué:`, e.message);
-      errors++;
-    }
+    } catch(e) { console.warn(`Photo ${i+1} echouee:`, e.message); }
     const p1 = Math.round(((i+1) / total) * 70);
     bar.style.width = p1 + '%'; pct.textContent = p1 + '%';
   }
 
-  // STORE si vidéos présentes (compression inutile sur mp4/webm)
-  const hasVideos = items.some(p => p.media_type === 'video');
-  label.textContent = `Compression de ${done} fichier${done > 1 ? 's' : ''}…`;
+  label.textContent = `Compression de ${done} photos...`;
   try {
     const zipBlob = await zip.generateAsync({
-      type: 'blob',
-      compression: hasVideos ? 'STORE' : 'DEFLATE',
-      compressionOptions: hasVideos ? {} : { level: 5 }
+      type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 5 }
     }, (meta) => {
       const p2 = 70 + Math.round(meta.percent * 0.3);
       bar.style.width = p2 + '%'; pct.textContent = p2 + '%';
@@ -1123,58 +1080,11 @@ async function downloadZip(catFilter) {
     a.style.display = 'none';
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-
-    const imgs = items.filter(p => p.media_type !== 'video').length;
-    const vids = items.filter(p => p.media_type === 'video').length;
-    const parts = [];
-    if (imgs) parts.push(`${imgs} photo${imgs > 1 ? 's' : ''}`);
-    if (vids) parts.push(`${vids} vidéo${vids > 1 ? 's' : ''}`);
-    toast(errors
-      ? `ZIP téléchargé (${done} fichier${done > 1 ? 's' : ''}, ${errors} échoué${errors > 1 ? 's' : ''})`
-      : `ZIP de ${parts.join(' + ')} téléchargé !`
-    );
+    toast(`ZIP de ${done}/${total} photos telecharge !`);
   } catch(e) { toast('Erreur ZIP : ' + e.message); }
 
   prog.classList.remove('show'); bar.style.width = '0%';
   if (btn) btn.disabled = false;
-}
-
-// ══════════════════════════════════════════
-//  NETTOYAGE AUTO DES MÉDIAS CASSÉS
-// ══════════════════════════════════════════
-const _cleanedBrokenIds = new Set();
-const _CLEANED_MAX = 500;
-async function cleanupBrokenMedia(id, tileEl) {
-  if (!id) { if (tileEl) tileEl.style.display = 'none'; return; }
-  // Période de grâce pour cohérence différée Supabase Storage
-  const _p = Array.isArray(allPhotos) ? allPhotos.find(x => String(x.id) === String(id)) : null;
-  if (_p && _p.uploaded_at) {
-    const ageMs = Date.now() - new Date(_p.uploaded_at).getTime();
-    if (ageMs < 3 * 60 * 1000) {
-      if (tileEl) tileEl.style.display = 'none';
-      return;
-    }
-  }
-  if (_cleanedBrokenIds.has(id)) {
-    document.querySelectorAll(`[data-photo-id="${id}"]`).forEach(n => n.remove());
-    return;
-  }
-  if (_cleanedBrokenIds.size >= _CLEANED_MAX) _cleanedBrokenIds.clear();
-  _cleanedBrokenIds.add(id);
-
-  document.querySelectorAll(`[data-photo-id="${id}"]`).forEach(n => n.remove());
-  if (tileEl && tileEl.parentElement) tileEl.remove();
-
-  allPhotos = allPhotos.filter(p => String(p.id) !== String(id));
-  if (typeof selectedPhotos !== 'undefined' && selectedPhotos.delete) selectedPhotos.delete(id);
-  try { updateStats(); } catch(e) {}
-
-  try {
-    await fetch(`${SB_URL}/rest/v1/photos?id=eq.${encodeURIComponent(id)}`, {
-      method: 'DELETE', mode: 'cors', credentials: 'omit',
-      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }
-    });
-  } catch (e) { /* silencieux */ }
 }
 
 // ══════════════════════════════════════════
@@ -1193,28 +1103,29 @@ function closeModal() {
 
 async function confirmDelete() {
   if (!pendingDeleteId) return;
-  const id = pendingDeleteId;
+  const id   = pendingDeleteId;
+  const path = pendingDeletePath;
   closeModal();
 
-  // UI optimiste : retirer immédiatement, l'utilisateur n'attend plus le réseau
   const card = document.getElementById('pc-' + id);
-  const previous = allPhotos.find(p => p.id === id);
-  if (card) card.remove();
-  allPhotos = allPhotos.filter(p => p.id !== id);
-  updateStats();
-  toast('✓ Photo supprimée');
+  if (card) card.style.opacity = '0.4';
 
-  // Backend en arrière-plan. Le trigger DB cleanup_storage_on_photo_delete()
-  // supprime le fichier du storage, donc un seul appel réseau suffit.
   try {
-    const res = await fetch(`${SB_URL}/rest/v1/photos?id=eq.${id}`, {
+    await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${path}`, {
+      method:'DELETE', mode:'cors', credentials:'omit',
+      headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json' }
+    });
+    await fetch(`${SB_URL}/rest/v1/photos?id=eq.${id}`, {
       method:'DELETE', mode:'cors', credentials:'omit',
       headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal' }
     });
-    if (!res.ok) throw new Error(`DB ${res.status}`);
+
+    allPhotos = allPhotos.filter(p => p.id !== id);
+    if (card) card.remove();
+    updateStats();
+    toast('✓ Photo supprimée');
   } catch(err) {
-    // Rollback : remettre dans allPhotos et rendre à nouveau la grille
-    if (previous) { allPhotos.push(previous); renderPhotos(); updateStats(); }
+    if (card) card.style.opacity = '1';
     toast('⚠️ Erreur suppression : ' + err.message);
   }
 }
@@ -1222,7 +1133,7 @@ async function confirmDelete() {
 // ══════════════════════════════════════════
 //  TOGGLE UPLOADS
 // ══════════════════════════════════════════
-async function toggleUploads() {
+function toggleUploads() {
   const enabled = document.getElementById('uploadToggle').checked;
   const status  = document.getElementById('toggleStatus');
   status.textContent = enabled
@@ -1230,19 +1141,8 @@ async function toggleUploads() {
     : '● Désactivé — galerie verrouillée';
   status.className = 'toggle-status ' + (enabled ? 'on' : 'off');
   try {
-    await fetch(`${SB_URL}/rest/v1/events?id=eq.${EVENT_ID}`, {
-      method: 'PATCH',
-      headers: {
-        'apikey': SB_KEY,
-        'Authorization': `Bearer ${SB_KEY}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify({ uploads_enabled: enabled })
-    });
-  } catch(e) {
-    console.warn('Toggle uploads sync failed:', e);
-  }
+    localStorage.setItem('mementos_uploads_enabled', enabled ? '1' : '0');
+  } catch(e) {}
   toast(enabled ? '✓ Uploads activés' : '✓ Uploads désactivés');
 }
 
@@ -1263,6 +1163,101 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeModal();
   if (e.key === 'Enter' && document.getElementById('loginWrap').style.display !== 'none') doLogin();
 });
+
+// ══ PERSONNALISATION DU MARIAGE ══
+let eventConfig = {};
+
+async function loadEventConfig() {
+  try {
+    const r = await fetch(
+      `${SB_URL}/rest/v1/events?id=eq.${EVENT_ID}&select=couple_name,wedding_date,venue,primary_color,expires_at`,
+      { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Accept': 'application/json' } }
+    );
+    if (!r.ok) return;
+    const d = await r.json();
+    if (!d[0]) return;
+    eventConfig = d[0];
+    document.getElementById('prevCouple').textContent = d[0].couple_name  || '—';
+    document.getElementById('prevDate').textContent   = d[0].wedding_date || '—';
+    document.getElementById('prevVenue').textContent  = d[0].venue        || '—';
+    // Afficher la date d'expiration formatée en français
+    if (d[0].expires_at) {
+      const exp = new Date(d[0].expires_at);
+      document.getElementById('prevExpires').textContent =
+        exp.toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric',
+                                          hour:'2-digit', minute:'2-digit' });
+    }
+    document.getElementById('inputCouple').value = d[0].couple_name  || '';
+    document.getElementById('inputDate').value   = d[0].wedding_date || '';
+    document.getElementById('inputVenue').value  = d[0].venue        || '';
+    const color = d[0].primary_color || '#B8935A';
+    document.getElementById('inputColor').value  = color;
+    // expires_at → convertir en datetime-local (format YYYY-MM-DDThh:mm)
+    const expiresAt = d[0].expires_at;
+    const expiresEl = document.getElementById('inputExpires');
+    if (expiresEl && expiresAt) {
+      const dt = new Date(expiresAt);
+      const pad = n => String(n).padStart(2,'0');
+      expiresEl.value = dt.getFullYear() + '-' + pad(dt.getMonth()+1) + '-' + pad(dt.getDate())
+                      + 'T' + pad(dt.getHours()) + ':' + pad(dt.getMinutes());
+    }
+    document.getElementById('colorHexLabel').textContent = color;
+  } catch(e) {}
+}
+
+function togglePersoForm() {
+  const form = document.getElementById('persoForm');
+  const preview = document.getElementById('persoPreview');
+  const btn = document.getElementById('persoToggleBtn');
+  const isHidden = form.style.display === 'none';
+  form.style.display    = isHidden ? 'block' : 'none';
+  preview.style.display = isHidden ? 'none'  : 'grid';
+  btn.textContent = isHidden ? 'FERMER' : 'MODIFIER';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const colorInput = document.getElementById('inputColor');
+  if (colorInput) {
+    colorInput.addEventListener('input', () => {
+      document.getElementById('colorHexLabel').textContent = colorInput.value;
+    });
+  }
+});
+
+async function saveEventConfig() {
+  const couple = document.getElementById('inputCouple').value.trim();
+  const date   = document.getElementById('inputDate').value.trim();
+  const venue  = document.getElementById('inputVenue').value.trim();
+  const color  = document.getElementById('inputColor').value;
+
+  try {
+    const r = await fetch(
+      `${SB_URL}/rest/v1/events?id=eq.${EVENT_ID}`,
+      {
+        method: 'PATCH',
+        headers: adminHeaders(),
+        body: JSON.stringify({
+          couple_name: couple,
+          wedding_date: date,
+          venue,
+          primary_color: color,
+          expires_at: document.getElementById('inputExpires').value
+                      ? new Date(document.getElementById('inputExpires').value).toISOString()
+                      : null
+        })
+      }
+    );
+    if (!r.ok) throw new Error(await r.text());
+    document.getElementById('prevCouple').textContent = couple || '—';
+    document.getElementById('prevDate').textContent   = date   || '—';
+    document.getElementById('prevVenue').textContent  = venue  || '—';
+    togglePersoForm();
+    toast('Personnalisation sauvegardée !');
+  } catch(e) {
+    toast('Erreur : ' + e.message, true);
+  }
+}
+
 </script>
 </body>
 </html>
