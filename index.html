@@ -3030,13 +3030,71 @@ async function _reacquireMediaStream(wantAudio) {
   for (const c of tries) {
     try {
       const s = await navigator.mediaDevices.getUserMedia(c);
-      // Succès → mémoriser que la permission a été accordée
       try { localStorage.setItem('mementos_cam_granted','1'); } catch(_){}
+      // Écouter la mort des tracks → reacquire automatique dès que ça arrive
+      s.getTracks().forEach(t => {
+        t.addEventListener('ended', () => {
+          if (document.hidden) return;
+          _cameraWasActive = true;
+          _reacquireCameraWithRetry();
+        });
+      });
       return s;
     } catch(e) {}
   }
   return null;
 }
+
+// Polling actif : toutes les 2s, si caméra devrait être active mais ne l'est
+// pas → reacquire. Filet de sécurité si les events (visibilitychange, onended)
+// n'arrivent pas correctement.
+let _cameraWatchdogId = null;
+function _startCameraWatchdog() {
+  if (_cameraWatchdogId) return;
+  _cameraWatchdogId = setInterval(async () => {
+    if (document.hidden || _reacquireBusy) return;
+
+    // Onglet photo actif + wrap visible + stream mort → reacquire
+    const photoPane = document.getElementById('upload-camera-pane');
+    const wrapEl    = document.getElementById('cameraWrap');
+    const photoVid  = document.getElementById('cameraVideo');
+    if (photoPane && photoPane.style.display !== 'none' &&
+        wrapEl && wrapEl.style.display !== 'none' && photoVid) {
+      const streamDead = !cameraStream || !cameraStream.active ||
+                         cameraStream.getVideoTracks().every(t => t.readyState === 'ended');
+      const videoDead  = photoVid.paused || photoVid.readyState === 0 ||
+                         photoVid.videoWidth === 0;
+      if (streamDead || videoDead) {
+        const granted = await _wasCameraEverGranted();
+        if (granted) {
+          _cameraWasActive = true;
+          _reacquireCameraOnce();
+        }
+      }
+    }
+
+    // Onglet vidéo actif + live visible + stream mort → reacquire
+    const vidPane = document.getElementById('upload-video-pane');
+    const recWrap = document.getElementById('videoRecorderWrap');
+    const liveVid = document.getElementById('videoLive');
+    if (vidPane && vidPane.style.display !== 'none' &&
+        recWrap && recWrap.style.display !== 'none' &&
+        liveVid && typeof isRecording !== 'undefined' && !isRecording) {
+      const streamDead = !videoStream || !videoStream.active ||
+                         videoStream.getVideoTracks().every(t => t.readyState === 'ended');
+      const videoDead  = liveVid.paused || liveVid.readyState === 0 ||
+                         liveVid.videoWidth === 0;
+      if (streamDead || videoDead) {
+        const granted = await _wasCameraEverGranted();
+        if (granted) {
+          _videoWasActive = true;
+          _reacquireCameraOnce();
+        }
+      }
+    }
+  }, 2000);
+}
+_startCameraWatchdog();
 
 // Vérifie si la permission caméra a déjà été accordée (évite ré-affichage bouton)
 async function _wasCameraEverGranted() {
@@ -3073,12 +3131,36 @@ function _stopReacquireRetry() {
   if (_reacquireRetryId) { clearInterval(_reacquireRetryId); _reacquireRetryId = null; }
 }
 
+function _showReacquireOverlay(show) {
+  const vids = ['cameraVideo','videoLive'];
+  vids.forEach(id => {
+    const vid = document.getElementById(id);
+    if (!vid || !vid.parentNode) return;
+    let ov = vid.parentNode.querySelector('.cam-loader');
+    if (show) {
+      if (!ov) {
+        ov = document.createElement('div');
+        ov.className = 'cam-loader';
+        ov.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);color:#fff;font-family:Jost,sans-serif;font-size:12px;letter-spacing:.18em;text-transform:uppercase;z-index:5;pointer-events:none;gap:10px';
+        ov.innerHTML = '<span style="display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:camSpin .8s linear infinite"></span>Reprise…';
+        const style = document.getElementById('cam-loader-style') || Object.assign(document.createElement('style'),{id:'cam-loader-style',textContent:'@keyframes camSpin{to{transform:rotate(360deg)}}'});
+        if (!style.parentNode) document.head.appendChild(style);
+        vid.parentNode.appendChild(ov);
+      }
+      ov.style.display = 'flex';
+    } else if (ov) {
+      ov.style.display = 'none';
+    }
+  });
+}
+
 async function _reacquireCameraOnce() {
   if (_reacquireBusy) return false;
   if (!_cameraWasActive && !_videoWasActive) return true;   // rien à faire
   if (document.hidden) return false;
 
   _reacquireBusy = true;
+  _showReacquireOverlay(true);
   try {
     const fresh = await _reacquireMediaStream(_videoWasActive);
     if (!fresh) return false;
@@ -3096,6 +3178,7 @@ async function _reacquireCameraOnce() {
       if (photoVid) await _attachStreamToVideo(photoVid, fresh);
     }
     _cameraWasActive = _videoWasActive = false;
+    _showReacquireOverlay(false);
     return true;
   } finally {
     _reacquireBusy = false;
