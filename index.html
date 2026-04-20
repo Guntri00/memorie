@@ -26,9 +26,9 @@ h1 em{font-style:italic;color:var(--gold)}
 .tagline{font-size:13px;color:var(--charcoal);margin-top:14px;line-height:1.7;max-width:340px;margin-left:auto;margin-right:auto}
 .tabs{display:flex;justify-content:center;margin:0 24px 32px}
 .tab{flex:1;max-width:160px;padding:13px 8px;background:none;border:1px solid var(--gold-m);color:var(--stone);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:all .25s;font-weight:400}
-.tab:first-child{border-radius:2px 0 0 2px;border-right:none}
+.tab:first-child{border-radius:2px 0 0 2px}
 .tab:last-child{border-radius:0 2px 2px 0}
-.tab:nth-child(2){border-right:none}
+.tab:not(:last-child){border-right:none}
 .tab.on{background:var(--gold);border-color:var(--gold);color:var(--warm)}
 .tab:not(.on):hover{border-color:var(--gold);color:var(--gold)}
 .panel{display:none}.panel.on{display:block}
@@ -173,8 +173,9 @@ h1 em{font-style:italic;color:var(--gold)}
 .slideshow-img{
   max-width:100vw;max-height:85vh;
   object-fit:contain;
-  animation:slideFade .5s ease;
 }
+img.slideshow-img{animation:slideFade .5s ease}
+video.slideshow-img{animation:none}
 @keyframes slideFade{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
 .slideshow-bar{
   position:absolute;bottom:0;left:0;right:0;
@@ -298,10 +299,6 @@ h1 em{font-style:italic;color:var(--gold)}
 .cw-count{font-size:10px;color:var(--stone);letter-spacing:.1em;margin-top:2px}
 .cw-arrow{font-size:14px;color:var(--gold-m);transition:all .3s}
 .cat-widget:hover .cw-arrow{color:var(--gold);transform:translateX(3px)}
-.cw-slider{position:relative;height:140px;overflow:hidden;background:var(--cream)}
-.cw-track{display:flex;gap:3px;height:100%;will-change:transform}
-.cw-thumb{flex-shrink:0;width:140px;height:140px;overflow:hidden;position:relative}
-.cw-thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s ease}
 .cw-thumb:hover img{transform:scale(1.05)}
 .cw-slider::before,.cw-slider::after{content:'';position:absolute;top:0;bottom:0;width:40px;z-index:2;pointer-events:none}
 .cw-slider::before{left:0;background:linear-gradient(90deg,var(--warm),transparent)}
@@ -315,34 +312,10 @@ h1 em{font-style:italic;color:var(--gold)}
 /* DETAIL VIEW */
 .g-back{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--stone);background:none;border:none;cursor:pointer;margin-bottom:20px;transition:color .2s}
 .g-back:hover{color:var(--gold)}
-.g-grid{columns:2;gap:10px}
-@media(min-width:480px){.g-grid{columns:3}}
-
 /* ══════════════════════════════════
    PHOTO ITEM AVEC SUPPRESSION
 ══════════════════════════════════ */
-.gitem{
-  break-inside:avoid;margin-bottom:10px;border-radius:3px;
-  overflow:hidden;cursor:pointer;position:relative;
-  transition:transform .3s,box-shadow .3s;
-  /* Scroll reveal — état initial caché */
-  opacity:0;
-  transform:translateY(22px);
-  transition:opacity .45s ease,transform .45s cubic-bezier(.22,.61,.36,1),box-shadow .3s;
-  will-change:opacity,transform;
-}
 .gitem:hover{transform:translateY(-3px);box-shadow:0 14px 36px rgba(28,23,18,.14)}
-
-/* État visible après reveal — la classe .revealed est ajoutée par l'IntersectionObserver */
-.gitem.revealed{
-  opacity:1;
-  transform:translateY(0);
-}
-/* Hover uniquement quand déjà révélé (pas de conflit) */
-.gitem.revealed:hover{
-  transform:translateY(-3px);
-  box-shadow:0 14px 36px rgba(28,23,18,.14);
-}
 .gitem img{width:100%;display:block}
 .gitem video{width:100%;display:block;aspect-ratio:9/16;object-fit:cover;background:#1a1410}
 .gitem .video-thumb{aspect-ratio:9/16;width:100%;background:#1a1410;display:flex;align-items:center;justify-content:center;position:relative}
@@ -469,10 +442,13 @@ footer a{color:var(--gold);text-decoration:none}
 .cw-thumb img{
   width:100%;height:100%;
   object-fit:cover;object-position:center;
-  opacity:0;transition:opacity .3s ease;
+  opacity:1;transition:opacity .2s ease;
   display:block;position:relative;z-index:2;
 }
 .cw-thumb.loaded img{opacity:1}
+.cw-thumb video{width:100%;height:100%;object-fit:cover;object-position:center;display:block;position:relative;z-index:2}
+.cw-thumb .vplay-ico{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:3;pointer-events:none}
+.cw-thumb .vplay-ico span{width:34px;height:34px;background:rgba(255,255,255,.88);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,.45);font-size:14px;padding-left:3px;color:#1a1410}
 @keyframes shimmer{
   0%{background-position:-200% 0}
   100%{background-position:200% 0}
@@ -505,50 +481,8 @@ footer a{color:var(--gold);text-decoration:none}
 }
 .gitem.loaded img{opacity:1}
 
-#introScreen {
-  position:fixed;inset:0;
-  background:#0d0b08;
-  z-index:9999;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  cursor:pointer;overflow:hidden;
-}
-#introScreen.fade-out {
-  animation:introOut 1.1s cubic-bezier(0.55,0,1,0.45) forwards;
-}
-@keyframes introOut {
-  0%   { opacity:1; transform:scale(1);    filter:blur(0px)   brightness(1);   }
-  20%  { opacity:1; transform:scale(1.3);  filter:blur(0px)   brightness(1.1); }
-  50%  { opacity:1; transform:scale(2.4);  filter:blur(1px)   brightness(1.5); }
-  75%  { opacity:.5; transform:scale(4);   filter:blur(4px)   brightness(2.5); }
-  100% { opacity:0; transform:scale(7);    filter:blur(10px)  brightness(4);   }
-}
-  25%  { opacity:1; transform:scale(1.4) translateZ(0); filter:brightness(1.05); }
-  55%  { opacity:1; transform:scale(2.2) translateZ(0); filter:brightness(1.3) blur(0px); }
-  75%  { opacity:.6; transform:scale(3.5) translateZ(0); filter:brightness(2) blur(2px); }
-  100% { opacity:0; transform:scale(6) translateZ(0); filter:brightness(3) blur(8px); }
-}
-
-@keyframes iglow{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.6}50%{transform:translate(-50%,-50%) scale(1.18);opacity:1}}
-
-.ipt.cross::before{width:1px;height:8px;left:50%;top:50%;transform:translate(-50%,-50%)}
-
-30%{opacity:.9}70%{opacity:.3}100%{opacity:0;transform:translateY(-28px) scale(1.3) rotate(180deg)}}
-
-50%{transform:scaleX(1.12);opacity:1}}
-
-@keyframes iRingFloat {
-  0%,100% { transform: translateY(0) rotate(-2deg); }
-  50%      { transform: translateY(-10px) rotate(2deg); }
-}
-100%{opacity:1;transform:translateY(0) scale(1) rotate(0deg)}}
-
-50%{transform:translate(-50%,-50%) scale(1.08);opacity:1}}
-
-to{opacity:1;transform:translateY(0)}}
-40%,60%{opacity:.45}}
-
 /* ═══════════════════════════════════════
-   INTRO ANIMATION MEMENTOS — FINAL
+   INTRO ANIMATION MEMENTOS
 ═══════════════════════════════════════ */
 #introScreen {
   position: fixed;
@@ -638,6 +572,86 @@ to{opacity:1;transform:translateY(0)}}
 .btn-use{background:var(--gold);color:var(--warm)}
 
 #cameraPermission { background: #1C1712; border-radius: 12px; min-height: 260px; }
+
+/* ═══════════════════════════════════════════
+   MUR LIVE — version intégrée (chaleureuse)
+   ═══════════════════════════════════════════ */
+.wall-inline{background:linear-gradient(180deg,#FDF8F2 0%,#FAF3E8 100%);border:1px solid var(--gold-m);border-radius:10px;padding:22px;box-shadow:0 10px 32px rgba(184,147,90,.10)}
+.wall-inline-head{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid rgba(184,147,90,.18)}
+.wall-inline-title{display:flex;align-items:center;gap:14px}
+.wall-inline-emoji{font-size:34px;filter:drop-shadow(0 2px 6px rgba(184,147,90,.3))}
+.wall-inline-h1{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:var(--gold);margin:0;letter-spacing:.01em;line-height:1.2}
+.wall-inline-sub{font-size:12px;color:var(--stone);margin:3px 0 0;letter-spacing:.04em;line-height:1.4}
+.wall-inline-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.wall-inline-live{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;background:#fff;border:1px solid var(--gold-m);border-radius:22px;font-size:11px;color:var(--gold);font-weight:500;letter-spacing:.08em}
+.wall-fs-btn{background:var(--gold);color:var(--warm);border:none;border-radius:22px;padding:9px 18px;font-family:'Jost',sans-serif;font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:all .25s;box-shadow:0 6px 18px rgba(184,147,90,.25)}
+.wall-fs-btn:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(184,147,90,.35)}
+
+.wall-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));grid-auto-rows:180px;gap:10px;align-content:start}
+.wall-grid-inline{min-height:220px}
+.wall-tile{position:relative;border-radius:8px;overflow:hidden;background:#F5E8D0;box-shadow:0 4px 14px rgba(44,24,16,.12);animation:wallIn .9s cubic-bezier(.2,.8,.2,1);transition:transform .3s}
+.wall-tile:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(184,147,90,.25)}
+.wall-tile.new{animation:wallPop 1.2s cubic-bezier(.2,.9,.2,1),wallGlow 3s ease-out}
+.wall-tile img,.wall-tile video{width:100%;height:100%;object-fit:cover;display:block}
+.wall-tile .wt-meta{position:absolute;left:0;right:0;bottom:0;padding:14px 12px 10px;background:linear-gradient(transparent,rgba(28,23,18,.75));color:#F5E8D0;font-family:'Cormorant Garamond',serif;font-size:16px;letter-spacing:.02em;pointer-events:none}
+.wall-tile .wt-cat{position:absolute;top:8px;left:8px;background:rgba(255,255,255,.9);color:var(--gold);padding:4px 10px;border-radius:22px;font-size:10px;letter-spacing:.08em;font-weight:500;backdrop-filter:blur(6px);box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.wall-tile .wt-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;font-size:40px;color:#fff;filter:drop-shadow(0 2px 8px rgba(0,0,0,.6))}
+
+@keyframes wallIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+@keyframes wallPop{0%{opacity:0;transform:scale(.6)}60%{opacity:1;transform:scale(1.04)}100%{transform:scale(1)}}
+@keyframes wallGlow{0%{box-shadow:0 0 0 3px var(--gold),0 12px 32px rgba(184,147,90,.5)}100%{box-shadow:0 4px 14px rgba(44,24,16,.12)}}
+
+.wall-live-dot{width:8px;height:8px;border-radius:50%;background:#E53935;box-shadow:0 0 0 0 rgba(229,57,53,.5);animation:wallPulse 1.8s ease-out infinite}
+@keyframes wallPulse{0%{box-shadow:0 0 0 0 rgba(229,57,53,.5)}100%{box-shadow:0 0 0 12px rgba(229,57,53,0)}}
+
+.wall-empty-inline{display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:48px 20px;color:var(--stone)}
+.wall-inline.empty .wall-empty-inline{display:flex}
+.wall-inline.empty .wall-grid{display:none}
+.we-ico{font-size:56px;margin-bottom:16px}
+.we-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:var(--gold);margin:0 0 8px;letter-spacing:.01em}
+.we-sub{font-size:12px;color:var(--stone);margin:0;letter-spacing:.04em;line-height:1.5;max-width:320px}
+
+/* ─── MUR LIVE — version plein écran (projection) ─── */
+.wall-overlay{position:fixed;inset:0;background:#0A0806;z-index:9999;display:none;overflow:hidden}
+.wall-overlay.open{display:block}
+.wall-overlay .wall-grid{position:absolute;inset:0;padding:14px;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));grid-auto-rows:220px;overflow:hidden}
+@media (min-width:1400px){ .wall-overlay .wall-grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr));grid-auto-rows:260px} }
+@media (min-width:1900px){ .wall-overlay .wall-grid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));grid-auto-rows:300px;gap:14px} }
+.wall-overlay .wall-tile{background:#1C1712;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.wall-overlay .wall-tile:hover{transform:none}
+.wall-overlay .wall-tile .wt-cat{background:rgba(0,0,0,.55);color:#fff}
+
+.wall-status{position:fixed;top:18px;left:22px;z-index:10001;display:flex;align-items:center;gap:10px;padding:10px 18px;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);border-radius:26px;color:#fff;font-family:'Jost',sans-serif;font-size:12px;letter-spacing:.14em}
+.wall-live-label{font-weight:600;color:#fff}
+.wall-sep{opacity:.4}
+
+.wall-close{position:fixed;top:18px;right:22px;z-index:10001;width:44px;height:44px;border:none;border-radius:50%;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);color:#fff;font-size:18px;cursor:pointer;transition:all .2s}
+.wall-close:hover{background:rgba(229,57,53,.85);transform:rotate(90deg)}
+
+.wall-empty{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;color:#8b7d67;text-align:center;padding:20px}
+.wall-overlay.empty .wall-empty{display:flex}
+.wall-overlay.empty .wall-grid{display:none}
+.wall-overlay .we-ico{font-size:72px;opacity:.5}
+.wall-overlay .we-title{color:#E8D9BE;font-size:26px}
+
+@media (max-width:640px){
+  .wall-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));grid-auto-rows:130px;gap:6px}
+  .wall-inline{padding:14px}
+  .wall-inline-emoji{font-size:28px}
+  .wall-inline-h1{font-size:21px}
+  .wall-inline-sub{font-size:11px}
+  .wall-overlay .wall-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));grid-auto-rows:140px;padding:8px}
+  .wall-status{top:12px;left:12px;font-size:10px;padding:7px 12px}
+  .wall-close{top:12px;right:12px;width:36px;height:36px}
+}
+@media (max-width:768px){
+  [class]{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  .charm{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+  .charm{display:none}
+}
 </style>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💍</text></svg>">
 
@@ -647,12 +661,16 @@ to{opacity:1;transform:translateY(0)}}
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Mementos">
+  <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
   <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192.png">
   <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512.png">
   <meta name="msapplication-TileImage" content="/icons/icon-192.png">
   <meta name="msapplication-TileColor" content="#1C1712">
+  <link rel="preconnect" href="https://hmytqbgnjpugqeslnuvk.supabase.co" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));</script>
 </head>
 <body>
 <!-- 🩷💍 -->
@@ -708,6 +726,7 @@ to{opacity:1;transform:translateY(0)}}
 <div class="tabs">
   <button class="tab on" onclick="switchTab('upload',this)">📤 Partager</button>
   <button class="tab" onclick="switchTab('gallery',this)">🖼️ Galerie</button>
+  <button class="tab" onclick="switchTab('wall',this)">📺 Mur live</button>
   <button class="tab" onclick="switchTab('qr',this)">📱 QR Code</button>
 </div>
 
@@ -719,22 +738,22 @@ to{opacity:1;transform:translateY(0)}}
       <p class="cat-title">Dans quel moment êtes-vous ?</p>
       <p class="cat-sub">Choisissez une catégorie pour mieux organiser vos souvenirs</p>
       <div class="cat-grid">
-        <div class="cat-card" onclick="selectCategory('ceremonie','💍','Cérémonie')">
+        <div class="cat-card" onclick="selectCategory('ceremonie','💍','Cérémonie',this)">
           <span class="cat-emoji">💍</span>
           <div class="cat-name">Cérémonie</div>
           <div class="cat-desc">L'échange des vœux et des alliances</div>
         </div>
-        <div class="cat-card" onclick="selectCategory('cocktail','🥂','Cocktail')">
+        <div class="cat-card" onclick="selectCategory('cocktail','🥂','Cocktail',this)">
           <span class="cat-emoji">🥂</span>
           <div class="cat-name">Cocktail</div>
           <div class="cat-desc">Les bulles et les retrouvailles</div>
         </div>
-        <div class="cat-card" onclick="selectCategory('diner','🍽️','Dîner / Soirée')">
+        <div class="cat-card" onclick="selectCategory('diner','🍽️','Dîner / Soirée',this)">
           <span class="cat-emoji">🍽️</span>
           <div class="cat-name">Dîner / Soirée</div>
           <div class="cat-desc">Le repas et les discours</div>
         </div>
-        <div class="cat-card" onclick="selectCategory('danse','💃','Piste de danse')">
+        <div class="cat-card" onclick="selectCategory('danse','💃','Piste de danse',this)">
           <span class="cat-emoji">💃</span>
           <div class="cat-name">Piste de danse</div>
           <div class="cat-desc">La fête jusqu'au bout de la nuit</div>
@@ -758,7 +777,7 @@ to{opacity:1;transform:translateY(0)}}
         <div id="cameraPermission" style="display:none;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;min-height:260px">
           <div style="font-size:52px;margin-bottom:16px">📷</div>
           <p style="font-size:16px;font-weight:500;color:var(--gold);margin-bottom:8px">Accès à la caméra</p>
-          <p style="font-size:13px;color:var(--cream-muted);margin-bottom:24px;line-height:1.5">Pour prendre des photos et vidéos, autorisez l'accès à votre caméra</p>
+          <p style="font-size:13px;color:var(--stone);margin-bottom:24px;line-height:1.5">Pour prendre des photos et vidéos, autorisez l'accès à votre caméra</p>
           <button onclick="requestCameraPermission()" style="background:var(--gold);color:#1C1712;border:none;border-radius:12px;padding:14px 32px;font-size:15px;font-weight:600;font-family:Jost,sans-serif;cursor:pointer;letter-spacing:.05em">Activer ma caméra</button>
         </div>
         <div class="camera-wrap" id="cameraWrap">
@@ -884,6 +903,52 @@ to{opacity:1;transform:translateY(0)}}
     </div>
   </div>
 
+  <!-- MUR LIVE -->
+  <div id="panel-wall" class="panel">
+    <div class="wall-inline">
+      <div class="wall-inline-head">
+        <div class="wall-inline-title">
+          <span class="wall-inline-emoji">✨</span>
+          <div>
+            <p class="wall-inline-h1">Le mur des souvenirs</p>
+            <p class="wall-inline-sub">Chaque photo partagée apparaît ici, comme par magie</p>
+          </div>
+        </div>
+        <div class="wall-inline-actions">
+          <div class="wall-inline-live">
+            <div class="wall-live-dot"></div>
+            <span>En direct · <span id="wallCountInline">0</span></span>
+          </div>
+          <button class="wall-fs-btn" onclick="startLiveWallFullscreen()" title="Projeter en plein écran">⛶ Projeter</button>
+        </div>
+      </div>
+      <div class="wall-grid wall-grid-inline" id="wallGridInline"></div>
+      <div class="wall-empty-inline" id="wallEmptyInline">
+        <div class="we-ico">💛</div>
+        <p class="we-title">Les premiers souvenirs arrivent bientôt…</p>
+        <p class="we-sub">Les photos partagées par les invités s'afficheront ici en direct</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MUR LIVE OVERLAY -->
+  <div id="liveWallOverlay" class="wall-overlay">
+    <div class="wall-status">
+      <div class="wall-live-dot"></div>
+      <span class="wall-live-label">EN DIRECT</span>
+      <span class="wall-sep">·</span>
+      <span id="wallCount">0</span>
+      <span>souvenirs</span>
+    </div>
+    <button class="wall-close" onclick="stopLiveWall()" aria-label="Quitter">✕</button>
+    <div class="wall-grid" id="wallGrid"></div>
+    <div class="wall-empty" id="wallEmpty">
+      <div class="we-ico">📷</div>
+      <p>En attente des premiers souvenirs…</p>
+      <p class="we-sub">Les nouvelles photos apparaîtront ici automatiquement</p>
+    </div>
+  </div>
+
   <!-- QR CODE -->
   <div id="panel-qr" class="panel">
     <div class="qr-wrap">
@@ -914,6 +979,7 @@ to{opacity:1;transform:translateY(0)}}
   </div>
   <div class="ss-counter" id="ssCounter"></div>
   <img class="slideshow-img" id="ssImg" src="" alt="" loading="lazy">
+  <video class="slideshow-img" id="ssVideo" src="" playsinline muted style="display:none"></video>
   <div class="slideshow-bar">
     <div class="ss-info">
       <strong id="ssName"></strong>
@@ -930,7 +996,7 @@ to{opacity:1;transform:translateY(0)}}
 
 <div class="dl-toast" id="dlToast"></div>
 <!-- LIGHTBOX -->
-<div class="lb" id="lb" onclick="closeLB()">
+<div class="lb" id="lb" onclick="if(event.target===this)closeLB()">
   <button class="lb-x" onclick="closeLB()">✕</button>
   <img id="lbImg" src="" alt="" loading="lazy" style="display:block">
   <video id="lbVideo" src="" controls playsinline style="display:none;max-width:100%;max-height:90vh;border-radius:8px"></video>
@@ -1139,7 +1205,7 @@ function retakeVideo() {
 async function useVideo() {
   if(!videoBlob) return;
   const ext=videoBlob.type.includes('mp4')?'mp4':'webm';
-  const file=new File([videoBlob],`video-cam-${Date.now()}-${Math.random().toString(36).substr(2,6)}.${ext}`,
+  const file=new File([videoBlob],`video-cam-${Date.now()}-${Math.random().toString(36).substring(2,8)}.${ext}`,
     {type:videoBlob.type,lastModified:Date.now()});
   file._fromCamera=true; file._isVideo=true;
   retakeVideo(); switchUploadTab('gallery'); addFiles([file]);
@@ -1177,6 +1243,9 @@ const CATEGORIES = [
   { id:'diner',     emoji:'🍽️', name:'Dîner / Soirée' },
   { id:'danse',     emoji:'💃', name:'Piste de danse' },
 ];
+
+// ── Échapper HTML (anti-XSS) ──
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
 // ══════════════════════════════════════════
 //  STATE
@@ -1452,6 +1521,7 @@ function switchTab(id, btn) {
   btn.classList.add('on');
   document.getElementById('panel-' + id).classList.add('on');
   if (id === 'gallery') loadGallery();
+  else if (id === 'wall') { stopAllSliders(); stopCamera(); openInlineWall(); }
   else { stopAllSliders(); stopCamera(); }
 
   // Réinitialiser la galerie à la vue widgets quand on quitte l'onglet
@@ -1459,15 +1529,27 @@ function switchTab(id, btn) {
     document.getElementById('gallery-detail').style.display  = 'none';
     document.getElementById('gallery-widgets').style.display = 'block';
   }
+
+  // Désactiver les hooks Realtime du mur quand on quitte l'onglet
+  if (id !== 'wall') {
+    inlineWallActive = false;
+    const ig = document.getElementById('wallGridInline');
+    if (ig) {
+      ig.querySelectorAll('video').forEach(v => {
+        try { if (_wallVideoObserver) _wallVideoObserver.unobserve(v); v.pause(); v.removeAttribute('src'); v.load(); } catch(_){}
+      });
+      ig.innerHTML = '';
+    }
+  }
 }
 
 // ══════════════════════════════════════════
 //  CATÉGORIE
 // ══════════════════════════════════════════
-function selectCategory(id, emoji, name) {
+function selectCategory(id, emoji, name, el) {
   selectedCategory = { id, emoji, name };
   document.querySelectorAll('.cat-card').forEach(c => c.classList.remove('selected'));
-  event.currentTarget.classList.add('selected');
+  if (el) el.classList.add('selected');
   document.getElementById('badge-emoji').textContent = emoji;
   document.getElementById('badge-name').textContent  = name;
   setTimeout(() => {
@@ -1505,9 +1587,15 @@ function addFiles(files) {
   document.getElementById('toast').style.display = 'none';
 }
 function removeFile(i) { selectedFiles.splice(i,1); renderPreviews(); }
+let _previewUrls = [];
 function renderPreviews() {
+  // Libérer les anciens object URLs
+  _previewUrls.forEach(u => URL.revokeObjectURL(u));
+  _previewUrls = [];
+
   document.getElementById('previews').innerHTML = selectedFiles.map((f,i) => {
     const burl = URL.createObjectURL(f);
+    _previewUrls.push(burl);
     const media = f._isVideo
       ? `<video src="${burl}" controls playsinline muted style="width:100%;height:100%;object-fit:cover;border-radius:8px"></video>`
       : `<img src="${burl}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`;
@@ -1585,7 +1673,7 @@ async function doUpload() {
     try {
       setProgress(done, total, `Photo ${done+1} / ${total}`);
       const ext      = file._isVideo ? (file.type&&file.type.includes('mp4')?'mp4':'webm') : (file.name.split('.').pop()||'jpg').toLowerCase();
-      const filename = `${EVENT_ID}/${selectedCategory.id}/${Date.now()}-${Math.random().toString(36).substr(2,6)}.${ext}`;
+      const filename = `${EVENT_ID}/${selectedCategory.id}/${Date.now()}-${Math.random().toString(36).substring(2,8)}.${ext}`;
 
       // Compresser seulement les images (pas les vidéos)
       const fileToUpload = file._isVideo ? file : await compressImage(file);
@@ -1683,7 +1771,7 @@ async function loadGallery() {
       { method:'GET', mode:'cors', credentials:'omit', headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Accept':'application/json' } }
     );
     if (!res.ok) throw new Error(await res.text());
-    allPhotos = await res.json();
+    allPhotos = filterOutBlocked(await res.json());
     document.getElementById('totalCount').textContent = allPhotos.length;
 
     CATEGORIES.forEach(cat => {
@@ -1700,11 +1788,17 @@ async function loadGallery() {
       const loop = photos.length===1?[...photos,...photos,...photos]:photos.length===2?[...photos,...photos]:photos;
       document.getElementById('track-'+cat.id).innerHTML = loop.map(p => {
         const thumb = p.media_type === 'video'
-          ? '<div style="width:100%;height:100%;background:#2a1f10;display:flex;align-items:center;justify-content:center;font-size:28px;color:#B8935A;border-radius:4px">▶</div>'
-          : `<img src="${imgUrl(p,'thumb')}" alt="" loading="lazy" decoding="async" fetchpriority="low"
-               onload="this.parentElement.classList.add('loaded')"
-               onerror="this.parentElement.classList.add('loaded')">`;
-        return `<div class="cw-thumb ${p.media_type==='video'?'loaded':''}" id="th-${p.id}">${thumb}</div>`;
+          ? `<video src="${imgUrl(p)}" muted playsinline preload="metadata"
+               onloadedmetadata="if(!this.videoWidth){cleanupBrokenMedia('${p.id}','${cat.id}',this.closest('.cw-thumb'));return}this.currentTime=0.5"
+               onseeked="this.closest('.cw-thumb').classList.add('loaded')"
+               onerror="cleanupBrokenMedia('${p.id}','${cat.id}',this.closest('.cw-thumb'))"
+               onstalled="setTimeout(()=>{if(this.networkState===3||this.readyState===0)cleanupBrokenMedia('${p.id}','${cat.id}',this.closest('.cw-thumb'))},4000)"
+               style="width:100%;height:100%;object-fit:cover;display:block"></video>
+             <div class="vplay-ico"><span>▶</span></div>`
+          : `<img src="${imgUrl(p,'thumb')}" alt="" decoding="async" loading="lazy" fetchpriority="low"
+               onload="if(!this.naturalWidth){cleanupBrokenMedia('${p.id}','${cat.id}',this.closest('.cw-thumb'))}else{this.closest('.cw-thumb').classList.add('loaded')}"
+               onerror="cleanupBrokenMedia('${p.id}','${cat.id}',this.closest('.cw-thumb'))">`;
+        return `<div class="cw-thumb" id="th-${p.id}" data-photo-id="${p.id}">${thumb}</div>`;
       }).join('');
 
       const names = [...new Set(photos.map(p=>p.uploader_name||'Invité'))].slice(0,4);
@@ -1716,10 +1810,12 @@ async function loadGallery() {
     });
   } catch(err) {
     document.getElementById('catWidgets').innerHTML =
-      `<div class="gempty"><div class="ei">⚠️</div><p>${err.message}</p></div>`;
+      `<div class="gempty"><div class="ei">⚠️</div><p>${esc(err.message)}</p></div>`;
   }
   // Démarrer le polling temps réel
   startRealtime();
+  // Démarrer le validateur proactif (HEAD sweep des médias cassés)
+  startValidatorLoop();
 
 }
 
@@ -1775,7 +1871,7 @@ async function openCategory(catId) {
       { method:'GET', mode:'cors', credentials:'omit', headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Accept': 'application/json' } }
     );
     if (!res.ok) throw new Error(await res.text());
-    const photos = await res.json();
+    const photos = filterOutBlocked(await res.json());
 
     // Mettre à jour allPhotos pour cette catégorie
     allPhotos = allPhotos.filter(p => p.category !== catId).concat(photos);
@@ -1796,14 +1892,6 @@ async function openCategory(catId) {
     // Afficher les photos
     grid.innerHTML = photos.map(p => buildPhotoItem(p)).join('');
 
-    // Scroll reveal — observer chaque item après rendu
-    if (typeof window._resetRevealBatch === 'function') window._resetRevealBatch();
-    if (typeof window._revealItem === 'function') {
-      Array.from(grid.querySelectorAll('.gitem')).forEach(function(el) {
-        window._revealItem(el);
-      });
-    }
-
     // Comptes à rebours suppression
     photos.forEach(p => {
       const age       = Date.now() - new Date(p.uploaded_at).getTime();
@@ -1811,8 +1899,11 @@ async function openCategory(catId) {
       if (remaining > 0) startDeleteTimer(p.id, remaining);
     });
 
+    // Balayage proactif : détecte les médias orphelins en arrière-plan
+    setTimeout(validateStorageUrls, 800);
+
   } catch(err) {
-    grid.innerHTML = `<div class="gempty"><div class="ei">⚠️</div><p>Erreur : ${err.message}</p></div>`;
+    grid.innerHTML = `<div class="gempty"><div class="ei">⚠️</div><p>Erreur : ${esc(err.message)}</p></div>`;
   }
 }
 
@@ -1889,40 +1980,47 @@ function buildPhotoItem(p) {
   const isLiked    = getLike(p.id);
   const likeCount  = p.likes || 0;
   const isVideo    = p.media_type === 'video';
-  const safeUrl    = p.public_url.replace(/'/g, '%27');
-  const clickFn   = isVideo ? `openLBVideo('${safeUrl}')` : `openLB('${safeUrl}')`;
-  const dlExt     = isVideo ? 'webm' : 'jpg';
+  const url        = imgUrl(p);
+  const safeUrl    = url.replace(/'/g, '%27');
+  const safeId     = (p.id||'').replace(/'/g,'%27');
+  const safePath   = (p.storage_path||'').replace(/'/g,'%27');
+  const safeName   = esc(p.uploader_name || 'Invité');
+  const clickFn    = isVideo ? `openLBVideo('${safeUrl}')` : `openLB('${safeUrl}')`;
+  const dlExt      = isVideo ? 'webm' : 'jpg';
 
+  const safeCat    = (p.category||'').replace(/'/g,'%27');
   const mediaEl = isVideo
     ? `<div class="video-thumb">
-         <video src="${p.public_url}" playsinline muted preload="metadata"
+         <video src="${esc(url)}" playsinline muted preload="metadata"
                 style="width:100%;height:100%;object-fit:cover;display:block"
+                onloadedmetadata="if(!this.videoWidth){cleanupBrokenMedia('${safeId}','${safeCat}',this.closest('.gitem'));return}this.currentTime=0.5"
                 onloadeddata="this.closest('.gitem').classList.add('loaded')"
-                onerror="this.closest('.gitem').classList.add('loaded')"></video>
+                onerror="cleanupBrokenMedia('${safeId}','${safeCat}',this.closest('.gitem'))"
+                onstalled="setTimeout(()=>{if(this.networkState===3||this.readyState===0)cleanupBrokenMedia('${safeId}','${safeCat}',this.closest('.gitem'))},4000)"></video>
          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;background:rgba(0,0,0,.15)">
            <span style="font-size:40px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.8))">▶</span>
          </div>
        </div>`
-    : `<img src="${p.public_url}" alt="Photo de ${(p.uploader_name||'Invité').replace(/'/g,'')}" loading="lazy" decoding="async"
-            onload="this.closest('.gitem').classList.add('loaded')"
-            onerror="this.closest('.gitem').classList.add('loaded');this.closest('.gitem').style.display='none'">`;
+    : `<img src="${esc(url)}" alt="Photo de ${safeName}" decoding="async" loading="lazy"
+            onload="if(!this.naturalWidth){cleanupBrokenMedia('${safeId}','${safeCat}',this.closest('.gitem'))}else{this.closest('.gitem').classList.add('loaded')}"
+            onerror="cleanupBrokenMedia('${safeId}','${safeCat}',this.closest('.gitem'))">`;
 
   return `
-    <div class="gitem" id="photo-${p.id}" onclick="${clickFn}">
+    <div class="gitem" id="photo-${safeId}" data-photo-id="${safeId}" onclick="${clickFn}">
       ${mediaEl}
-      <div class="gmeta">par ${(p.uploader_name||'Invité').replace(/</g,'&lt;')}</div>
-      <button class="dl-btn" onclick="event.stopPropagation();downloadPhoto('${safeUrl}','mementos-${p.id.substr(0,6)}.${dlExt}')" title="Télécharger">⬇️</button>
+      <div class="gmeta">par ${safeName}</div>
+      <button class="dl-btn" onclick="event.stopPropagation();downloadPhoto('${safeUrl}','mementos-${safeId.substring(0,6)}.${dlExt}')" title="Télécharger">⬇️</button>
       <div class="reactions">
-        <button class="react-btn ${isLiked?'liked':''}" id="like-btn-${p.id}" onclick="event.stopPropagation();toggleLike('${p.id}',this)">
-          ❤️ <span class="react-count" id="likes-${p.id}">${likeCount}</span>
+        <button class="react-btn ${isLiked?'liked':''}" id="like-btn-${safeId}" onclick="event.stopPropagation();toggleLike('${safeId}',this)">
+          ❤️ <span class="react-count" id="likes-${safeId}">${likeCount}</span>
         </button>
-        <button class="react-btn" onclick="event.stopPropagation();addReaction('${p.id}','🔥',this)">🔥</button>
-        <button class="react-btn" onclick="event.stopPropagation();addReaction('${p.id}','😍',this)">😍</button>
+        <button class="react-btn" onclick="event.stopPropagation();addReaction('${safeId}','🔥',this)">🔥</button>
+        <button class="react-btn" onclick="event.stopPropagation();addReaction('${safeId}','😍',this)">😍</button>
       </div>
       ${canDelete ? `
-        <button class="del-btn" onclick="event.stopPropagation();askDelete('${p.id}','${(p.storage_path||'').replace(/'/g,'%27')}',this.closest('.gitem'))">🗑</button>
-        <div class="del-timer" id="timer-${p.id}"><span id="timer-txt-${p.id}"></span></div>
-        <div class="del-progress"><div class="del-progress-fill" id="timer-bar-${p.id}" style="width:${Math.round((remaining/DELETE_WINDOW_MS)*100)}%"></div></div>
+        <button class="del-btn" onclick="event.stopPropagation();askDelete('${safeId}','${safePath}',this.closest('.gitem'))">🗑</button>
+        <div class="del-timer" id="timer-${safeId}"><span id="timer-txt-${safeId}"></span></div>
+        <div class="del-progress"><div class="del-progress-fill" id="timer-bar-${safeId}" style="width:${Math.round((remaining/DELETE_WINDOW_MS)*100)}%"></div></div>
       ` : ''}
     </div>`;
 }
@@ -1964,6 +2062,152 @@ function startDeleteTimer(photoId, remainingMs) {
 }
 
 // ══════════════════════════════════════════
+//  NETTOYAGE AUTO DES MÉDIAS CASSÉS
+//  Liste noire persistante (localStorage) — survit aux refresh
+//  pour éviter que les tuiles fantômes réapparaissent quand la DB
+//  refuse la suppression (RLS / 401).
+// ══════════════════════════════════════════
+const _BLOCKLIST_KEY = 'mementos_broken_ids_v1';
+const _CLEANED_MAX   = 500;
+function _loadBlocklist() {
+  try { return new Set((JSON.parse(localStorage.getItem(_BLOCKLIST_KEY) || '[]') || []).map(String)); }
+  catch(_) { return new Set(); }
+}
+function _saveBlocklist(set) {
+  try { localStorage.setItem(_BLOCKLIST_KEY, JSON.stringify([...set].map(String).slice(-_CLEANED_MAX))); }
+  catch(_) {}
+}
+const _cleanedBrokenIds = _loadBlocklist();
+function isPhotoBlocked(id) { return _cleanedBrokenIds.has(String(id)); }
+function filterOutBlocked(arr) { return Array.isArray(arr) ? arr.filter(p => !isPhotoBlocked(p.id)) : arr; }
+
+async function cleanupBrokenMedia(id, category, tileEl) {
+  if (!id) { if (tileEl) tileEl.style.display = 'none'; return; }
+  // Période de grâce pour cohérence différée Supabase Storage
+  const _p = Array.isArray(allPhotos) ? allPhotos.find(x => String(x.id) === String(id)) : null;
+  if (_p && _p.uploaded_at) {
+    const ageMs = Date.now() - new Date(_p.uploaded_at).getTime();
+    if (ageMs < 3 * 60 * 1000) {
+      if (tileEl) tileEl.style.display = 'none';
+      return;
+    }
+  }
+  const sid = String(id);
+  if (_cleanedBrokenIds.has(sid)) {
+    document.querySelectorAll(`[data-photo-id="${id}"]`).forEach(n => n.remove());
+    return;
+  }
+  if (_cleanedBrokenIds.size >= _CLEANED_MAX) {
+    // Garde seulement les plus récents
+    const arr = Array.from(_cleanedBrokenIds).slice(-Math.floor(_CLEANED_MAX/2));
+    _cleanedBrokenIds.clear();
+    arr.forEach(x => _cleanedBrokenIds.add(x));
+  }
+  _cleanedBrokenIds.add(sid);
+  _saveBlocklist(_cleanedBrokenIds);
+
+  document.querySelectorAll(`[data-photo-id="${id}"]`).forEach(n => n.remove());
+  if (tileEl && tileEl.parentElement) tileEl.remove();
+
+  if (Array.isArray(allPhotos)) {
+    allPhotos = allPhotos.filter(p => String(p.id) !== String(id));
+  }
+
+  try { if (typeof ssOnPhotoDeleted === 'function') ssOnPhotoDeleted(id); } catch(_) {}
+
+  const totalEl = document.getElementById('totalCount');
+  if (totalEl) totalEl.textContent = allPhotos.length;
+
+  if (category) {
+    const catCount = allPhotos.filter(p => p.category === category).length;
+    const cntEl = document.getElementById('cnt-' + category);
+    if (cntEl) cntEl.textContent = catCount === 0 ? 'Aucune photo encore' : `${catCount} photo${catCount>1?'s':''}`;
+    if (catCount === 0) {
+      const slider = document.getElementById('slider-' + category);
+      const namesEl = document.getElementById('names-' + category);
+      if (namesEl) namesEl.textContent = '';
+      if (slider) {
+        const emoji = (CATEGORIES.find(c => c.id === category) || {}).emoji || '📷';
+        const empty = document.createElement('div');
+        empty.className = 'cw-empty';
+        empty.innerHTML = `<div class="ei">${emoji}</div><span>Soyez le premier à partager !</span>`;
+        slider.replaceWith(empty);
+      }
+    }
+  }
+
+  try {
+    await fetch(`${SB_URL}/rest/v1/photos?id=eq.${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      mode: 'cors',
+      credentials: 'omit',
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': `Bearer ${SB_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      }
+    });
+  } catch (e) { /* silencieux */ }
+}
+
+// ══════════════════════════════════════════
+//  VALIDATEUR DE MÉDIAS EN TÂCHE DE FOND
+//  Balaie allPhotos avec des HEAD requests pour détecter
+//  les orphelins (fichier supprimé mais enregistrement DB).
+// ══════════════════════════════════════════
+let _validatorRunning = false;
+let _validatorTimer   = null;
+const _recentlyValidated = new Map(); // id -> timestamp
+const _VALIDATION_TTL_MS = 60000;
+
+async function validateStorageUrls() {
+  if (_validatorRunning) return;
+  if (!Array.isArray(allPhotos) || !allPhotos.length) return;
+  _validatorRunning = true;
+  try {
+    const now    = Date.now();
+    const photos = allPhotos.filter(p => {
+      const last = _recentlyValidated.get(String(p.id));
+      return !last || (now - last) > _VALIDATION_TTL_MS;
+    });
+    const CONCURRENCY = 5;
+    let idx = 0;
+    async function worker() {
+      while (idx < photos.length) {
+        const p   = photos[idx++];
+        const url = imgUrl(p);
+        if (!url) continue;
+        try {
+          const res = await fetch(url, { method: 'HEAD', mode: 'cors', cache: 'no-store' });
+          _recentlyValidated.set(String(p.id), Date.now());
+          if (!res.ok) {
+            const tile = document.querySelector(`[data-photo-id="${p.id}"]`);
+            cleanupBrokenMedia(p.id, p.category, tile);
+          }
+        } catch (_) { /* ignore erreurs réseau */ }
+      }
+    }
+    await Promise.all(Array(CONCURRENCY).fill(0).map(worker));
+  } finally {
+    _validatorRunning = false;
+  }
+}
+
+function startValidatorLoop() {
+  if (_validatorTimer) return;
+  setTimeout(validateStorageUrls, 2500);
+  _validatorTimer = setInterval(() => {
+    if (document.hidden) return;
+    const gallery = document.getElementById('panel-gallery');
+    const home    = document.getElementById('panel-home');
+    const visible = (gallery && gallery.classList.contains('on'))
+                 || (home    && home.classList.contains('on'));
+    if (visible) validateStorageUrls();
+  }, 120000);
+}
+
+// ══════════════════════════════════════════
 //  SUPPRESSION
 // ══════════════════════════════════════════
 function askDelete(photoId, storagePath, el) {
@@ -1983,67 +2227,44 @@ async function confirmDelete() {
   const { id, path } = pendingDeleteId;
   const el = pendingDeleteEl;
 
-  // Fermer le modal ET vider l'état APRÈS avoir copié les valeurs
   document.getElementById('modalBg').classList.remove('open');
   pendingDeleteId = null;
   pendingDeleteEl = null;
 
-  // Animation de suppression
+  // UI optimiste : retirer immédiatement
   if (el) el.classList.add('deleting');
+  setTimeout(() => { if (el) el.remove(); }, 250);
 
+  const deletedPhoto = allPhotos.find(p => p.id === id);
+  allPhotos = allPhotos.filter(p => p.id !== id);
+  try { ssOnPhotoDeleted(id); } catch(_) {}
+
+  const totalEl = document.getElementById('totalCount');
+  if (totalEl) totalEl.textContent = allPhotos.length;
+
+  const deletedCat = (deletedPhoto && deletedPhoto.category) || (path && path.split('/')[1]);
+  if (deletedCat) {
+    const catCount = allPhotos.filter(p => p.category === deletedCat).length;
+    const cntEl = document.getElementById('cnt-' + deletedCat);
+    if (cntEl) cntEl.textContent = catCount === 0 ? 'Aucune photo encore'
+                                  : catCount + ' photo' + (catCount > 1 ? 's' : '');
+  }
+  if (timerIntervals[id]) { clearInterval(timerIntervals[id]); delete timerIntervals[id]; }
+
+  // Backend en arrière-plan : un seul appel, le trigger DB nettoie le storage
   try {
-    // 1. Supprimer du Storage
-    const storageRes = await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${path}`, {
-      method: 'DELETE',
-      mode: 'cors',
-      credentials: 'omit',
-      headers: {
-        'apikey':        SB_KEY,
-        'Authorization': `Bearer ${SB_KEY}`,
-        'Content-Type':  'application/json'
-      }
-    });
-    if (!storageRes.ok) console.warn('Storage delete warning:', await storageRes.text());
-
-    // 2. Supprimer de la DB
     const dbRes = await fetch(`${SB_URL}/rest/v1/photos?id=eq.${id}`, {
-      method: 'DELETE',
-      mode: 'cors',
-      credentials: 'omit',
-      headers: {
-        'apikey':        SB_KEY,
-        'Authorization': `Bearer ${SB_KEY}`,
-        'Content-Type':  'application/json',
-        'Prefer':        'return=minimal'
-      }
+      method: 'DELETE', mode: 'cors', credentials: 'omit',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`,
+                 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }
     });
-    if (!dbRes.ok) console.warn('DB delete warning:', await dbRes.text());
-
-    // 3. Retirer du DOM après animation
-    setTimeout(() => { if (el) el.remove(); }, 400);
-
-    // 4. Mettre à jour allPhotos
-    const deletedPhoto = allPhotos.find(p => p.id === id);
-    allPhotos = allPhotos.filter(p => p.id !== id);
-
-    // 5. Mettre à jour le compteur total
-    const totalEl = document.getElementById('totalCount');
-    if (totalEl) totalEl.textContent = allPhotos.length;
-
-    // 5b. Mettre à jour le compteur par catégorie
-    const deletedCat = (deletedPhoto && deletedPhoto.category) || (path && path.split('/')[1]);
-    if (deletedCat) {
-      const catCount = allPhotos.filter(p => p.category === deletedCat).length;
-      const cntEl = document.getElementById('cnt-' + deletedCat);
-      if (cntEl) cntEl.textContent = catCount === 0 ? 'Aucune photo encore'
-                                    : catCount + ' photo' + (catCount > 1 ? 's' : '');
-    }
-
-    // 6. Arrêter le timer
-    if (timerIntervals[id]) { clearInterval(timerIntervals[id]); delete timerIntervals[id]; }
-
+    if (!dbRes.ok) throw new Error(`DB ${dbRes.status}`);
   } catch (err) {
-    if (el) el.classList.remove('deleting');
+    // Rollback : restaurer la photo et la tuile
+    if (deletedPhoto) {
+      allPhotos.push(deletedPhoto);
+      if (totalEl) totalEl.textContent = allPhotos.length;
+    }
     console.error('Delete error:', err);
     alert('Erreur lors de la suppression : ' + err.message);
   }
@@ -2072,68 +2293,60 @@ async function startRealtimeFull() {
     // Fallback polling si SDK non dispo
     realtimeChannel = setInterval(async () => {
       if (document.getElementById('panel-gallery').classList.contains('on')) {
-        await checkNewPhotos();
+        await refreshAllPhotos();
       }
     }, 30000);
     return;
   }
+  // Handler commun pour supprimer une photo de l'UI
+  const handleRemotePhotoDelete = (id) => {
+    if (!id) return;
+    // Toujours nettoyer le DOM, même si allPhotos est désynchronisé
+    document.querySelectorAll(`[data-photo-id="${id}"]`).forEach(n => n.remove());
+
+    const existing = allPhotos.find(x => x.id === id);
+    if (!existing) return; // pas une photo de notre événement (ou déjà retirée)
+    const cat = existing.category;
+    allPhotos = allPhotos.filter(x => x.id !== id);
+    if (cat) {
+      const cnt = allPhotos.filter(x => x.category === cat).length;
+      const el = document.getElementById('cnt-' + cat);
+      if (el) el.textContent = cnt === 0 ? 'Aucune photo encore' : cnt + ' photo' + (cnt > 1 ? 's' : '');
+    }
+    const total = document.getElementById('totalCount');
+    if (total) total.textContent = allPhotos.length;
+    if (typeof wallOnDelete === 'function') wallOnDelete(id);
+    try { ssOnPhotoDeleted(id); } catch(_) {}
+  };
+
   realtimeChannel = client
     .channel('mementos-rt')
+    // INSERT + UPDATE filtrés par event_id (payload.new disponible)
     .on('postgres_changes', {
-      event: '*', schema: 'public', table: 'photos',
+      event: 'INSERT', schema: 'public', table: 'photos',
       filter: `event_id=eq.${EVENT_ID}`
     }, (payload) => {
-      if (payload.eventType === 'INSERT') {
-        const p = payload.new;
-        if (!allPhotos.find(x => x.id === p.id)) {
-          allPhotos.push(p);
-          // Mettre à jour le compteur de la catégorie
-          const cnt = allPhotos.filter(x => x.category === p.category).length;
-          const el = document.getElementById('cnt-' + p.category);
-          if (el) el.textContent = cnt + ' photo' + (cnt > 1 ? 's' : '');
-          const total = document.getElementById('totalCount');
-          if (total) total.textContent = allPhotos.length;
-          // Badge nouvelle photo
-          newPhotoCounts[p.category] = (newPhotoCounts[p.category] || 0) + 1;
-          showCategoryBadge(p.category, newPhotoCounts[p.category]);
-          // Insérer la photo en tête de galerie si la catégorie est ouverte
-          const currentCat = document.getElementById('panel-gallery').dataset.currentCat;
-          if (currentCat === p.category) {
-            const grid = document.getElementById('gGrid');
-            if (grid && !document.getElementById('photo-' + p.id)) {
-              const tmp = document.createElement('div');
-              tmp.innerHTML = buildPhotoItem(p);
-              const newEl = tmp.firstElementChild;
-              grid.insertBefore(newEl, grid.firstChild);
-              // Scroll reveal sur la nouvelle photo
-              if (typeof window._revealItem === 'function') window._revealItem(newEl);
-              // Masonry si activé
-              if (typeof setMasonrySpan === 'function') {
-                const img = newEl.querySelector('img');
-                if (img) img.addEventListener('load', function() { setMasonrySpan(newEl); }, { once: true });
-                else setMasonrySpan(newEl);
-              }
-              // Mettre à jour le compteur affiché
-              const detailTitle = document.getElementById('detail-title');
-              if (detailTitle) detailTitle.innerHTML = '<span style="color:var(--gold)">' + cnt + '</span>&nbsp;photo' + (cnt !== 1 ? 's' : '');
-            }
-          }
-        }
+      const p = payload.new;
+      if (!p) return;
+      if (isPhotoBlocked(p.id)) return; // ignore les photos dont le média est cassé
+      if (!allPhotos.find(x => x.id === p.id)) {
+        allPhotos.push(p);
+        const cnt = allPhotos.filter(x => x.category === p.category).length;
+        const el = document.getElementById('cnt-' + p.category);
+        if (el) el.textContent = cnt + ' photo' + (cnt > 1 ? 's' : '');
+        const total = document.getElementById('totalCount');
+        if (total) total.textContent = allPhotos.length;
+        newPhotoCounts[p.category] = (newPhotoCounts[p.category] || 0) + 1;
+        showCategoryBadge(p.category, newPhotoCounts[p.category]);
+        if (typeof wallOnInsert === 'function') wallOnInsert(p);
+        try { ssOnPhotoInserted(p); } catch(_) {}
       }
-      if (payload.eventType === 'DELETE') {
-        const id = payload.old && payload.old.id;
-        if (id) {
-          const cat = (allPhotos.find(x => x.id === id) || {}).category;
-          allPhotos = allPhotos.filter(x => x.id !== id);
-          if (cat) {
-            const cnt = allPhotos.filter(x => x.category === cat).length;
-            const el = document.getElementById('cnt-' + cat);
-            if (el) el.textContent = cnt === 0 ? 'Aucune photo encore' : cnt + ' photo' + (cnt > 1 ? 's' : '');
-          }
-          const total = document.getElementById('totalCount');
-          if (total) total.textContent = allPhotos.length;
-        }
-      }
+    })
+    // DELETE sans filtre (payload.old n'a que l'id par défaut)
+    .on('postgres_changes', {
+      event: 'DELETE', schema: 'public', table: 'photos'
+    }, (payload) => {
+      handleRemotePhotoDelete(payload.old && payload.old.id);
     })
     .on('postgres_changes', {
       event: 'UPDATE', schema: 'public', table: 'events',
@@ -2236,11 +2449,19 @@ async function startSlideshowAll() {
       { method:'GET', mode:'cors', credentials:'omit', headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Accept': 'application/json' } }
     );
     if (!res.ok) throw new Error(await res.text());
-    ssPhotos = await res.json();
+    ssPhotos = filterOutBlocked(await res.json());
   } catch(e) {
-    ssPhotos = [...allPhotos].sort((a,b) => new Date(a.uploaded_at) - new Date(b.uploaded_at));
+    ssPhotos = filterOutBlocked([...allPhotos]).sort((a,b) => new Date(a.uploaded_at) - new Date(b.uploaded_at));
   }
 
+  if (!ssPhotos.length) {
+    showDlToast('Aucune photo à afficher pour le moment');
+    return;
+  }
+
+  // Pré-validation : HEAD sweep en parallèle pour retirer les orphelins AVANT de démarrer
+  // → compteur correct dès la première frame
+  try { await ssPreflightValidate(); } catch(_) {}
   if (!ssPhotos.length) {
     showDlToast('Aucune photo à afficher pour le moment');
     return;
@@ -2256,36 +2477,112 @@ async function startSlideshowAll() {
   ssStartTimer();
 }
 
+// Valide chaque photo du diaporama par HEAD avant démarrage.
+// Retire ssPhotos les orphelins (400/401/403/404/410) et les ajoute au blocklist.
+async function ssPreflightValidate() {
+  if (!ssPhotos.length) return;
+  const snapshot = ssPhotos.slice();
+  const badIds   = new Set();
+  const CONCURRENCY = 8;
+  let idx = 0;
+  async function worker() {
+    while (idx < snapshot.length) {
+      const p   = snapshot[idx++];
+      const url = imgUrl(p);
+      if (!url) { badIds.add(String(p.id)); continue; }
+      try {
+        const res = await fetch(url, { method: 'HEAD', mode: 'cors', cache: 'no-store' });
+        if ([400, 401, 403, 404, 410].includes(res.status)) badIds.add(String(p.id));
+      } catch(_) { /* erreurs réseau ignorées */ }
+    }
+  }
+  await Promise.all(Array(CONCURRENCY).fill(0).map(worker));
+  if (!badIds.size) return;
+  // Ajoute au blocklist persistant + purge ssPhotos/allPhotos
+  badIds.forEach(id => _cleanedBrokenIds.add(id));
+  _saveBlocklist(_cleanedBrokenIds);
+  ssPhotos  = ssPhotos.filter(p => !badIds.has(String(p.id)));
+  if (Array.isArray(allPhotos)) allPhotos = allPhotos.filter(p => !badIds.has(String(p.id)));
+  // Nettoyage DOM silencieux (toutes les tuiles avec un id banni)
+  badIds.forEach(id => document.querySelectorAll(`[data-photo-id="${id}"]`).forEach(n => n.remove()));
+}
+
 function ssShow(idx) {
   if (!ssPhotos.length) return;
-  const p   = ssPhotos[idx];
-  const img = document.getElementById('ssImg');
+  const p       = ssPhotos[idx];
+  const img     = document.getElementById('ssImg');
+  const vid     = document.getElementById('ssVideo');
+  const isVideo = p.media_type === 'video';
 
-  // Animation fade
-  img.style.opacity = '0';
-  img.style.transform = 'scale(0.97)';
-  img.src = p.public_url;
-  img.onload = () => {
-    img.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-    img.style.opacity = '1';
-    img.style.transform = 'scale(1)';
-  };
+  // Arrêter la vidéo précédente
+  if (!vid.paused) { vid.pause(); }
+  vid.src = '';
+
+  if (isVideo) {
+    img.style.display = 'none';
+    img.src = '';
+    img.onerror = null;
+    vid.muted       = true;
+    vid.oncanplay   = null;
+    vid.style.removeProperty('opacity');
+    vid.style.removeProperty('transition');
+    vid.style.display = 'block';
+    vid.src = imgUrl(p);
+    vid.load();
+    vid.play().catch(() => {});
+    // Passer à la suivante à la fin de la vidéo
+    vid.onended = () => { clearTimeout(ssTimer); ssNext(); };
+    // Média cassé (404/supprimé) : nettoyer puis skip
+    vid.onerror = () => {
+      vid.onerror = null;
+      try { cleanupBrokenMedia(p.id, p.category); } catch(_) {}
+      ssOnPhotoDeleted(p.id);
+    };
+    // Sécurité : skip si la vidéo bloque plus de 25s
+    clearTimeout(ssTimer);
+    ssTimer = setTimeout(ssNext, 25000);
+  } else {
+    vid.style.display = 'none';
+    vid.onerror = null;
+    img.style.display = 'block';
+    img.style.opacity = '0';
+    img.style.transform = 'scale(0.97)';
+    img.src = imgUrl(p);
+    img.onload = () => {
+      img.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+      img.style.opacity = '1';
+      img.style.transform = 'scale(1)';
+    };
+    img.onerror = () => {
+      img.onerror = null;
+      try { cleanupBrokenMedia(p.id, p.category); } catch(_) {}
+      ssOnPhotoDeleted(p.id);
+    };
+    vid.onended = null;
+  }
 
   // Infos
   const cat = CATEGORIES.find(c => c.id === p.category);
-  document.getElementById('ssName').textContent  = `par ${p.uploader_name || 'Invité'}`;
-  document.getElementById('ssTime').textContent  = cat ? `${cat.emoji} ${cat.name}` : '';
+  document.getElementById('ssName').textContent    = `par ${p.uploader_name || 'Invité'}`;
+  document.getElementById('ssTime').textContent    = cat ? `${cat.emoji} ${cat.name}` : '';
   document.getElementById('ssCounter').textContent = `${idx + 1} / ${ssPhotos.length}`;
+  const catLbl = document.getElementById('ssCat');
+  if (catLbl) catLbl.textContent = `✨ Toutes les photos — ${ssPhotos.length} clichés`;
 
-  // Barre de progression
+  // Barre de progression (photos seulement — la vidéo a sa propre durée)
   const bar = document.getElementById('ssProgress');
   if (bar) {
-    bar.style.transition = 'none';
-    bar.style.width = '0%';
-    requestAnimationFrame(() => {
-      bar.style.transition = `width ${SS_DURATION}ms linear`;
-      bar.style.width = '100%';
-    });
+    if (isVideo) {
+      bar.style.transition = 'none';
+      bar.style.width = '0%';
+    } else {
+      bar.style.transition = 'none';
+      bar.style.width = '0%';
+      requestAnimationFrame(() => {
+        bar.style.transition = `width ${SS_DURATION}ms linear`;
+        bar.style.width = '100%';
+      });
+    }
   }
 }
 
@@ -2313,14 +2610,14 @@ function ssTogglePlay() {
   ssPlaying = !ssPlaying;
   const btn = document.getElementById('ssPlayBtn');
   if (btn) btn.textContent = ssPlaying ? '⏸' : '▶';
+  const vid = document.getElementById('ssVideo');
   if (ssPlaying) {
+    if (vid && vid.style.display !== 'none' && vid.src) vid.play().catch(() => {});
     ssStartTimer();
     const bar = document.getElementById('ssProgress');
-    if (bar) {
-      bar.style.transition = `width ${SS_DURATION}ms linear`;
-      bar.style.width = '100%';
-    }
+    if (bar) { bar.style.transition = `width ${SS_DURATION}ms linear`; bar.style.width = '100%'; }
   } else {
+    if (vid && !vid.paused) vid.pause();
     clearTimeout(ssTimer);
     const bar = document.getElementById('ssProgress');
     if (bar) bar.style.transition = 'none';
@@ -2332,8 +2629,52 @@ function ssClose() {
   ssPhotos = [];
   document.getElementById('slideshowOverlay').classList.remove('open');
   document.body.style.overflow = '';
+  const vid = document.getElementById('ssVideo');
+  if (vid) { vid.pause(); vid.src = ''; vid.style.display = 'none'; vid.onended = null; vid.onerror = null; }
   const img = document.getElementById('ssImg');
-  if (img) { img.src = ''; img.style.opacity = '1'; img.style.transform = 'scale(1)'; }
+  if (img) { img.src = ''; img.style.opacity = '1'; img.style.transform = 'scale(1)'; img.onerror = null; img.onload = null; }
+}
+
+// Ajouter une nouvelle photo au diaporama en cours (rafraîchit le compteur sans interruption)
+function ssOnPhotoInserted(p) {
+  if (!p || !p.id) return;
+  const overlayOpen = document.getElementById('slideshowOverlay')?.classList.contains('open');
+  if (!overlayOpen) return;
+  if (ssPhotos.some(x => String(x.id) === String(p.id))) return;
+  ssPhotos.push(p);
+  const counter = document.getElementById('ssCounter');
+  if (counter) counter.textContent = `${ssIndex + 1} / ${ssPhotos.length}`;
+  const cat = document.getElementById('ssCat');
+  if (cat) cat.textContent = `✨ Toutes les photos — ${ssPhotos.length} clichés`;
+}
+
+// Retirer une photo supprimée du diaporama en cours, sans interruption
+function ssOnPhotoDeleted(id) {
+  if (!id || !ssPhotos.length) return;
+  const overlayOpen = document.getElementById('slideshowOverlay')?.classList.contains('open');
+  if (!overlayOpen) { ssPhotos = []; return; }
+
+  const idx = ssPhotos.findIndex(p => String(p.id) === String(id));
+  if (idx === -1) return;
+
+  const wasCurrent = (idx === ssIndex);
+  ssPhotos.splice(idx, 1);
+
+  if (!ssPhotos.length) { ssClose(); return; }
+
+  if (idx < ssIndex) {
+    ssIndex -= 1;
+  } else if (wasCurrent) {
+    if (ssIndex >= ssPhotos.length) ssIndex = 0;
+    clearTimeout(ssTimer);
+    ssShow(ssIndex);
+    ssStartTimer();
+    return;
+  }
+  const counter = document.getElementById('ssCounter');
+  if (counter) counter.textContent = `${ssIndex + 1} / ${ssPhotos.length}`;
+  const cat = document.getElementById('ssCat');
+  if (cat) cat.textContent = `✨ Toutes les photos — ${ssPhotos.length} clichés`;
 }
 
 // ══════════════════════════════════════════
@@ -2384,7 +2725,7 @@ async function downloadAllPhotos() {
   let done = 0;
   for (const p of photos) {
     try {
-      const res  = await fetch(p.public_url, { mode:'cors', credentials:'omit' });
+      const res  = await fetch(imgUrl(p), { mode:'cors', credentials:'omit' });
       const blob = await res.blob();
       const a    = document.createElement('a');
       const ext  = (p.storage_path || 'photo.jpg').split('.').pop() || 'jpg';
@@ -2397,7 +2738,7 @@ async function downloadAllPhotos() {
       done++;
       await new Promise(r => setTimeout(r, 500));
     } catch(e) {
-      console.warn('Download failed:', p.public_url, e);
+      console.warn('Download failed:', imgUrl(p), e);
     }
   }
 
@@ -2414,52 +2755,6 @@ function showDlToast(msg) {
 }
 
 // Intersection Observer pour images hors écran
-
-// ── Scroll reveal galerie — IntersectionObserver ──────
-(function() {
-  var _revealObserver = null;
-
-  // Délai en cascade pour les photos visibles d'emblée (sans scroll)
-  var _revealDelay = 0;
-  var _revealBatch = 0;
-
-  function createRevealObserver() {
-    if (!('IntersectionObserver' in window)) {
-      // Fallback : tout révéler immédiatement
-      window._revealItem = function(el) { el.classList.add('revealed'); };
-      return;
-    }
-
-    _revealObserver = new IntersectionObserver(function(entries) {
-      entries.forEach(function(entry) {
-        if (!entry.isIntersecting) return;
-        var el = entry.target;
-        // Délai en cascade : 0, 60, 120, 180ms… puis reset tous les 6
-        var delay = (_revealBatch % 6) * 60;
-        _revealBatch++;
-        setTimeout(function() {
-          el.classList.add('revealed');
-        }, delay);
-        _revealObserver.unobserve(el);
-      });
-    }, {
-      rootMargin: '0px 0px -40px 0px',  // déclencher 40px avant le bas du viewport
-      threshold: 0.05
-    });
-
-    window._revealItem = function(el) {
-      if (_revealObserver) _revealObserver.observe(el);
-    };
-  }
-
-  // Réinitialiser le compteur de batch à chaque ouverture de catégorie
-  window._resetRevealBatch = function() {
-    _revealBatch = 0;
-  };
-
-  createRevealObserver();
-})();
-
 (function() {
   if (!('IntersectionObserver' in window)) return;
   const observer = new IntersectionObserver((entries) => {
@@ -2479,11 +2774,202 @@ function showDlToast(msg) {
   window._observeThumb = (el) => observer.observe(el);
 })();
 
+// ══════════════════════════════════════════
+//  MUR LIVE — intégré + projection plein écran
+// ══════════════════════════════════════════
+const WALL_MAX_TILES = 80;
+let liveWallOpen     = false;   // overlay plein écran
+let inlineWallActive = false;   // vue intégrée dans l'onglet
+
+function catMeta(catId){ return (CATEGORIES.find(c => c.id === catId)) || { emoji:'📷', name:'' }; }
+
+let _wallVideoObserver = null;
+function getWallVideoObserver(){
+  if (_wallVideoObserver) return _wallVideoObserver;
+  if (typeof IntersectionObserver === 'undefined') return null;
+  _wallVideoObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      const v = e.target;
+      if (!v || v.tagName !== 'VIDEO') return;
+      if (e.isIntersecting) {
+        const pr = v.play(); if (pr && pr.catch) pr.catch(()=>{});
+      } else {
+        try { v.pause(); } catch(_){}
+      }
+    });
+  }, { rootMargin: '200px 0px', threshold: 0.01 });
+  return _wallVideoObserver;
+}
+
+function buildWallTile(p, isNew){
+  const meta   = catMeta(p.category);
+  const url    = imgUrl(p);
+  const isVid  = p.media_type === 'video';
+  const safeId = String(p.id).replace(/"/g,'');
+  const safeName = esc(p.uploader_name || 'Invité');
+  const media  = isVid
+    ? `<video src="${esc(url)}" playsinline muted loop preload="metadata"
+            onloadedmetadata="if(!this.videoWidth)cleanupBrokenMedia('${safeId}','${p.category}',this.closest('.wall-tile'))"
+            onerror="cleanupBrokenMedia('${safeId}','${p.category}',this.closest('.wall-tile'))"
+            onstalled="setTimeout(()=>{if(this.networkState===3||this.readyState===0)cleanupBrokenMedia('${safeId}','${p.category}',this.closest('.wall-tile'))},4000)"></video>
+       <div class="wt-play">▶</div>`
+    : `<img src="${esc(url)}" alt="" decoding="async" loading="lazy"
+            onload="if(!this.naturalWidth)cleanupBrokenMedia('${safeId}','${p.category}',this.closest('.wall-tile'))"
+            onerror="cleanupBrokenMedia('${safeId}','${p.category}',this.closest('.wall-tile'))">`;
+  const tile = document.createElement('div');
+  tile.className = 'wall-tile' + (isNew ? ' new' : '');
+  tile.setAttribute('data-photo-id', safeId);
+  tile.setAttribute('data-wall-id',  safeId);
+  tile.innerHTML = `
+    ${media}
+    <div class="wt-cat">${meta.emoji} ${meta.name || ''}</div>
+    <div class="wt-meta">${safeName}</div>
+  `;
+  if (isVid) {
+    const v = tile.querySelector('video');
+    const obs = getWallVideoObserver();
+    if (v && obs) obs.observe(v);
+    else if (v) { try { v.autoplay = true; v.play().catch(()=>{}); } catch(_){} }
+  }
+  return tile;
+}
+
+function refreshWallCounts(){
+  const inline = document.getElementById('wallGridInline');
+  if (inline) {
+    const n = inline.children.length;
+    const c = document.getElementById('wallCountInline');
+    if (c) c.textContent = n + ' souvenir' + (n > 1 ? 's' : '');
+    const wrap = document.querySelector('.wall-inline');
+    if (wrap) wrap.classList.toggle('empty', !n);
+  }
+  const fs = document.getElementById('wallGrid');
+  if (fs) {
+    const n = fs.children.length;
+    const c = document.getElementById('wallCount');
+    if (c) c.textContent = n;
+    const overlay = document.getElementById('liveWallOverlay');
+    if (overlay) overlay.classList.toggle('empty', !n);
+  }
+}
+
+function wallOnInsert(p){
+  const pid = String(p.id).replace(/"/g,'');
+  [document.getElementById('wallGridInline'), document.getElementById('wallGrid')].forEach(grid => {
+    if (!grid) return;
+    // n'alimente la grille inline que si l'onglet est actif, la plein écran que si ouvert
+    if (grid.id === 'wallGridInline' && !inlineWallActive) return;
+    if (grid.id === 'wallGrid' && !liveWallOpen) return;
+    if (grid.querySelector(`[data-wall-id="${pid}"]`)) return;
+    grid.prepend(buildWallTile(p, true));
+    while (grid.children.length > WALL_MAX_TILES) {
+      const last = grid.lastElementChild;
+      const v = last && last.querySelector ? last.querySelector('video') : null;
+      if (v) { try { if (_wallVideoObserver) _wallVideoObserver.unobserve(v); v.pause(); v.removeAttribute('src'); v.load(); } catch(_){} }
+      last.remove();
+    }
+  });
+  refreshWallCounts();
+}
+
+function wallOnDelete(id){
+  const pid = String(id).replace(/"/g,'');
+  [document.getElementById('wallGridInline'), document.getElementById('wallGrid')].forEach(grid => {
+    if (!grid) return;
+    const node = grid.querySelector(`[data-wall-id="${pid}"]`);
+    if (node) {
+      const v = node.querySelector('video');
+      if (v) { try { if (_wallVideoObserver) _wallVideoObserver.unobserve(v); v.pause(); v.removeAttribute('src'); v.load(); } catch(_){} }
+      node.remove();
+    }
+  });
+  refreshWallCounts();
+}
+
+async function fetchWallPhotos(){
+  let photos = Array.isArray(allPhotos) && allPhotos.length ? allPhotos.slice() : [];
+  if (!photos.length) {
+    try {
+      const res = await fetch(
+        `${SB_URL}/rest/v1/photos?event_id=eq.${EVENT_ID}&order=uploaded_at.desc&select=*&limit=${WALL_MAX_TILES}`,
+        { headers:{ 'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Accept':'application/json' } }
+      );
+      if (res.ok) photos = await res.json();
+      if (photos.length && !allPhotos.length) allPhotos = photos.slice();
+    } catch(e){}
+  }
+  photos.sort((a,b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
+  return photos.slice(0, WALL_MAX_TILES);
+}
+
+async function openInlineWall(){
+  const grid = document.getElementById('wallGridInline');
+  if (!grid) return;
+  inlineWallActive = true;
+
+  try { if (typeof startRealtimeFull === 'function') await startRealtimeFull(); } catch(e){}
+
+  const photos = await fetchWallPhotos();
+  grid.innerHTML = '';
+  photos.reverse().forEach(p => grid.prepend(buildWallTile(p, false)));
+  refreshWallCounts();
+}
+
+async function startLiveWallFullscreen(){
+  const overlay = document.getElementById('liveWallOverlay');
+  const grid    = document.getElementById('wallGrid');
+  if (!overlay || !grid) return;
+
+  liveWallOpen = true;
+  overlay.classList.add('open');
+  grid.innerHTML = '';
+
+  try { if (typeof startRealtimeFull === 'function') await startRealtimeFull(); } catch(e){}
+
+  const photos = await fetchWallPhotos();
+  photos.reverse().forEach(p => grid.prepend(buildWallTile(p, false)));
+  refreshWallCounts();
+
+  try {
+    const el = document.documentElement;
+    const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+    if (req) await req.call(el);
+  } catch(e){}
+
+  document.addEventListener('keydown', wallKeyHandler);
+}
+
+// compat : ancien nom d'appel
+function startLiveWall(){ return startLiveWallFullscreen(); }
+
+function stopLiveWall(){
+  liveWallOpen = false;
+  const overlay = document.getElementById('liveWallOverlay');
+  if (overlay) overlay.classList.remove('open');
+  try {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+    if (document.fullscreenElement && exit) exit.call(document);
+  } catch(e){}
+  const grid = document.getElementById('wallGrid');
+  if (grid) {
+    grid.querySelectorAll('video').forEach(v => {
+      try { if (_wallVideoObserver) _wallVideoObserver.unobserve(v); v.pause(); v.removeAttribute('src'); v.load(); } catch(_){}
+    });
+    grid.innerHTML = '';
+  }
+  refreshWallCounts();
+  document.removeEventListener('keydown', wallKeyHandler);
+}
+
+function wallKeyHandler(e){ if (e.key === 'Escape') stopLiveWall(); }
+
 // ══════════════════════════════════════════════════════════════════════════
 // CAMÉRA : libération ACTIVE au départ d'onglet + réacquisition INSTANTANÉE
+// au retour. Clé du fix : si on ne libère pas nous-mêmes, le hardware reste
+// verrouillé ~1 min par l'OS → c'est ce qui cause l'attente.
 // ══════════════════════════════════════════════════════════════════════════
-let _cameraWasActive = false;
-let _videoWasActive  = false;
+let _cameraWasActive = false;  // photo tab était visible + stream ok
+let _videoWasActive  = false;  // video tab était visible + stream ok
 let _reacquiring     = false;
 
 function _forcePlay(v) {
@@ -2498,14 +2984,13 @@ function _forcePlay(v) {
 }
 
 async function _reacquireMediaStream(wantAudio) {
-  const fm = (typeof facingMode !== 'undefined') ? facingMode : 'environment';
   const tries = wantAudio
-    ? [ { video: { facingMode: fm, width:{ideal:1280}, height:{ideal:720} }, audio: true },
-        { video: { facingMode: fm }, audio: true },
+    ? [ { video: { facingMode: facingMode, width:{ideal:1280}, height:{ideal:720} }, audio: true },
+        { video: { facingMode: facingMode }, audio: true },
         { video: true, audio: true },
         { video: true, audio: false } ]
-    : [ { video: { facingMode: fm, width:{ideal:1280}, height:{ideal:720} }, audio: false },
-        { video: { facingMode: fm }, audio: false },
+    : [ { video: { facingMode: facingMode, width:{ideal:1280}, height:{ideal:720} }, audio: false },
+        { video: { facingMode: facingMode }, audio: false },
         { video: true, audio: false } ];
   for (const c of tries) {
     try { return await navigator.mediaDevices.getUserMedia(c); } catch(e) {}
@@ -2513,37 +2998,42 @@ async function _reacquireMediaStream(wantAudio) {
   return null;
 }
 
+// Libérer TOUT le hardware caméra quand on quitte l'onglet
 function _releaseAllCameraHardware() {
   const photoPane = document.getElementById('upload-camera-pane');
   const vidPane   = document.getElementById('upload-video-pane');
   const recWrap   = document.getElementById('videoRecorderWrap');
-  const hasCam    = typeof cameraStream !== 'undefined' && cameraStream;
-  const hasVid    = typeof videoStream !== 'undefined' && videoStream;
-  const recording = typeof isRecording !== 'undefined' && isRecording;
-  _cameraWasActive = !!(photoPane && photoPane.style.display !== 'none' && hasCam);
+  _cameraWasActive = !!(photoPane && photoPane.style.display !== 'none' && cameraStream);
   _videoWasActive  = !!(vidPane && vidPane.style.display !== 'none' &&
                         recWrap && recWrap.style.display !== 'none' &&
-                        hasVid);
-  if (recording && typeof stopVideoRecord === 'function') {
+                        videoStream);
+
+  // Si enregistrement en cours : arrêter proprement la capture
+  if (isRecording && typeof stopVideoRecord === 'function') {
     try { stopVideoRecord(); } catch(_){}
   }
-  try { if (hasCam) cameraStream.getTracks().forEach(t => { try { t.stop(); } catch(_){} }); } catch(_){}
-  try { if (hasVid) videoStream.getTracks().forEach(t => { try { t.stop();  } catch(_){} }); } catch(_){}
-  if (typeof cameraStream !== 'undefined') cameraStream = null;
-  if (typeof videoStream  !== 'undefined') videoStream  = null;
+
+  try { if (cameraStream) cameraStream.getTracks().forEach(t => { try { t.stop(); } catch(_){} }); } catch(_){}
+  try { if (videoStream)  videoStream.getTracks().forEach(t => { try { t.stop();  } catch(_){} }); } catch(_){}
+  cameraStream = null;
+  videoStream  = null;
   const pv = document.getElementById('cameraVideo'); if (pv) { try { pv.srcObject = null; } catch(_){} }
   const lv = document.getElementById('videoLive');   if (lv) { try { lv.srcObject = null; } catch(_){} }
 }
 
+// Réacquérir immédiatement au retour d'onglet
 async function _reacquireCameraImmediately() {
   if (_reacquiring) return;
   if (!_cameraWasActive && !_videoWasActive) return;
+
   _reacquiring = true;
   try {
     const fresh = await _reacquireMediaStream(_videoWasActive);
     if (!fresh) return;
+
     const photoVid = document.getElementById('cameraVideo');
     const liveVid  = document.getElementById('videoLive');
+
     if (_videoWasActive) {
       videoStream  = fresh;
       cameraStream = new MediaStream(fresh.getVideoTracks());
@@ -2560,11 +3050,20 @@ async function _reacquireCameraImmediately() {
 }
 
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) _releaseAllCameraHardware();
-  else                 _reacquireCameraImmediately();
+  const hidden = document.hidden;
+  // Pause vidéos du mur
+  document.querySelectorAll('#wallGridInline video, #wallGrid video').forEach(v => {
+    try { if (hidden) v.pause(); else { const pr = v.play(); if (pr && pr.catch) pr.catch(()=>{}); } } catch(_){}
+  });
+  if (hidden) {
+    // Libérer IMMÉDIATEMENT le hardware → évite le lock 1-min de l'OS
+    _releaseAllCameraHardware();
+  } else {
+    // Réacquérir SANS DÉLAI (hardware libre = instantané)
+    _reacquireCameraImmediately();
+  }
 });
 window.addEventListener('pageshow', (e) => { if (e.persisted) _reacquireCameraImmediately(); });
-
 </script>
 
 </body>
