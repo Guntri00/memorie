@@ -2479,8 +2479,25 @@ function showDlToast(msg) {
   window._observeThumb = (el) => observer.observe(el);
 })();
 
-// Récupération caméra après changement d'onglet navigateur (iOS/Android BFCache-safe)
-async function _silentReacquireCamera(wantAudio) {
+// ══════════════════════════════════════════════════════════════════════════
+// CAMÉRA : libération ACTIVE au départ d'onglet + réacquisition INSTANTANÉE
+// ══════════════════════════════════════════════════════════════════════════
+let _cameraWasActive = false;
+let _videoWasActive  = false;
+let _reacquiring     = false;
+
+function _forcePlay(v) {
+  if (!v) return;
+  try { v.muted = true; v.playsInline = true; v.setAttribute('playsinline',''); v.setAttribute('autoplay',''); } catch(_){}
+  const p = v.play();
+  if (p && p.catch) p.catch(() => {
+    const handler = () => { v.play().catch(()=>{}); };
+    document.addEventListener('touchstart', handler, { once:true, capture:true });
+    document.addEventListener('click',      handler, { once:true, capture:true });
+  });
+}
+
+async function _reacquireMediaStream(wantAudio) {
   const fm = (typeof facingMode !== 'undefined') ? facingMode : 'environment';
   const tries = wantAudio
     ? [ { video: { facingMode: fm, width:{ideal:1280}, height:{ideal:720} }, audio: true },
@@ -2495,85 +2512,58 @@ async function _silentReacquireCamera(wantAudio) {
   }
   return null;
 }
-async function _recoverCamera() {
+
+function _releaseAllCameraHardware() {
   const photoPane = document.getElementById('upload-camera-pane');
-  const photoVid  = document.getElementById('cameraVideo');
-  if (photoPane && photoPane.style.display !== 'none' &&
-      typeof cameraStream !== 'undefined' && cameraStream && photoVid) {
-    const tracks = cameraStream.getVideoTracks();
-    const dead   = !cameraStream.active || tracks.length === 0 ||
-                   tracks.some(t => t.readyState === 'ended');
-    const stale  = !dead && (photoVid.paused || photoVid.readyState === 0 ||
-                             tracks.some(t => t.muted));
-    if (dead) {
-      try { cameraStream.getTracks().forEach(t => { try { t.stop(); } catch(_){} }); } catch(_){}
-      cameraStream = null;
-      photoVid.srcObject = null;
-      const fresh = await _silentReacquireCamera(false);
-      if (fresh) { cameraStream = fresh; photoVid.srcObject = fresh; photoVid.play().catch(()=>{}); }
-    } else if (stale) {
-      photoVid.srcObject = null;
-      photoVid.srcObject = cameraStream;
-      try { await photoVid.play(); }
-      catch(_) {
-        try { cameraStream.getTracks().forEach(t => { try { t.stop(); } catch(_){} }); } catch(_){}
-        cameraStream = null;
-        photoVid.srcObject = null;
-        const fresh = await _silentReacquireCamera(false);
-        if (fresh) { cameraStream = fresh; photoVid.srcObject = fresh; photoVid.play().catch(()=>{}); }
-      }
-    }
+  const vidPane   = document.getElementById('upload-video-pane');
+  const recWrap   = document.getElementById('videoRecorderWrap');
+  const hasCam    = typeof cameraStream !== 'undefined' && cameraStream;
+  const hasVid    = typeof videoStream !== 'undefined' && videoStream;
+  const recording = typeof isRecording !== 'undefined' && isRecording;
+  _cameraWasActive = !!(photoPane && photoPane.style.display !== 'none' && hasCam);
+  _videoWasActive  = !!(vidPane && vidPane.style.display !== 'none' &&
+                        recWrap && recWrap.style.display !== 'none' &&
+                        hasVid);
+  if (recording && typeof stopVideoRecord === 'function') {
+    try { stopVideoRecord(); } catch(_){}
   }
-  const vidPane = document.getElementById('upload-video-pane');
-  const liveVid = document.getElementById('videoLive');
-  const recWrap = document.getElementById('videoRecorderWrap');
-  if (vidPane && vidPane.style.display !== 'none' &&
-      recWrap && recWrap.style.display !== 'none' &&
-      typeof videoStream !== 'undefined' && videoStream && liveVid &&
-      typeof isRecording !== 'undefined' && !isRecording) {
-    const tracks = videoStream.getVideoTracks();
-    const dead   = !videoStream.active || tracks.length === 0 ||
-                   tracks.some(t => t.readyState === 'ended');
-    const stale  = !dead && (liveVid.paused || liveVid.readyState === 0 ||
-                             tracks.some(t => t.muted));
-    if (dead) {
-      try { videoStream.getTracks().forEach(t => { try { t.stop(); } catch(_){} }); } catch(_){}
-      videoStream = null;
-      liveVid.srcObject = null;
-      const fresh = await _silentReacquireCamera(true);
-      if (fresh) {
-        videoStream = fresh;
-        if (!cameraStream || !cameraStream.active) cameraStream = new MediaStream(fresh.getVideoTracks());
-        liveVid.srcObject = fresh;
-        liveVid.play().catch(()=>{});
-      }
-    } else if (stale) {
-      liveVid.srcObject = null;
-      liveVid.srcObject = videoStream;
-      try { await liveVid.play(); }
-      catch(_) {
-        try { videoStream.getTracks().forEach(t => { try { t.stop(); } catch(_){} }); } catch(_){}
-        videoStream = null;
-        liveVid.srcObject = null;
-        const fresh = await _silentReacquireCamera(true);
-        if (fresh) {
-          videoStream = fresh;
-          if (!cameraStream || !cameraStream.active) cameraStream = new MediaStream(fresh.getVideoTracks());
-          liveVid.srcObject = fresh;
-          liveVid.play().catch(()=>{});
-        }
-      }
+  try { if (hasCam) cameraStream.getTracks().forEach(t => { try { t.stop(); } catch(_){} }); } catch(_){}
+  try { if (hasVid) videoStream.getTracks().forEach(t => { try { t.stop();  } catch(_){} }); } catch(_){}
+  if (typeof cameraStream !== 'undefined') cameraStream = null;
+  if (typeof videoStream  !== 'undefined') videoStream  = null;
+  const pv = document.getElementById('cameraVideo'); if (pv) { try { pv.srcObject = null; } catch(_){} }
+  const lv = document.getElementById('videoLive');   if (lv) { try { lv.srcObject = null; } catch(_){} }
+}
+
+async function _reacquireCameraImmediately() {
+  if (_reacquiring) return;
+  if (!_cameraWasActive && !_videoWasActive) return;
+  _reacquiring = true;
+  try {
+    const fresh = await _reacquireMediaStream(_videoWasActive);
+    if (!fresh) return;
+    const photoVid = document.getElementById('cameraVideo');
+    const liveVid  = document.getElementById('videoLive');
+    if (_videoWasActive) {
+      videoStream  = fresh;
+      cameraStream = new MediaStream(fresh.getVideoTracks());
+      if (liveVid)  { liveVid.srcObject  = fresh;        _forcePlay(liveVid);  }
+      if (photoVid) { photoVid.srcObject = cameraStream; _forcePlay(photoVid); }
+    } else {
+      cameraStream = fresh;
+      if (photoVid) { photoVid.srcObject = fresh; _forcePlay(photoVid); }
     }
+    _cameraWasActive = _videoWasActive = false;
+  } finally {
+    _reacquiring = false;
   }
 }
+
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) {
-    setTimeout(_recoverCamera, 150);
-    setTimeout(_recoverCamera, 600);
-    setTimeout(_recoverCamera, 1500);
-  }
+  if (document.hidden) _releaseAllCameraHardware();
+  else                 _reacquireCameraImmediately();
 });
-window.addEventListener('pageshow', (e) => { if (e.persisted) setTimeout(_recoverCamera, 200); });
+window.addEventListener('pageshow', (e) => { if (e.persisted) _reacquireCameraImmediately(); });
 
 </script>
 
