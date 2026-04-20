@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Mélodie & Thomas — Nos Souvenirs</title>
+<title id="pageTitle">Mélodie & Thomas — Nos Souvenirs</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Lato:wght@300;400&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -386,10 +386,6 @@ body::after{
 }
 .photo-card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(44,24,16,.15)}
 .photo-card img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
-.video-thumb{position:relative;width:100%;aspect-ratio:1;background:#1a1410;overflow:hidden}
-.video-thumb video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
-.video-thumb .vplay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
-.video-thumb .vplay span{width:48px;height:48px;background:rgba(255,255,255,.92);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(0,0,0,.5);font-size:20px;padding-left:4px;color:#1a1410}
 .photo-card-meta{
   padding:8px 10px;background:rgba(44,24,16,.6);
   border-top:1px solid rgba(212,165,160,.15);
@@ -430,7 +426,7 @@ body::after{
   z-index:200;display:none;align-items:center;justify-content:center;padding:20px;
 }
 .lb.open{display:flex;animation:fadeIn .3s ease}
-.lb img,.lb video{max-width:100%;max-height:90vh;border-radius:6px;object-fit:contain}
+.lb img{max-width:100%;max-height:90vh;border-radius:6px;object-fit:contain}
 .lb-x{
   position:absolute;top:20px;right:20px;
   background:rgba(255,252,250,.1);border:1px solid rgba(255,252,250,.2);
@@ -440,120 +436,52 @@ body::after{
 }
 .lb-x:hover{background:rgba(255,252,250,.2)}
 
-/* DIAPORAMA PLEIN ÉCRAN */
+/* DIAPORAMA */
 .ss-overlay{
-  position:fixed;inset:0;background:#000;
+  position:fixed;inset:0;background:#1A0D08;
   z-index:300;display:none;flex-direction:column;
   align-items:center;justify-content:center;
-  cursor:none;
 }
 .ss-overlay.open{display:flex}
-.ss-overlay.show-ui{cursor:default}
-
-/* Barre de progression en haut */
-.ss-bar-top{position:absolute;top:0;left:0;right:0;height:3px;background:rgba(201,169,110,.15);z-index:10}
+.ss-bar-top{position:absolute;top:0;left:0;right:0;height:3px;background:rgba(201,169,110,.2)}
 .ss-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-l));width:0%;transition:width linear}
-
-/* Conteneur double-couche pour crossfade */
-.ss-stage{position:absolute;inset:0;overflow:hidden}
-.ss-layer{
-  position:absolute;inset:0;
-  display:flex;align-items:center;justify-content:center;
-  opacity:0;transition:opacity .8s ease;
-  will-change:opacity,transform;
-}
-.ss-layer.active{opacity:1}
-.ss-layer img{
-  max-width:100vw;max-height:100vh;object-fit:contain;
-  will-change:transform;
-}
-.ss-layer video{
-  max-width:100vw;max-height:100vh;object-fit:contain;
-}
-
-/* Ken Burns — 3 variantes alternées */
-@keyframes kb1{from{transform:scale(1) translate(0,0)}to{transform:scale(1.08) translate(-1.5%,-1%)}}
-@keyframes kb2{from{transform:scale(1.05) translate(1%,0)}to{transform:scale(1) translate(-1%,1%)}}
-@keyframes kb3{from{transform:scale(1) translate(1%,1%)}to{transform:scale(1.06) translate(0,-1.5%)}}
-.ss-layer.kb1 img{animation:kb1 6s ease-in-out forwards}
-.ss-layer.kb2 img{animation:kb2 6s ease-in-out forwards}
-.ss-layer.kb3 img{animation:kb3 6s ease-in-out forwards}
-
-/* UI controls — auto-hide */
-.ss-ui{
-  opacity:0;transition:opacity .4s ease;
-  pointer-events:none;
-}
-.ss-overlay.show-ui .ss-ui{opacity:1;pointer-events:auto}
-
 .ss-tag{
-  position:absolute;top:18px;left:18px;z-index:10;
-  background:rgba(201,169,110,.2);backdrop-filter:blur(12px);
+  position:absolute;top:18px;left:18px;
+  background:rgba(201,169,110,.2);backdrop-filter:blur(8px);
   color:var(--gold);font-size:10px;letter-spacing:.2em;text-transform:uppercase;
-  padding:6px 16px;border-radius:14px;font-family:'Lato',sans-serif;
+  padding:5px 14px;border-radius:12px;font-family:'Lato',sans-serif;
 }
 .ss-num{
-  position:absolute;top:18px;right:18px;z-index:10;
-  background:rgba(44,24,16,.6);backdrop-filter:blur(12px);
-  color:rgba(255,252,250,.7);font-size:11px;padding:6px 16px;border-radius:14px;
+  position:absolute;top:18px;right:18px;
+  background:rgba(44,24,16,.6);backdrop-filter:blur(8px);
+  color:rgba(255,252,250,.7);font-size:11px;padding:5px 14px;border-radius:12px;
   font-family:'Lato',sans-serif;
 }
-.ss-footer{
-  position:absolute;bottom:0;left:0;right:0;z-index:10;
-  padding:24px 28px 36px;
-  background:linear-gradient(transparent,rgba(10,6,4,.85));
-  display:flex;align-items:flex-end;justify-content:space-between;
-  gap:16px;
+.ss-img{
+  max-width:100vw;max-height:82vh;object-fit:contain;
+  transition:opacity .5s ease,transform .5s ease;
 }
-.ss-footer-left{display:flex;flex-direction:column;min-width:0;flex:1}
-.ss-footer-info{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.ss-footer{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:20px 24px 32px;
+  background:linear-gradient(transparent,rgba(26,13,8,.8));
+  display:flex;align-items:center;justify-content:space-between;
+}
 .ss-footer-info strong{
   font-family:'Playfair Display',serif;font-size:18px;font-weight:400;
-  color:var(--warm);white-space:nowrap;
+  color:var(--warm);display:block;margin-bottom:3px;
 }
-.ss-footer-info span{font-size:11px;color:rgba(212,165,160,.8);white-space:nowrap}
-
-/* Légende IA */
-.ss-caption{
-  margin-top:8px;min-height:22px;
-  font-family:'Playfair Display',serif;font-style:italic;
-  font-size:15px;line-height:1.5;color:rgba(253,248,245,.85);
-  max-width:520px;
-  opacity:0;transform:translateY(6px);
-  transition:opacity .6s ease,transform .6s ease;
-}
-.ss-caption.visible{opacity:1;transform:translateY(0)}
-.ss-caption.loading::after{
-  content:'';display:inline-block;width:3px;height:14px;
-  background:var(--gold);margin-left:2px;
-  animation:blink-cursor .8s step-end infinite;
-  vertical-align:text-bottom;
-}
-@keyframes blink-cursor{0%,100%{opacity:1}50%{opacity:0}}
-.ss-caption .ai-badge{
-  font-family:'Lato',sans-serif;font-style:normal;
-  font-size:8px;letter-spacing:.15em;text-transform:uppercase;
-  color:var(--gold);opacity:.7;margin-left:8px;vertical-align:middle;
-}
-
-.ss-btns{display:flex;gap:10px;align-items:center;flex-shrink:0}
+.ss-footer-info span{font-size:11px;color:rgba(212,165,160,.8)}
+.ss-btns{display:flex;gap:10px;align-items:center}
 .ss-btn{
-  width:46px;height:46px;
+  width:44px;height:44px;
   background:rgba(255,252,250,.1);
   border:1px solid rgba(255,252,250,.15);
   color:var(--warm);border-radius:50%;font-size:20px;
   cursor:pointer;display:flex;align-items:center;justify-content:center;
-  transition:all .2s;backdrop-filter:blur(6px);
+  transition:all .2s;backdrop-filter:blur(4px);
 }
-.ss-btn:hover{background:rgba(255,252,250,.25);border-color:rgba(201,169,110,.4)}
-.ss-btn.active{background:rgba(201,169,110,.3);border-color:var(--gold)}
-
-/* Zone de navigation tactile (swipe + tap zones) */
-.ss-touch-prev,.ss-touch-next{
-  position:absolute;top:0;bottom:0;width:25%;z-index:5;cursor:pointer;
-}
-.ss-touch-prev{left:0}
-.ss-touch-next{right:0}
+.ss-btn:hover{background:rgba(255,252,250,.2)}
 
 /* TOAST */
 .toast{
@@ -588,6 +516,7 @@ footer em{font-style:italic;font-family:'Playfair Display',serif;font-size:12px;
   .photo-grid { grid-template-columns: repeat(4, 1fr); }
   .hero-names { font-size: 72px; }
   .ss-card { padding: 36px 40px; }
+  .welcome-banner { padding: 48px 40px; }
 }
 @media (min-width: 1200px) {
   .body { max-width: 1100px; padding: 56px 48px 120px; }
@@ -595,19 +524,25 @@ footer em{font-style:italic;font-family:'Playfair Display',serif;font-size:12px;
   .hero-names { font-size: 86px; }
 }
 
+/* Diaporama plein écran desktop */
+.ss-overlay { background: #000; }
+.ss-img {
+  max-width: 100vw;
+  max-height: 100vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
 @media (min-width: 768px) {
-  .ss-footer { padding: 24px 48px 40px; }
-  .ss-footer-info strong { font-size: 24px; }
-  .ss-caption { font-size: 17px; max-width: 600px; }
-  .ss-btn { width: 54px; height: 54px; font-size: 24px; }
-  .ss-num { font-size: 13px; padding: 7px 18px; }
-  .ss-tag { font-size: 11px; padding: 7px 18px; }
-  .ss-touch-prev,.ss-touch-next{width:20%}
+  .ss-img { max-height: 88vh; }
+  .ss-footer { padding: 20px 40px 36px; }
+  .ss-footer-info strong { font-size: 22px; }
+  .ss-btn { width: 52px; height: 52px; font-size: 24px; }
+  .ss-num { font-size: 13px; padding: 6px 16px; }
+  .ss-tag { font-size: 11px; padding: 6px 16px; }
 }
 
 </style>
-<link rel="preconnect" href="https://hmytqbgnjpugqeslnuvk.supabase.co" crossorigin>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💍</text></svg>">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -626,8 +561,8 @@ footer em{font-style:italic;font-family:'Playfair Display',serif;font-size:12px;
   <div class="login-content">
     <div class="login-ornament">
       <span class="ring">💍</span>
-      <h1 class="login-title">Mélodie <em>&</em> Thomas</h1>
-      <p class="login-date">21 Juin 2025 · Château de Valmirande</p>
+      <h1 class="login-title" id="loginTitle">Mélodie <em>&</em> Thomas</h1>
+      <p class="login-date" id="loginDate">21 Juin 2025 · Château de Valmirande</p>
     </div>
 
     <div class="login-divider">
@@ -639,7 +574,7 @@ footer em{font-style:italic;font-family:'Playfair Display',serif;font-size:12px;
     <div class="login-box">
       <div class="login-field">
         <label>Identifiant</label>
-        <input type="text" id="loginInput" placeholder="Votre identifiant"
+        <input type="text" id="loginInput" type="email" autocomplete="email" placeholder="Votre identifiant"
           onkeydown="if(event.key==='Enter')doLogin()" autocomplete="username">
       </div>
       <div class="login-field">
@@ -683,8 +618,8 @@ footer em{font-style:italic;font-family:'Playfair Display',serif;font-size:12px;
 
     <div class="hero-content">
       <span class="hero-ring">💍</span>
-      <h1 class="hero-names">Mélodie <em>&</em> Thomas</h1>
-      <p class="hero-date">21 Juin 2025 · Château de Valmirande</p>
+      <h1 class="hero-names" id="heroNames">Mélodie <em>&</em> Thomas</h1>
+      <p class="hero-date" id="heroDate">21 Juin 2025 · Château de Valmirande</p>
       <p class="hero-tagline">Bienvenue dans votre espace personnel — retrouvez ici tous les souvenirs partagés par vos invités</p>
       <div class="hero-stats">
         <div class="hero-stat">
@@ -738,7 +673,7 @@ footer em{font-style:italic;font-family:'Playfair Display',serif;font-size:12px;
       <div class="sec-divider-line"></div>
     </div>
     <h2 class="sec-title">Télécharger <em>vos souvenirs</em></h2>
-    <p class="sec-sub">Photos & vidéos en ZIP — par catégorie ou tout en une seule fois</p>
+    <p class="sec-sub">Par catégorie ou tout en une seule fois</p>
 
     <div class="dl-prog" id="dlProg">
       <div class="dl-prog-top">
@@ -810,49 +745,32 @@ footer em{font-style:italic;font-family:'Playfair Display',serif;font-size:12px;
   </div>
 
   <footer>
-    <em>Mélodie & Thomas</em> &nbsp;·&nbsp; 21 Juin 2025 &nbsp;·&nbsp; Mementos · Vos souvenirs, pour toujours 💛
+    <em id="footerCouple">Mélodie & Thomas</em> &nbsp;·&nbsp; <span id="footerDate">21 Juin 2025</span> &nbsp;·&nbsp; Mementos · Vos souvenirs, pour toujours 💛
   </footer>
 </div>
 
 <!-- LIGHTBOX -->
-<div class="lb" id="lb" onclick="if(event.target===this)closeLB()">
+<div class="lb" id="lb" onclick="closeLB()">
   <button class="lb-x" onclick="closeLB()">✕</button>
-  <img id="lbImg" src="" alt="" style="display:none">
-  <video id="lbVideo" src="" controls playsinline style="display:none;max-width:100%;max-height:90vh;border-radius:6px"></video>
+  <img id="lbImg" src="" alt="">
 </div>
 
-<!-- DIAPORAMA PLEIN ÉCRAN -->
-<div class="ss-overlay" id="ssOverlay" onclick="ssShowUI()">
-  <div class="ss-bar-top ss-ui"><div class="ss-bar-fill" id="ssBarFill"></div></div>
-
-  <!-- Double couche pour crossfade -->
-  <div class="ss-stage">
-    <div class="ss-layer" id="ssLayer0"></div>
-    <div class="ss-layer" id="ssLayer1"></div>
-  </div>
-
-  <!-- Zones tactiles gauche / droite -->
-  <div class="ss-touch-prev" onclick="event.stopPropagation();ssPrev();ssShowUI()"></div>
-  <div class="ss-touch-next" onclick="event.stopPropagation();ssNext();ssShowUI()"></div>
-
-  <!-- UI auto-hide -->
-  <div class="ss-tag ss-ui" id="ssTag"></div>
-  <div class="ss-num ss-ui" id="ssNum"></div>
-  <div class="ss-footer ss-ui">
-    <div class="ss-footer-left">
-      <div class="ss-footer-info">
-        <strong id="ssName"></strong>
-        <span id="ssTime"></span>
-      </div>
-      <div class="ss-caption" id="ssCaption"></div>
+<!-- DIAPORAMA -->
+<div class="ss-overlay" id="ssOverlay">
+  <div class="ss-bar-top"><div class="ss-bar-fill" id="ssBarFill"></div></div>
+  <div class="ss-tag" id="ssTag"></div>
+  <div class="ss-num" id="ssNum"></div>
+  <img class="ss-img" id="ssImg" src="" alt="">
+  <div class="ss-footer">
+    <div class="ss-footer-info">
+      <strong id="ssName"></strong>
+      <span id="ssTime"></span>
     </div>
     <div class="ss-btns">
-      <button class="ss-btn" onclick="event.stopPropagation();ssPrev()">‹</button>
-      <button class="ss-btn" id="ssPlayBtn" onclick="event.stopPropagation();ssToggle()">⏸</button>
-      <button class="ss-btn" onclick="event.stopPropagation();ssNext()">›</button>
-      <button class="ss-btn" id="ssAiBtn" onclick="event.stopPropagation();ssToggleAI()" title="Légendes IA">✨</button>
-      <button class="ss-btn" id="ssFsBtn" onclick="event.stopPropagation();ssToggleFullscreen()" title="Plein écran">⛶</button>
-      <button class="ss-btn" onclick="event.stopPropagation();ssClose()">✕</button>
+      <button class="ss-btn" onclick="ssPrev()">‹</button>
+      <button class="ss-btn" id="ssPlayBtn" onclick="ssToggle()">⏸</button>
+      <button class="ss-btn" onclick="ssNext()">›</button>
+      <button class="ss-btn" onclick="ssClose()">✕</button>
     </div>
   </div>
 </div>
@@ -883,9 +801,6 @@ const QUOTES = [
   {text:"Les plus belles histoires d'amour sont celles qui durent toute une vie.", author:"Proverbe"},
 ];
 
-// ── Échappement HTML ──
-function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-
 // STATE
 let allPhotos=[], currentFilter='all';
 let ssPhotos=[], ssIndex=0, ssPlaying=true, ssTimer=null;
@@ -893,52 +808,56 @@ const SS_DUR=4000;
 
 // AUTH
 
-async function sha256(str) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-}
 
 async function doLogin() {
-  const user = document.getElementById('loginInput').value.trim();
-  const pwd  = document.getElementById('pwdInput').value;
-  const err  = document.getElementById('loginErr');
+  const email = document.getElementById('loginInput').value.trim();
+  const pwd   = document.getElementById('pwdInput').value;
+  const err   = document.getElementById('loginErr');
 
-  if (!user || !pwd) {
-    err.classList.add('show');
-    return;
-  }
+  if (!email || !pwd) { err.classList.add('show'); return; }
 
-  const userHash = await sha256(user);
-  const pwdHash  = await sha256(pwd);
+  const btn = document.querySelector('.login-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Connexion…'; }
 
-  if (userHash === LOGIN_H && pwdHash === PWD_H) {
-    sessionStorage.setItem('mementos_maries', '1');
-    document.getElementById('loginPage').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
+  try {
+    const sbClient = window.supabase
+      ? window.supabase.createClient(SB_URL, SB_KEY)
+      : null;
+    if (!sbClient) throw new Error('SDK non disponible');
+
+    const { data, error } = await sbClient.auth.signInWithPassword({ email, password: pwd });
+
+    if (error || !data.user) throw new Error(error ? error.message : 'Identifiants incorrects');
+
+    // Vérifier le rôle mariés
+    const role = data.user.user_metadata?.role;
+    if (role !== 'maries') throw new Error('Accès non autorisé pour ce compte');
+
+    sessionStorage.setItem('mementos_maries_auth', '1');
+    sessionStorage.setItem('mementos_maries_token', data.session.access_token);
+
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('mainScreen').style.display  = 'block';
     err.classList.remove('show');
     initDashboard();
-  } else {
+
+  } catch(e) {
     err.classList.add('show');
+    const errMsg = document.getElementById('loginErrMsg');
+    if (errMsg) errMsg.textContent = e.message || 'Identifiants incorrects';
     document.getElementById('pwdInput').value = '';
     document.getElementById('loginInput').focus();
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Connexion'; }
   }
 }
 
 
 // ══════════════════════════════════════════
-//  TÉLÉCHARGEMENT ZIP (JSZip) — photos + vidéos
+//  TÉLÉCHARGEMENT ZIP (JSZip)
 // ══════════════════════════════════════════
-function mediaSummary(items) {
-  const imgs = items.filter(p => p.media_type !== 'video').length;
-  const vids = items.filter(p => p.media_type === 'video').length;
-  const parts = [];
-  if (imgs) parts.push(`${imgs} photo${imgs > 1 ? 's' : ''}`);
-  if (vids) parts.push(`${vids} vidéo${vids > 1 ? 's' : ''}`);
-  return parts.join(' + ') || '0 fichier';
-}
-
-async function downloadZipMedia(items, zipName) {
-  if (!items.length) { showToast('Aucun fichier à télécharger'); return; }
+async function downloadZipPhotos(photos, zipName) {
+  if (!photos.length) { showToast('Aucune photo à télécharger'); return; }
 
   const prog  = document.getElementById('dlProg');
   const fill  = document.getElementById('dlProgFill');
@@ -946,58 +865,49 @@ async function downloadZipMedia(items, zipName) {
   const pct   = document.getElementById('dlProgPct');
 
   prog.classList.add('show');
-  lbl.textContent = `Chargement de ${mediaSummary(items)}…`;
+  lbl.textContent = 'Chargement des photos…';
 
   const zip   = new JSZip();
   let done    = 0;
-  let errors  = 0;
-  let fileIdx = 0;
-  const total = items.length;
+  const total = photos.length;
 
-  // Par lots de 3 (plus prudent pour les vidéos lourdes)
-  const BATCH = 3;
-  for (let i = 0; i < items.length; i += BATCH) {
-    const batch = items.slice(i, i + BATCH);
+  // Par lots de 5 en parallèle
+  const BATCH = 5;
+  for (let i = 0; i < photos.length; i += BATCH) {
+    const batch = photos.slice(i, i + BATCH);
     await Promise.all(batch.map(async (p) => {
-      const currentIdx = ++fileIdx;
-      const isVideo = p.media_type === 'video';
-      // Timeout plus long pour les vidéos (2 min vs 30s)
-      const timeoutMs = isVideo ? 120000 : 30000;
       try {
         const controller = new AbortController();
-        const timeout    = setTimeout(() => controller.abort(), timeoutMs);
-        const res = await fetch(getPhotoUrl(p), { mode:'cors', credentials:'omit', signal: controller.signal });
-        clearTimeout(timeout);
+      const timeout    = setTimeout(() => controller.abort(), 30000);
+      const res = await fetch(getPhotoUrl(p), { mode:'cors', credentials:'omit', signal: controller.signal });
+      clearTimeout(timeout);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const blob = await res.blob();
-        const ext  = (p.storage_path || (isVideo ? 'video.webm' : 'photo.jpg')).split('.').pop().toLowerCase() || (isVideo ? 'webm' : 'jpg');
-        const cat  = p.category || 'autre';
-        const name = (p.uploader_name || 'Invite').replace(/[^a-zA-ZÀ-ÿ0-9]/g, '_');
-        const prefix = isVideo ? 'VID' : 'IMG';
-        zip.file(`${cat}/${prefix}_${String(currentIdx).padStart(3,'0')}_${name}.${ext}`, blob);
+        const ext  = (p.storage_path || 'photo.jpg').split('.').pop() || 'jpg';
+        const cat  = p.category || 'photo';
+        const name = p.uploader_name || 'Invite';
+        zip.file(`${cat}/${String(i+1).padStart(3,'0')}_${name}.${ext}`, blob);
         done++;
-        const p2 = Math.round((done / total) * 50);
+        const p2 = Math.round((done / total) * 50); // 50% pour le chargement
         fill.style.width = p2 + '%';
         pct.textContent  = p2 + '%';
         lbl.textContent  = `Chargement ${done} / ${total}…`;
       } catch(e) {
-        console.warn('Échec téléchargement:', getPhotoUrl(p), e.message);
-        errors++;
+        console.warn('Failed:', p.public_url, e.message);
         done++;
       }
     }));
   }
 
-  // Générer le ZIP (STORE pour vidéos = plus rapide, DEFLATE peu utile sur mp4/webm)
+  // Générer le ZIP
   lbl.textContent = 'Compression en cours…';
-  const hasVideos = items.some(p => p.media_type === 'video');
   try {
     const zipBlob = await zip.generateAsync({
       type: 'blob',
-      compression: hasVideos ? 'STORE' : 'DEFLATE',
-      compressionOptions: hasVideos ? {} : { level: 6 }
+      compression: 'DEFLATE',
+      compressionOptions: { level: 6 }
     }, (meta) => {
-      const p2 = 50 + Math.round(meta.percent / 2);
+      const p2 = 50 + Math.round(meta.percent / 2); // 50-100%
       fill.style.width = p2 + '%';
       pct.textContent  = p2 + '%';
     });
@@ -1009,13 +919,9 @@ async function downloadZipMedia(items, zipName) {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
 
-    const ok = done - errors;
-    showToast(errors
-      ? `✓ ZIP téléchargé (${ok} fichier${ok > 1 ? 's' : ''}, ${errors} échoué${errors > 1 ? 's' : ''})`
-      : `✓ ZIP de ${mediaSummary(items)} téléchargé !`
-    );
+    showToast(`✓ ZIP de ${done} photos téléchargé !`);
   } catch(e) {
     showToast('⚠️ Erreur ZIP : ' + e.message);
   }
@@ -1025,45 +931,49 @@ async function downloadZipMedia(items, zipName) {
 }
 
 async function downloadCat(catId) {
-  const items = allPhotos.filter(p => p.category === catId);
-  if (!items.length) { showToast('Aucun fichier dans cette catégorie'); return; }
+  const photos = allPhotos.filter(p => p.category === catId);
+  if (!photos.length) { showToast('Aucune photo dans cette catégorie'); return; }
   const card = document.getElementById('dlcard-' + catId);
   if (card) card.classList.add('loading');
-  await downloadZipMedia(items, CATS[catId]?.name || catId);
+  await downloadZipPhotos(photos, CATS[catId]?.name || catId);
   if (card) card.classList.remove('loading');
 }
 
 async function downloadAll() {
-  if (!allPhotos.length) { showToast('Aucun fichier disponible'); return; }
+  if (!allPhotos.length) { showToast('Aucune photo disponible'); return; }
   const btn = document.getElementById('dlAllBtn');
   if (btn) btn.disabled = true;
-  await downloadZipMedia(allPhotos, 'mariage-complet');
+  await downloadZipPhotos(allPhotos, 'mariage-complet');
   if (btn) btn.disabled = false;
 }
 
 
 
-async function dlOne(url, path, cat, isVideo) {
+async function dlOne(url, path, cat) {
   try {
     showToast('Téléchargement…');
     const res  = await fetch(url, { mode:'cors', credentials:'omit' });
     const blob = await res.blob();
-    const ext  = (path || (isVideo ? 'video.webm' : 'photo.jpg')).split('.').pop() || (isVideo ? 'webm' : 'jpg');
-    const prefix = isVideo ? 'VID' : 'IMG';
+    const ext  = (path || 'photo.jpg').split('.').pop() || 'jpg';
     const a    = document.createElement('a');
     a.href     = URL.createObjectURL(blob);
-    a.download = `mementos-${prefix}-${cat||'photo'}-${Date.now()}.${ext}`;
+    a.download = `mementos-${cat||'photo'}-${Date.now()}.${ext}`;
     a.style.display = 'none';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-    showToast(isVideo ? '✓ Vidéo téléchargée !' : '✓ Photo téléchargée !');
+    showToast('✓ Photo téléchargée !');
   } catch(e) { window.open(url, '_blank'); }
 }
 
-function doLogout(){
-  sessionStorage.removeItem('mementos_maries');
+async function doLogout() {
+  try {
+    const sbClient = window.supabase ? window.supabase.createClient(SB_URL, SB_KEY) : null;
+    if (sbClient) await sbClient.auth.signOut();
+  } catch(e) {}
+  sessionStorage.removeItem('mementos_maries_auth');
+  sessionStorage.removeItem('mementos_maries_token');
   location.reload();
 }
 window.addEventListener('DOMContentLoaded',()=>{
@@ -1085,8 +995,10 @@ window.addEventListener('DOMContentLoaded',()=>{
 
 // INIT
 async function initDashboard(){
-  await loadPhotos();
-  startRealtimeMaries();
+  loadEventConfig();
+
+  await loadPhotos()
+  startRealtimeMaries();;
   startAutoRefresh();
 }
 
@@ -1113,50 +1025,17 @@ async function loadPhotos(){
     allPhotos = await res.json();
     updateUI();
     renderPhotos();
-    validateStorageUrls();
   } catch(e){
     console.error('Fetch error:', e);
     showToast('⚠️ Erreur connexion : ' + e.message);
   }
 }
 
-// Validateur en tâche de fond : HEAD chaque URL, nettoie les 404
-let _validatorRunning = false;
-async function validateStorageUrls(){
-  if (_validatorRunning) return;
-  _validatorRunning = true;
-  try {
-    const photos = allPhotos.slice();
-    const CONCURRENCY = 6;
-    let idx = 0;
-    async function worker(){
-      while (idx < photos.length) {
-        const p = photos[idx++];
-        const url = getPhotoUrl(p);
-        if (!url) continue;
-        try {
-          const res = await fetch(url, { method:'HEAD', mode:'cors', cache:'no-store' });
-          if (!res.ok) {
-            const tile = document.querySelector(`[data-photo-id="${p.id}"]`);
-            cleanupBrokenMedia(p.id, tile);
-          }
-        } catch(e) { /* ignore */ }
-      }
-    }
-    await Promise.all(Array(CONCURRENCY).fill(0).map(worker));
-  } finally {
-    _validatorRunning = false;
-  }
-}
-
-// Auto-refresh (filet de sécurité ; Realtime gère les mises à jour normales)
+// Auto-refresh toutes les 15 secondes
 let autoRefreshInterval = null;
 function startAutoRefresh(){
   if(autoRefreshInterval) clearInterval(autoRefreshInterval);
-  autoRefreshInterval = setInterval(() => {
-    if (document.hidden) return;
-    loadPhotos();
-  }, 120000);
+  autoRefreshInterval = setInterval(loadPhotos, 30000) // fallback si Realtime déconnecté;
 }
 
 function updateUI(){
@@ -1168,9 +1047,9 @@ function updateUI(){
   document.getElementById('statLikes').textContent=likes;
 
   Object.keys(CATS).forEach(cat=>{
-    const items=allPhotos.filter(p=>p.category===cat);
+    const n=allPhotos.filter(p=>p.category===cat).length;
     const el=document.getElementById('dlcount-'+cat);
-    if(el) el.textContent=items.length ? mediaSummary(items) : 'Aucun fichier';
+    if(el) el.textContent=n?`${n} photo${n>1?'s':''}`:'Aucune photo';
   });
   document.getElementById('tc-all').textContent=total;
   document.getElementById('tc-ceremonie').textContent=allPhotos.filter(p=>p.category==='ceremonie').length;
@@ -1178,11 +1057,11 @@ function updateUI(){
   document.getElementById('tc-diner').textContent=allPhotos.filter(p=>p.category==='diner').length;
   document.getElementById('tc-danse').textContent=allPhotos.filter(p=>p.category==='danse').length;
   const dlCount=document.getElementById('dlAllCount');
-  if(dlCount) dlCount.textContent=`${mediaSummary(allPhotos)} — toutes catégories réunies`;
+  if(dlCount) dlCount.textContent=`${total} photo${total>1?'s':''} — toutes catégories réunies`;
   const ssBtn=document.getElementById('ssLaunchBtn');
   if(ssBtn){
     ssBtn.disabled=total===0;
-    ssBtn.innerHTML=total>0?`▶ &nbsp;Lancer (${mediaSummary(allPhotos)})`:'Aucun fichier';
+    ssBtn.innerHTML=total>0?`▶ &nbsp;Lancer (${total} photos)`:'Aucune photo';
   }
 }
 
@@ -1203,69 +1082,6 @@ function getPhotoUrl(p) {
   return p.public_url || '';
 }
 
-// ══════════════════════════════════════════
-//  NETTOYAGE AUTO DES MÉDIAS CASSÉS
-// ══════════════════════════════════════════
-const _cleanedBrokenIds = new Set();
-const _CLEANED_MAX = 500;
-async function cleanupBrokenMedia(id, tileEl){
-  if(!id){ if(tileEl) tileEl.style.display='none'; return; }
-  // Période de grâce pour cohérence différée Supabase Storage
-  const _p = Array.isArray(allPhotos) ? allPhotos.find(x => String(x.id) === String(id)) : null;
-  if (_p && _p.uploaded_at) {
-    const ageMs = Date.now() - new Date(_p.uploaded_at).getTime();
-    if (ageMs < 3 * 60 * 1000) {
-      if (tileEl) tileEl.style.display = 'none';
-      return;
-    }
-  }
-  if(_cleanedBrokenIds.has(id)){
-    document.querySelectorAll(`[data-photo-id="${id}"]`).forEach(n=>n.remove());
-    return;
-  }
-  if(_cleanedBrokenIds.size >= _CLEANED_MAX) _cleanedBrokenIds.clear();
-  _cleanedBrokenIds.add(id);
-
-  document.querySelectorAll(`[data-photo-id="${id}"]`).forEach(n=>n.remove());
-  if(tileEl && tileEl.parentElement) tileEl.remove();
-
-  allPhotos = allPhotos.filter(p=>String(p.id)!==String(id));
-  try { if (typeof ssOnPhotoDeleted === 'function') ssOnPhotoDeleted(id); } catch(_) {}
-  try { updateUI(); } catch(e){}
-
-  try {
-    await fetch(`${SB_URL}/rest/v1/photos?id=eq.${encodeURIComponent(id)}`, {
-      method:'DELETE', mode:'cors', credentials:'omit',
-      headers:{ 'apikey':SB_KEY, 'Authorization':`Bearer ${SB_KEY}`, 'Content-Type':'application/json', 'Prefer':'return=minimal' }
-    });
-  } catch(e) { /* silencieux */ }
-}
-
-function buildPhotoCardHTML(p){
-  const cat=CATS[p.category]||{emoji:'📷',name:'Autre'};
-  const time=new Date(p.uploaded_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-  const isVideo=p.media_type==='video';
-  const safeUrl=getPhotoUrl(p).replace(/'/g,'%27');
-  const safePath=(p.storage_path||'').replace(/'/g,'%27');
-  const safeCat=(p.category||'').replace(/'/g,'%27');
-  const safeId=esc(String(p.id));
-  const safeName=esc(p.uploader_name||'Invité');
-  const mediaEl=isVideo
-    ? `<div class="video-thumb"><video src="${safeUrl}" playsinline muted preload="metadata" onloadedmetadata="if(!this.videoWidth){cleanupBrokenMedia('${safeId}',this.closest('.photo-card'));return}this.currentTime=0.5" onerror="cleanupBrokenMedia('${safeId}',this.closest('.photo-card'))" onstalled="setTimeout(()=>{if(this.networkState===3||this.readyState===0)cleanupBrokenMedia('${safeId}',this.closest('.photo-card'))},4000)"></video><div class="vplay"><span>▶</span></div></div>`
-    : `<img data-src="${safeUrl}" alt="" decoding="async" onload="if(!this.naturalWidth)cleanupBrokenMedia('${safeId}',this.closest('.photo-card'))" onerror="cleanupBrokenMedia('${safeId}',this.closest('.photo-card'))">`;
-  return `
-    <div class="photo-card" data-photo-id="${safeId}" onclick="openLB('${safeUrl}',${isVideo})">
-      ${mediaEl}
-      <div class="photo-overlay">
-        <button class="photo-dl-btn" onclick="event.stopPropagation();dlOne('${safeUrl}','${safePath}','${safeCat}',${isVideo})">⬇️</button>
-      </div>
-      <div class="photo-card-meta">
-        <div class="photo-meta-name">${safeName} ${cat.emoji}${isVideo?' 🎬':''}</div>
-        <div class="photo-meta-time">${time}</div>
-      </div>
-    </div>`;
-}
-
 function renderPhotos(){
   const photos=currentFilter==='all'?allPhotos:allPhotos.filter(p=>p.category===currentFilter);
   const grid=document.getElementById('photoGrid');
@@ -1273,50 +1089,21 @@ function renderPhotos(){
     grid.innerHTML=`<div class="photo-empty"><span class="ei">📷</span><p>Aucune photo dans cette catégorie</p></div>`;
     return;
   }
-  grid.innerHTML=photos.map(buildPhotoCardHTML).join('');
-  observeLazyImages();
-}
-
-// Ajout / suppression incrémentale — évite de reconstruire toute la grille
-function addPhotoCardIncremental(p){
-  const grid=document.getElementById('photoGrid');
-  if(!grid) return;
-  if(currentFilter!=='all' && p.category!==currentFilter) return;
-  if(grid.querySelector(`[data-photo-id="${esc(String(p.id))}"]`)) return;
-  const empty=grid.querySelector('.photo-empty');
-  if(empty) grid.innerHTML='';
-  const wrap=document.createElement('div');
-  wrap.innerHTML=buildPhotoCardHTML(p);
-  const card=wrap.firstElementChild;
-  grid.prepend(card);
-  observeLazyImages();
-}
-
-function removePhotoCardIncremental(id){
-  const grid=document.getElementById('photoGrid');
-  if(!grid) return;
-  const card=grid.querySelector(`[data-photo-id="${esc(String(id))}"]`);
-  if(card) card.remove();
-  if(!grid.children.length){
-    grid.innerHTML=`<div class="photo-empty"><span class="ei">📷</span><p>Aucune photo dans cette catégorie</p></div>`;
-  }
-}
-
-let _lazyObs=null;
-function observeLazyImages(){
-  if(!_lazyObs){
-    _lazyObs=new IntersectionObserver((entries)=>{
-      entries.forEach(e=>{
-        if(e.isIntersecting){
-          const img=e.target;
-          const src=img.getAttribute('data-src');
-          if(src){ img.src=src; img.removeAttribute('data-src'); }
-          _lazyObs.unobserve(img);
-        }
-      });
-    },{rootMargin:'1200px 0px',threshold:0.01});
-  }
-  document.querySelectorAll('#photoGrid img[data-src]').forEach(img=>_lazyObs.observe(img));
+  grid.innerHTML=photos.map(p=>{
+    const cat=CATS[p.category]||{emoji:'📷',name:'Autre'};
+    const time=new Date(p.uploaded_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    return `
+    <div class="photo-card" onclick="openLB('${getPhotoUrl(p)}')">
+      <img src="${getPhotoUrl(p)}" alt="" loading="lazy" crossorigin="anonymous" onerror="this.src='${getPhotoUrl(p)}';this.removeAttribute('crossorigin')">
+      <div class="photo-overlay">
+        <button class="photo-dl-btn" onclick="event.stopPropagation();dlOne('${getPhotoUrl(p)}','${p.storage_path||''}','${p.category||''}')">⬇️</button>
+      </div>
+      <div class="photo-card-meta">
+        <div class="photo-meta-name">${p.uploader_name||'Invité'} ${cat.emoji}</div>
+        <div class="photo-meta-time">${time}</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // TÉLÉCHARGEMENT
@@ -1328,438 +1115,72 @@ function observeLazyImages(){
 
 
 
-// ══════════════════════════════════════════
-//  DIAPORAMA PLEIN ÉCRAN
-//  Crossfade + Ken Burns + Fullscreen API
-// ══════════════════════════════════════════
-let ssActiveLayer = 0;        // 0 ou 1 (alternance des couches)
-let ssUITimer     = null;     // auto-hide des contrôles
-const KB_CLASSES  = ['kb1','kb2','kb3'];
-
-function startSlideshow() {
-  if (!allPhotos.length) return;
-  ssPhotos  = [...allPhotos];
-  ssIndex   = 0;
-  ssPlaying = true;
-  document.getElementById('ssPlayBtn').textContent = '⏸';
-
-  const overlay = document.getElementById('ssOverlay');
-  overlay.classList.add('open');
-  document.body.style.overflow = 'hidden';
-
-  // Réinitialiser les deux couches
-  document.getElementById('ssLayer0').innerHTML = '';
-  document.getElementById('ssLayer0').className = 'ss-layer';
-  document.getElementById('ssLayer1').innerHTML = '';
-  document.getElementById('ssLayer1').className = 'ss-layer';
-  ssActiveLayer = 0;
-
-  ssShow(0);
-  ssStartTimer();
-  ssShowUI();
-
-  // Passer en plein écran automatiquement
-  ssEnterFullscreen();
+// DIAPORAMA
+function startSlideshow(){
+  if(!allPhotos.length)return;
+  ssPhotos=[...allPhotos];ssIndex=0;ssPlaying=true;
+  document.getElementById('ssOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+  ssShow(0);ssStartTimer();
 }
+function ssShow(idx){
+  const p   = ssPhotos[idx];
+  const img = document.getElementById('ssImg');
 
-function ssShow(idx) {
-  const p       = ssPhotos[idx];
-  const isVideo = p.media_type === 'video';
-  const url     = getPhotoUrl(p);
+  // Afficher immédiatement sans animation de fade si image déjà en cache
+  img.style.transition = 'none';
+  img.style.opacity    = '0';
+  img.style.transform  = 'scale(1)';
+  img.crossOrigin = 'anonymous';
+  img.src = p.public_url;
+  img.onload = () => {
+    img.style.transition = 'opacity 0.3s ease';
+    img.style.opacity = '1';
+  };
+  img.onerror = () => {
+    // Retry sans crossOrigin si erreur CORS
+    img.removeAttribute('crossorigin');
+    img.src = p.public_url + '?t=' + Date.now();
+    img.onload = () => { img.style.opacity = '1'; };
+    img.onerror = () => { setTimeout(() => ssNext(), 500); };
+  };
 
-  // Déterminer les couches (active = nouvelle, inactive = ancienne)
-  const nextId = ssActiveLayer;
-  const prevId = 1 - ssActiveLayer;
-  const nextLayer = document.getElementById('ssLayer' + nextId);
-  const prevLayer = document.getElementById('ssLayer' + prevId);
+  // Précharger la prochaine image en avance
+  const nextIdx = (idx + 1) % ssPhotos.length;
+  const preload = new Image();
+  preload.src   = ssPhotos[nextIdx].public_url;
 
-  // Stopper toute vidéo dans l'ancienne couche
-  const oldVid = prevLayer.querySelector('video');
-  if (oldVid) { oldVid.pause(); oldVid.onended = null; oldVid.src = ''; }
-
-  // Préparer le contenu de la nouvelle couche
-  // Retirer les anciennes classes Ken Burns
-  nextLayer.className = 'ss-layer';
-
-  if (isVideo) {
-    const vid = document.createElement('video');
-    vid.src = url;
-    vid.playsinline = true;
-    vid.muted   = true;
-    vid.playsInline = true;
-    vid.setAttribute('playsinline', '');
-    vid.style.cssText = 'max-width:100vw;max-height:100vh;object-fit:contain';
-    nextLayer.innerHTML = '';
-    nextLayer.appendChild(vid);
-    vid.load();
-    vid.play().catch(() => {});
-    vid.onended = () => { clearTimeout(ssTimer); ssNext(); };
-    // Média cassé (404/supprimé) : nettoyer puis retirer du diaporama
-    vid.onerror = () => {
-      vid.onerror = null;
-      try { cleanupBrokenMedia(p.id); } catch(_) {}
-      ssOnPhotoDeleted(p.id);
-    };
-    // Sécurité : skip si vidéo bloque > 25s
-    clearTimeout(ssTimer);
-    ssTimer = setTimeout(ssNext, 25000);
-  } else {
-    const img = document.createElement('img');
-    img.src = url;
-    img.alt = '';
-    img.style.cssText = 'max-width:100vw;max-height:100vh;object-fit:contain';
-    nextLayer.innerHTML = '';
-    nextLayer.appendChild(img);
-
-    // Ken Burns aléatoire
-    nextLayer.classList.add(KB_CLASSES[idx % KB_CLASSES.length]);
-
-    // Première erreur : tentative de rechargement avec cachebuster.
-    // Deuxième erreur : média vraiment manquant → nettoyer + skip
-    img.onerror = () => {
-      img.src = url + '?t=' + Date.now();
-      img.onerror = () => {
-        img.onerror = null;
-        try { cleanupBrokenMedia(p.id); } catch(_) {}
-        ssOnPhotoDeleted(p.id);
-      };
-    };
-
-    // Précharger la suivante
-    const pre = new Image();
-    pre.src = getPhotoUrl(ssPhotos[(idx + 1) % ssPhotos.length]);
-  }
-
-  // Crossfade : activer la nouvelle, désactiver l'ancienne
-  nextLayer.classList.add('active');
-  prevLayer.classList.remove('active');
-
-  // Alterner pour la prochaine transition
-  ssActiveLayer = 1 - ssActiveLayer;
-
-  // Mettre à jour les infos
-  const cat = CATS[p.category] || { emoji:'📷', name:'' };
+  const cat = CATS[p.category] || {emoji:'📷', name:''};
   document.getElementById('ssTag').textContent  = `${cat.emoji} ${cat.name}`;
-  document.getElementById('ssNum').textContent  = `${idx + 1} / ${ssPhotos.length}`;
-  document.getElementById('ssName').textContent = `par ${p.uploader_name || 'Invité'}`;
-  document.getElementById('ssTime').textContent = new Date(p.uploaded_at)
-    .toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+  document.getElementById('ssNum').textContent  = `${idx+1} / ${ssPhotos.length}`;
+  document.getElementById('ssName').textContent = `par ${p.uploader_name||'Invité'}`;
+  document.getElementById('ssTime').textContent = new Date(p.uploaded_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
 
-  // Légende IA
-  ssLoadCaption(p);
-  // Précharger la légende de la photo suivante
-  ssPrefetchCaption((idx + 1) % ssPhotos.length);
-
-  // Barre de progression (photos uniquement)
   const bar = document.getElementById('ssBarFill');
   bar.style.transition = 'none';
   bar.style.width = '0%';
-  if (!isVideo) {
-    requestAnimationFrame(() => {
-      bar.style.transition = `width ${SS_DUR}ms linear`;
-      bar.style.width = '100%';
-    });
-  }
-}
-
-function ssStartTimer() {
-  clearTimeout(ssTimer);
-  if (!ssPlaying) return;
-  ssTimer = setTimeout(ssNext, SS_DUR);
-}
-function ssNext() {
-  ssIndex = (ssIndex + 1) % ssPhotos.length;
-  ssShow(ssIndex);
-  ssStartTimer();
-}
-function ssPrev() {
-  ssIndex = (ssIndex - 1 + ssPhotos.length) % ssPhotos.length;
-  ssShow(ssIndex);
-  ssStartTimer();
-}
-function ssToggle() {
-  ssPlaying = !ssPlaying;
-  document.getElementById('ssPlayBtn').textContent = ssPlaying ? '⏸' : '▶';
-
-  // Pause/reprise de la vidéo en cours
-  const active = document.getElementById('ssLayer' + (1 - ssActiveLayer));
-  const vid = active ? active.querySelector('video') : null;
-
-  if (ssPlaying) {
-    if (vid && vid.src) vid.play().catch(() => {});
-    ssStartTimer();
-  } else {
-    if (vid && !vid.paused) vid.pause();
-    clearTimeout(ssTimer);
-  }
-}
-
-function ssClose() {
-  clearTimeout(ssTimer);
-  clearTimeout(ssUITimer);
-
-  // Annuler toute requête IA en vol
-  if (captionAbort) captionAbort.abort();
-
-  // Stopper les vidéos des deux couches
-  [0, 1].forEach(i => {
-    const layer = document.getElementById('ssLayer' + i);
-    const vid = layer.querySelector('video');
-    if (vid) { vid.pause(); vid.onended = null; vid.src = ''; }
-    layer.innerHTML = '';
-    layer.className = 'ss-layer';
+  requestAnimationFrame(() => {
+    bar.style.transition = `width ${SS_DUR}ms linear`;
+    bar.style.width = '100%';
   });
-
-  // Reset légende IA
-  const cap = document.getElementById('ssCaption');
-  if (cap) { cap.className = 'ss-caption'; cap.textContent = ''; }
-
+}
+function ssStartTimer(){clearTimeout(ssTimer);if(!ssPlaying)return;ssTimer=setTimeout(ssNext,SS_DUR);}
+function ssNext(){ssIndex=(ssIndex+1)%ssPhotos.length;ssShow(ssIndex);ssStartTimer();}
+function ssPrev(){ssIndex=(ssIndex-1+ssPhotos.length)%ssPhotos.length;ssShow(ssIndex);ssStartTimer();}
+function ssToggle(){
+  ssPlaying=!ssPlaying;
+  document.getElementById('ssPlayBtn').textContent=ssPlaying?'⏸':'▶';
+  if(ssPlaying)ssStartTimer();else clearTimeout(ssTimer);
+}
+function ssClose(){
+  clearTimeout(ssTimer);
   document.getElementById('ssOverlay').classList.remove('open');
-  document.body.style.overflow = '';
-
-  // Quitter le plein écran si actif
-  if (document.fullscreenElement) {
-    document.exitFullscreen().catch(() => {});
-  }
-}
-
-// Ajouter une nouvelle photo au diaporama en cours (compteur auto)
-function ssOnPhotoInserted(p) {
-  if (!p || !p.id) return;
-  const overlayOpen = document.getElementById('ssOverlay')?.classList.contains('open');
-  if (!overlayOpen) return;
-  if (ssPhotos.some(x => String(x.id) === String(p.id))) return;
-  ssPhotos.push(p);
-  const numEl = document.getElementById('ssNum');
-  if (numEl) numEl.textContent = `${ssIndex + 1} / ${ssPhotos.length}`;
-}
-
-// Retirer une photo supprimée du diaporama en cours, sans interruption
-function ssOnPhotoDeleted(id) {
-  if (!id || !ssPhotos.length) return;
-  const overlayOpen = document.getElementById('ssOverlay')?.classList.contains('open');
-  if (!overlayOpen) { ssPhotos = []; return; }
-
-  const idx = ssPhotos.findIndex(p => String(p.id) === String(id));
-  if (idx === -1) return;
-
-  const wasCurrent = (idx === ssIndex);
-  ssPhotos.splice(idx, 1);
-
-  if (!ssPhotos.length) { ssClose(); return; }
-
-  if (idx < ssIndex) {
-    ssIndex -= 1;
-  } else if (wasCurrent) {
-    if (ssIndex >= ssPhotos.length) ssIndex = 0;
-    clearTimeout(ssTimer);
-    // Forcer la suppression du média courant (couche encore active après decrement swap)
-    const currentLayer = document.getElementById('ssLayer' + (1 - ssActiveLayer));
-    if (currentLayer) {
-      const v = currentLayer.querySelector('video');
-      if (v) { v.pause(); v.onended = null; v.onerror = null; v.src = ''; }
-    }
-    ssShow(ssIndex);
-    ssStartTimer();
-    return;
-  }
-
-  const numEl = document.getElementById('ssNum');
-  if (numEl) numEl.textContent = `${ssIndex + 1} / ${ssPhotos.length}`;
-}
-
-// ── Fullscreen API ──
-function ssEnterFullscreen() {
-  const el = document.getElementById('ssOverlay');
-  if (el.requestFullscreen) {
-    el.requestFullscreen().catch(() => {});
-  } else if (el.webkitRequestFullscreen) {
-    el.webkitRequestFullscreen();
-  }
-}
-function ssToggleFullscreen() {
-  if (document.fullscreenElement || document.webkitFullscreenElement) {
-    (document.exitFullscreen || document.webkitExitFullscreen).call(document).catch(() => {});
-  } else {
-    ssEnterFullscreen();
-  }
-  ssShowUI();
-}
-// Mettre à jour l'icône quand le navigateur sort du fullscreen
-document.addEventListener('fullscreenchange', () => {
-  const btn = document.getElementById('ssFsBtn');
-  if (btn) btn.textContent = document.fullscreenElement ? '⛶' : '⛶';
-});
-
-// ── Auto-hide UI ──
-function ssShowUI() {
-  const overlay = document.getElementById('ssOverlay');
-  overlay.classList.add('show-ui');
-  clearTimeout(ssUITimer);
-  ssUITimer = setTimeout(() => {
-    if (ssPlaying) overlay.classList.remove('show-ui');
-  }, 3000);
-}
-// Mouse move → show UI
-document.getElementById('ssOverlay').addEventListener('mousemove', ssShowUI);
-
-// ── Swipe tactile ──
-(function initSwipe() {
-  const el = document.getElementById('ssOverlay');
-  let startX = 0, startY = 0, swiping = false;
-
-  el.addEventListener('touchstart', (e) => {
-    if (e.touches.length === 1) {
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-      swiping = true;
-    }
-  }, { passive: true });
-
-  el.addEventListener('touchend', (e) => {
-    if (!swiping) return;
-    swiping = false;
-    const dx = e.changedTouches[0].clientX - startX;
-    const dy = e.changedTouches[0].clientY - startY;
-    if (Math.abs(dx) < 40 || Math.abs(dy) > Math.abs(dx)) {
-      ssShowUI();
-      return;
-    }
-    if (dx < 0) ssNext(); else ssPrev();
-  }, { passive: true });
-})();
-
-// ══════════════════════════════════════════
-//  LÉGENDES IA (Anthropic Claude Vision)
-// ════════════════════════════════���═════════
-let ssAIEnabled   = false;
-const captionCache = new Map();   // photoId → caption string
-let captionAbort   = null;        // AbortController pour annuler les requêtes en vol
-
-function ssToggleAI() {
-  ssAIEnabled = !ssAIEnabled;
-  const btn = document.getElementById('ssAiBtn');
-  if (btn) btn.classList.toggle('active', ssAIEnabled);
-
-  const el = document.getElementById('ssCaption');
-  if (!ssAIEnabled) {
-    el.className = 'ss-caption';
-    el.textContent = '';
-    return;
-  }
-
-  // Générer la légende pour la photo courante
-  const p = ssPhotos[ssIndex];
-  if (p && p.media_type !== 'video') {
-    ssLoadCaption(p);
-  }
-}
-
-async function ssLoadCaption(p) {
-  const el = document.getElementById('ssCaption');
-  if (!ssAIEnabled || !el) return;
-
-  // Pas de légende IA pour les vidéos
-  if (p.media_type === 'video') {
-    el.className = 'ss-caption';
-    el.textContent = '';
-    return;
-  }
-
-  // Cache hit
-  if (captionCache.has(p.id)) {
-    el.className = 'ss-caption';
-    el.textContent = '';
-    // Petit délai pour l'animation
-    requestAnimationFrame(() => {
-      el.innerHTML = captionCache.get(p.id) + '<span class="ai-badge">Claude AI</span>';
-      el.classList.add('visible');
-    });
-    return;
-  }
-
-  // État loading
-  el.className = 'ss-caption loading visible';
-  el.innerHTML = '';
-
-  // Annuler toute requête précédente
-  if (captionAbort) captionAbort.abort();
-  captionAbort = new AbortController();
-
-  const photoId = p.id;
-  const imageUrl = getPhotoUrl(p);
-
-  try {
-    const res = await fetch('/api/caption', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ imageUrl }),
-      signal: captionAbort.signal,
-    });
-
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    const caption = data.caption || '';
-
-    if (caption) {
-      captionCache.set(photoId, caption);
-    }
-
-    // Vérifier qu'on est toujours sur la même photo
-    if (ssPhotos[ssIndex]?.id !== photoId) return;
-
-    el.className = 'ss-caption';
-    if (caption) {
-      requestAnimationFrame(() => {
-        el.innerHTML = caption + '<span class="ai-badge">Claude AI</span>';
-        el.classList.add('visible');
-      });
-    } else {
-      el.textContent = '';
-    }
-  } catch (e) {
-    if (e.name === 'AbortError') return;
-    console.warn('Caption error:', e.message);
-    el.className = 'ss-caption';
-    el.textContent = '';
-  }
-}
-
-// Préchargement : lancer la légende de la photo suivante en avance
-function ssPrefetchCaption(idx) {
-  if (!ssAIEnabled) return;
-  const p = ssPhotos[idx];
-  if (!p || p.media_type === 'video' || captionCache.has(p.id)) return;
-
-  // Fetch silencieux sans affecter l'UI
-  fetch('/api/caption', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ imageUrl: getPhotoUrl(p) }),
-  })
-  .then(r => r.ok ? r.json() : { caption: '' })
-  .then(data => { if (data.caption) captionCache.set(p.id, data.caption); })
-  .catch(() => {});
+  document.body.style.overflow='';
 }
 
 // LIGHTBOX
-function openLB(src,isVideo){
-  const img=document.getElementById('lbImg');
-  const vid=document.getElementById('lbVideo');
-  if(isVideo){
-    img.style.display='none';img.src='';
-    vid.src=src;vid.style.display='block';vid.load();vid.play().catch(()=>{});
-  }else{
-    vid.style.display='none';vid.pause();vid.src='';
-    img.src=src;img.style.display='block';
-  }
-  document.getElementById('lb').classList.add('open');
-}
-function closeLB(){
-  document.getElementById('lb').classList.remove('open');
-  const v=document.getElementById('lbVideo');if(v){v.pause();v.src='';v.style.display='none';}
-  const i=document.getElementById('lbImg');if(i){i.src='';i.style.display='none';}
-}
+function openLB(src){document.getElementById('lbImg').src=src;document.getElementById('lb').classList.add('open');}
+function closeLB(){document.getElementById('lb').classList.remove('open');}
 
 // TOAST
 let toastT=null;
@@ -1772,11 +1193,9 @@ function showToast(msg){
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){closeLB();ssClose();}
   if(document.getElementById('ssOverlay').classList.contains('open')){
-    if(e.key==='ArrowRight'){ssNext();ssShowUI();}
-    if(e.key==='ArrowLeft'){ssPrev();ssShowUI();}
-    if(e.key===' '){e.preventDefault();ssToggle();ssShowUI();}
-    if(e.key==='f'||e.key==='F'){ssToggleFullscreen();}
-    if(e.key==='a'||e.key==='A'){ssToggleAI();ssShowUI();}
+    if(e.key==='ArrowRight')ssNext();
+    if(e.key==='ArrowLeft')ssPrev();
+    if(e.key===' '){e.preventDefault();ssToggle();}
   }
 });
 
@@ -1784,37 +1203,86 @@ document.addEventListener('keydown',e=>{
 let sbClientMaries = null;
 function startRealtimeMaries() {
   if (!window.supabase || !window.supabase.createClient) {
-    // fallback si SDK indisponible : refresh périodique discret
-    setInterval(() => { if (!document.hidden) loadPhotos(); }, 60000);
+    // fallback : refresh toutes les 10s
+    setInterval(loadPhotos, 10000);
     return;
   }
   sbClientMaries = window.supabase.createClient(SB_URL, SB_KEY);
   sbClientMaries
     .channel('maries-photos')
-    // DELETE sans filtre — payload.old n'a que l'id par défaut ; on vérifie contre allPhotos
     .on('postgres_changes', {
-      event: 'DELETE', schema: 'public', table: 'photos'
+      event: 'DELETE', schema: 'public', table: 'photos',
+      filter: `event_id=eq.${EVENT_ID}`
     }, (payload) => {
+      // Supprimer la photo de l'affichage immédiatement
       const deletedId = payload.old && payload.old.id;
-      if (!deletedId) return;
-      if (!allPhotos.find(p => p.id === deletedId)) return;
-      allPhotos = allPhotos.filter(p => p.id !== deletedId);
-      removePhotoCardIncremental(deletedId);
-      try { ssOnPhotoDeleted(deletedId); } catch(_) {}
-      updateUI();
+      if (deletedId) {
+        photos = photos.filter(p => p.id !== deletedId);
+        renderGallery();
+      }
     })
     .on('postgres_changes', {
       event: 'INSERT', schema: 'public', table: 'photos',
       filter: `event_id=eq.${EVENT_ID}`
     }, (payload) => {
-      if (payload.new && !allPhotos.find(p => p.id === payload.new.id)) {
-        allPhotos.unshift(payload.new);
-        addPhotoCardIncremental(payload.new);
-        try { ssOnPhotoInserted(payload.new); } catch(_) {}
-        updateUI();
+      if (payload.new && !photos.find(p => p.id === payload.new.id)) {
+        photos.push(payload.new);
+        renderGallery();
       }
     })
-    .subscribe();
+    .subscribe((status) => {
+    });
+}
+
+
+// ══ CHARGEMENT CONFIG MARIAGE ══
+async function loadEventConfig() {
+  try {
+    const r = await fetch(
+      `${SB_URL}/rest/v1/events?id=eq.${EVENT_ID}&select=couple_name,wedding_date,venue,primary_color`,
+      { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Accept': 'application/json' } }
+    );
+    if (!r.ok) return;
+    const d = await r.json();
+    if (!d[0]) return;
+    applyEventConfig(d[0]);
+  } catch(e) {}
+}
+
+function applyEventConfig(cfg) {
+  const couple = cfg.couple_name || '';
+  const date   = cfg.wedding_date || '';
+  const venue  = cfg.venue || '';
+  const color  = cfg.primary_color || '#B8935A';
+  const dateVenue = (date && venue) ? date + ' · ' + venue : (date || venue);
+
+  if (couple) {
+    document.title = couple + ' — Nos Souvenirs';
+    const parts = couple.split('&');
+    const coupleHTML = parts.length === 2
+      ? parts[0].trim() + ' <em>&</em> ' + parts[1].trim()
+      : couple;
+    ['loginTitle','heroNames'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = coupleHTML;
+    });
+    const fc = document.getElementById('footerCouple');
+    if (fc) fc.textContent = couple;
+  }
+  if (dateVenue) {
+    ['loginDate','heroDate'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = dateVenue;
+    });
+  }
+  if (date) {
+    const fd = document.getElementById('footerDate');
+    if (fd) fd.textContent = date;
+  }
+  if (color) {
+    document.documentElement.style.setProperty('--gold', color);
+    document.documentElement.style.setProperty('--gold-m', color + '55');
+  }
 }
 
 </script>
