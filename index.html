@@ -2479,49 +2479,101 @@ function showDlToast(msg) {
   window._observeThumb = (el) => observer.observe(el);
 })();
 
-// Récupération caméra après changement d'onglet (iOS/Android)
+// Récupération caméra après changement d'onglet navigateur (iOS/Android BFCache-safe)
+async function _silentReacquireCamera(wantAudio) {
+  const fm = (typeof facingMode !== 'undefined') ? facingMode : 'environment';
+  const tries = wantAudio
+    ? [ { video: { facingMode: fm, width:{ideal:1280}, height:{ideal:720} }, audio: true },
+        { video: { facingMode: fm }, audio: true },
+        { video: true, audio: true },
+        { video: true, audio: false } ]
+    : [ { video: { facingMode: fm, width:{ideal:1280}, height:{ideal:720} }, audio: false },
+        { video: { facingMode: fm }, audio: false },
+        { video: true, audio: false } ];
+  for (const c of tries) {
+    try { return await navigator.mediaDevices.getUserMedia(c); } catch(e) {}
+  }
+  return null;
+}
 async function _recoverCamera() {
-  if (typeof cameraStream !== 'undefined' && cameraStream) {
-    const vid    = document.getElementById('cameraVideo');
+  const photoPane = document.getElementById('upload-camera-pane');
+  const photoVid  = document.getElementById('cameraVideo');
+  if (photoPane && photoPane.style.display !== 'none' &&
+      typeof cameraStream !== 'undefined' && cameraStream && photoVid) {
     const tracks = cameraStream.getVideoTracks();
-    const dead   = !cameraStream.active || tracks.some(t => t.readyState === 'ended');
-    const muted  = !dead && tracks.some(t => t.muted);
+    const dead   = !cameraStream.active || tracks.length === 0 ||
+                   tracks.some(t => t.readyState === 'ended');
+    const stale  = !dead && (photoVid.paused || photoVid.readyState === 0 ||
+                             tracks.some(t => t.muted));
     if (dead) {
+      try { cameraStream.getTracks().forEach(t => { try { t.stop(); } catch(_){} }); } catch(_){}
       cameraStream = null;
-      if (typeof requestCameraPermission === 'function') await requestCameraPermission();
-    } else if (muted || (vid && vid.paused)) {
-      vid.srcObject = null;
-      vid.srcObject = cameraStream;
-      vid.play().catch(async () => {
+      photoVid.srcObject = null;
+      const fresh = await _silentReacquireCamera(false);
+      if (fresh) { cameraStream = fresh; photoVid.srcObject = fresh; photoVid.play().catch(()=>{}); }
+    } else if (stale) {
+      photoVid.srcObject = null;
+      photoVid.srcObject = cameraStream;
+      try { await photoVid.play(); }
+      catch(_) {
+        try { cameraStream.getTracks().forEach(t => { try { t.stop(); } catch(_){} }); } catch(_){}
         cameraStream = null;
-        if (typeof requestCameraPermission === 'function') await requestCameraPermission();
-      });
+        photoVid.srcObject = null;
+        const fresh = await _silentReacquireCamera(false);
+        if (fresh) { cameraStream = fresh; photoVid.srcObject = fresh; photoVid.play().catch(()=>{}); }
+      }
     }
   }
-  if (typeof videoStream !== 'undefined' && videoStream && !isRecording) {
-    const recWrap = document.getElementById('videoRecorderWrap');
-    if (recWrap && recWrap.style.display !== 'none') {
-      const vid    = document.getElementById('videoLive');
-      const tracks = videoStream.getVideoTracks();
-      const dead   = !videoStream.active || tracks.some(t => t.readyState === 'ended');
-      const muted  = !dead && tracks.some(t => t.muted);
-      if (dead) {
+  const vidPane = document.getElementById('upload-video-pane');
+  const liveVid = document.getElementById('videoLive');
+  const recWrap = document.getElementById('videoRecorderWrap');
+  if (vidPane && vidPane.style.display !== 'none' &&
+      recWrap && recWrap.style.display !== 'none' &&
+      typeof videoStream !== 'undefined' && videoStream && liveVid &&
+      typeof isRecording !== 'undefined' && !isRecording) {
+    const tracks = videoStream.getVideoTracks();
+    const dead   = !videoStream.active || tracks.length === 0 ||
+                   tracks.some(t => t.readyState === 'ended');
+    const stale  = !dead && (liveVid.paused || liveVid.readyState === 0 ||
+                             tracks.some(t => t.muted));
+    if (dead) {
+      try { videoStream.getTracks().forEach(t => { try { t.stop(); } catch(_){} }); } catch(_){}
+      videoStream = null;
+      liveVid.srcObject = null;
+      const fresh = await _silentReacquireCamera(true);
+      if (fresh) {
+        videoStream = fresh;
+        if (!cameraStream || !cameraStream.active) cameraStream = new MediaStream(fresh.getVideoTracks());
+        liveVid.srcObject = fresh;
+        liveVid.play().catch(()=>{});
+      }
+    } else if (stale) {
+      liveVid.srcObject = null;
+      liveVid.srcObject = videoStream;
+      try { await liveVid.play(); }
+      catch(_) {
+        try { videoStream.getTracks().forEach(t => { try { t.stop(); } catch(_){} }); } catch(_){}
         videoStream = null;
-        if (typeof initVideoCamera === 'function') await initVideoCamera();
-      } else if (muted || (vid && vid.paused)) {
-        vid.srcObject = null;
-        vid.srcObject = videoStream;
-        vid.play().catch(async () => {
-          videoStream = null;
-          if (typeof initVideoCamera === 'function') await initVideoCamera();
-        });
+        liveVid.srcObject = null;
+        const fresh = await _silentReacquireCamera(true);
+        if (fresh) {
+          videoStream = fresh;
+          if (!cameraStream || !cameraStream.active) cameraStream = new MediaStream(fresh.getVideoTracks());
+          liveVid.srcObject = fresh;
+          liveVid.play().catch(()=>{});
+        }
       }
     }
   }
 }
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) setTimeout(_recoverCamera, 300);
+  if (!document.hidden) {
+    setTimeout(_recoverCamera, 150);
+    setTimeout(_recoverCamera, 600);
+    setTimeout(_recoverCamera, 1500);
+  }
 });
+window.addEventListener('pageshow', (e) => { if (e.persisted) setTimeout(_recoverCamera, 200); });
 
 </script>
 
