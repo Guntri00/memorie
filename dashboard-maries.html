@@ -2,12 +2,17 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+<meta name="theme-color" content="#2C1810">
 <title>Mélodie & Thomas — Nos Souvenirs</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Lato:wght@300;400&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
+html{color-scheme:dark}
 :root{
+  color-scheme:dark;
   --rose:    #F2E8E4;
   --rose-d:  #E8D5CC;
   --blush:   #D4A5A0;
@@ -581,21 +586,26 @@ footer{
 }
 footer em{font-style:italic;font-family:'Playfair Display',serif;font-size:12px;color:var(--gold)}
 
-/* ══ RESPONSIVE DESKTOP ══ */
-@media (min-width: 768px) {
-  .body { padding: 48px 40px 100px; }
-  .dl-grid { grid-template-columns: repeat(4, 1fr); }
-  .photo-grid { grid-template-columns: repeat(4, 1fr); }
-  .hero-names { font-size: 72px; }
-  .ss-card { padding: 36px 40px; }
-}
-@media (min-width: 1200px) {
-  .body { max-width: 1100px; padding: 56px 48px 120px; }
-  .photo-grid { grid-template-columns: repeat(5, 1fr); }
-  .hero-names { font-size: 86px; }
+/* ══ RESPONSIVE ══ */
+/* Mobile small (≤380px) : compacter */
+@media (max-width: 380px) {
+  .hero { padding: 0 16px 32px; }
+  .body { padding: 28px 14px 60px; }
+  .ss-card { padding: 24px 20px; gap: 14px; }
+  .dl-all { padding: 18px 18px; }
+  .cat-tab { padding: 7px 11px; font-size: 9px; }
+  .hero-stats { gap: 18px; }
+  .photo-grid { gap: 8px; }
 }
 
+/* Tablette (≥768px) */
 @media (min-width: 768px) {
+  .body { max-width: 900px; padding: 48px 40px 100px; }
+  .dl-grid { grid-template-columns: repeat(4, 1fr); }
+  .photo-grid { grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .hero-names { font-size: 72px; }
+  .hero { padding: 0 40px 56px; }
+  .ss-card { padding: 36px 40px; }
   .ss-footer { padding: 24px 48px 40px; }
   .ss-footer-info strong { font-size: 24px; }
   .ss-caption { font-size: 17px; max-width: 600px; }
@@ -603,7 +613,28 @@ footer em{font-style:italic;font-family:'Playfair Display',serif;font-size:12px;
   .ss-num { font-size: 13px; padding: 7px 18px; }
   .ss-tag { font-size: 11px; padding: 7px 18px; }
   .ss-touch-prev,.ss-touch-next{width:20%}
+  .sec-title { font-size: 28px; }
 }
+
+/* Desktop (≥1200px) */
+@media (min-width: 1200px) {
+  .body { max-width: 1100px; padding: 56px 48px 120px; }
+  .photo-grid { grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .hero-names { font-size: 86px; }
+  .hero { padding: 0 48px 72px; }
+  .hero-tagline { font-size: 16px; max-width: 520px; }
+  .sec-title { font-size: 32px; }
+  .message-card p { font-size: 22px; }
+}
+
+/* Large desktop (≥1600px) */
+@media (min-width: 1600px) {
+  .body { max-width: 1320px; }
+  .photo-grid { grid-template-columns: repeat(6, 1fr); }
+  .dl-grid { grid-template-columns: repeat(8, 1fr); }
+}
+
+/* Perf mobile : désactiver backdrop-filter (coûteux) */
 @media (max-width:768px){
   [class]{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 }
