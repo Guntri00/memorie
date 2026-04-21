@@ -1438,6 +1438,10 @@ function stopCamera() {
 
 function flipCamera() {
   facingMode = facingMode === 'environment' ? 'user' : 'environment';
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(t => t.stop());
+    cameraStream = null;
+  }
   startCamera();
 }
 
