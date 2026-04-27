@@ -37,10 +37,7 @@ h1 em{font-style:italic;color:var(--gold)}
 .cat-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;text-align:center;margin-bottom:6px}
 .cat-sub{font-size:12px;color:var(--stone);text-align:center;margin-bottom:24px;letter-spacing:.05em}
 .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px}
-.cat-card{border:1.5px solid var(--gold-m);border-radius:6px;padding:20px 16px;text-align:center;cursor:pointer;transition:all .3s;background:var(--warm);position:relative}
-.cat-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 8px 28px rgba(184,147,90,.12)}
-.cat-card.selected{border-color:var(--gold);background:linear-gradient(135deg,#FDF8F2,#FAF3E8);box-shadow:0 8px 28px rgba(184,147,90,.15)}
-.cat-card.selected::after{content:'✓';position:absolute;top:8px;right:10px;font-size:11px;color:var(--gold);font-weight:500}
+
 .cat-emoji{font-size:32px;margin-bottom:10px;display:block}
 .cat-name{font-family:'Cormorant Garamond',serif;font-size:17px;margin-bottom:4px}
 .cat-desc{font-size:11px;color:var(--stone);line-height:1.5}
@@ -663,22 +660,28 @@ to{opacity:1;transform:translateY(0)}}
 .intro-tap-3d{font-size:10px;letter-spacing:.38em;text-transform:uppercase;color:rgba(184,147,90,.38);animation:blink3d 2.4s ease 2.5s infinite}
 @keyframes blink3d{0%,100%{opacity:0}40%,60%{opacity:1}}
 
-/* ── Mementos 3D : Flip cards ── */
-.cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:4px 0 20px}
-.flip-wrap{perspective:700px;height:160px;cursor:pointer}
-.flip-card{width:100%;height:100%;transform-style:preserve-3d;transition:transform .58s cubic-bezier(.4,.2,.2,1);position:relative}
-.flip-card.flipped{transform:rotateY(180deg)}
-.flip-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.flip-front{background:var(--warm);border:1.5px solid var(--gold-m);box-shadow:0 4px 16px rgba(184,147,90,.08);transition:border-color .3s,box-shadow .3s}
-.flip-front:hover{border-color:var(--gold);box-shadow:0 8px 28px rgba(184,147,90,.14)}
-.flip-front.flip-sel{background:linear-gradient(135deg,#FDF8F2,#FAF3E8);border-color:var(--gold);box-shadow:0 8px 28px rgba(184,147,90,.18)}
-.flip-back{background:linear-gradient(135deg,var(--gold),var(--gold-l));border:1.5px solid var(--gold);transform:rotateY(180deg);padding:16px;text-align:center;box-shadow:0 8px 28px rgba(184,147,90,.25)}
-.flip-emoji{font-size:36px;margin-bottom:8px}
-.flip-name{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:300;color:var(--dark)}
-.flip-desc{font-size:11px;color:rgba(28,23,18,.8);line-height:1.5;margin-bottom:11px}
-.flip-btn-3d{padding:8px 20px;border-radius:20px;background:var(--dark);color:var(--warm);font-family:'Jost',sans-serif;font-size:9px;letter-spacing:.2em;text-transform:uppercase;border:none;cursor:pointer;font-weight:500}
-.flip-hint{padding:0 0 10px;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:rgba(138,128,120,.5);text-align:center}
-</style>
+
+
+/* ── Catégories pilule ── */
+.cat-pills{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:28px}
+.cat-pill{
+  padding:22px 10px 18px;
+  border-radius:100px;
+  border:1.5px solid var(--gold-m);
+  background:var(--warm);
+  cursor:pointer;
+  transition:all .28s;
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  text-align:center;
+  box-shadow:0 2px 10px rgba(184,147,90,.06);
+}
+.cat-pill-emoji{font-size:30px;line-height:1}
+.cat-pill-name{font-size:10px;letter-spacing:.2em;text-transform:uppercase;font-weight:400;color:var(--dark);transition:color .28s}
+.cat-pill-desc{font-size:10px;color:var(--stone);letter-spacing:.04em;transition:color .28s}
+.cat-pill.selected{background:var(--dark);border-color:var(--dark);box-shadow:0 6px 24px rgba(28,23,18,.18)}
+.cat-pill.selected .cat-pill-name{color:var(--warm)}
+.cat-pill.selected .cat-pill-desc{color:rgba(253,250,246,.5)}
+.cat-pill:not(.selected):hover{border-color:var(--gold);box-shadow:0 6px 20px rgba(184,147,90,.14)}</style>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💍</text></svg>">
 
   <!-- ══ PWA ══ -->
@@ -869,60 +872,27 @@ if ('serviceWorker' in navigator) {
     <div id="step-category">
       <p class="cat-title">Dans quel moment êtes-vous ?</p>
       <p class="cat-sub">Choisissez une catégorie pour mieux organiser vos souvenirs</p>
-      <p class="flip-hint">Retournez la carte pour choisir</p>
-      <div class="cards-grid">
-        <div class="flip-wrap" onclick="flipCard('ceremonie')">
-          <div class="flip-card" id="card-ceremonie">
-            <div class="flip-face flip-front" id="front-ceremonie">
-              <div class="flip-emoji">💍</div>
-              <div class="flip-name">Cérémonie</div>
-            </div>
-            <div class="flip-face flip-back">
-              <div style="font-size:24px;margin-bottom:6px">💍</div>
-              <div class="flip-desc">L'échange des vœux et des alliances</div>
-              <button class="flip-btn-3d" onclick="event.stopPropagation();selectCategory('ceremonie','💍','Cérémonie')">Choisir</button>
-            </div>
-          </div>
-        </div>
-        <div class="flip-wrap" onclick="flipCard('cocktail')">
-          <div class="flip-card" id="card-cocktail">
-            <div class="flip-face flip-front" id="front-cocktail">
-              <div class="flip-emoji">🥂</div>
-              <div class="flip-name">Cocktail</div>
-            </div>
-            <div class="flip-face flip-back">
-              <div style="font-size:24px;margin-bottom:6px">🥂</div>
-              <div class="flip-desc">Les bulles et les retrouvailles</div>
-              <button class="flip-btn-3d" onclick="event.stopPropagation();selectCategory('cocktail','🥂','Cocktail')">Choisir</button>
-            </div>
-          </div>
-        </div>
-        <div class="flip-wrap" onclick="flipCard('diner')">
-          <div class="flip-card" id="card-diner">
-            <div class="flip-face flip-front" id="front-diner">
-              <div class="flip-emoji">🍽️</div>
-              <div class="flip-name">Dîner / Soirée</div>
-            </div>
-            <div class="flip-face flip-back">
-              <div style="font-size:24px;margin-bottom:6px">🍽️</div>
-              <div class="flip-desc">Le repas et les discours</div>
-              <button class="flip-btn-3d" onclick="event.stopPropagation();selectCategory('diner','🍽️','Dîner / Soirée')">Choisir</button>
-            </div>
-          </div>
-        </div>
-        <div class="flip-wrap" onclick="flipCard('danse')">
-          <div class="flip-card" id="card-danse">
-            <div class="flip-face flip-front" id="front-danse">
-              <div class="flip-emoji">💃</div>
-              <div class="flip-name">Piste de danse</div>
-            </div>
-            <div class="flip-face flip-back">
-              <div style="font-size:24px;margin-bottom:6px">💃</div>
-              <div class="flip-desc">La fête jusqu'au bout de la nuit</div>
-              <button class="flip-btn-3d" onclick="event.stopPropagation();selectCategory('danse','💃','Piste de danse')">Choisir</button>
-            </div>
-          </div>
-        </div>
+      <div class="cat-pills">
+        <button class="cat-pill" onclick="selectCategory('ceremonie','💍','Cérémonie')">
+          <span class="cat-pill-emoji">💍</span>
+          <span class="cat-pill-name">Cérémonie</span>
+          <span class="cat-pill-desc">Les vœux & les alliances</span>
+        </button>
+        <button class="cat-pill" onclick="selectCategory('cocktail','🥂','Cocktail')">
+          <span class="cat-pill-emoji">🥂</span>
+          <span class="cat-pill-name">Cocktail</span>
+          <span class="cat-pill-desc">Les bulles & retrouvailles</span>
+        </button>
+        <button class="cat-pill" onclick="selectCategory('diner','🍽️','Dîner / Soirée')">
+          <span class="cat-pill-emoji">🍽️</span>
+          <span class="cat-pill-name">Dîner / Soirée</span>
+          <span class="cat-pill-desc">Le repas & les discours</span>
+        </button>
+        <button class="cat-pill" onclick="selectCategory('danse','💃','Piste de danse')">
+          <span class="cat-pill-emoji">💃</span>
+          <span class="cat-pill-name">Piste de danse</span>
+          <span class="cat-pill-desc">La fête jusqu'au bout</span>
+        </button>
       </div>
     </div>
     <div id="step-upload" class="upload-section">
@@ -1773,8 +1743,8 @@ function flipCard(catId) {
 
 function selectCategory(id, emoji, name) {
   selectedCategory = { id, emoji, name };
-  document.querySelectorAll('.flip-front').forEach(c => c.classList.remove('flip-sel'));
-  const _sf = document.getElementById('front-' + id); if (_sf) _sf.classList.add('flip-sel');
+  document.querySelectorAll('.cat-pill').forEach(c => c.classList.remove('selected'));
+  const _sp = event.currentTarget.closest('.cat-pill'); if (_sp) _sp.classList.add('selected');
   document.getElementById('badge-emoji').textContent = emoji;
   document.getElementById('badge-name').textContent  = name;
   setTimeout(() => {
@@ -1793,8 +1763,7 @@ function goBack() {
   renderPreviews();
   document.getElementById('step-upload').classList.remove('visible');
   document.getElementById('step-category').style.display = 'block';
-  document.querySelectorAll('.flip-card').forEach(c => c.classList.remove('flipped'));
-  document.querySelectorAll('.flip-front').forEach(c => c.classList.remove('flip-sel'));
+  document.querySelectorAll('.cat-pill').forEach(c => c.classList.remove('selected'));
   document.getElementById('toast').style.display = 'none';
 }
 
