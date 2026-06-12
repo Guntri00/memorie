@@ -739,6 +739,34 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+<!-- Vercel Web Analytics (sans cookie) — porté de la soirée -->
+<script defer src="/_vercel/insights/script.js"></script>
+<style>
+/* ── Contact memento.memorie (porté de la soirée) ── */
+.contact-btn{position:fixed;top:14px;right:14px;z-index:900;border:none;cursor:pointer;
+  padding:9px 16px;border-radius:999px;font-family:'Jost',sans-serif;font-size:11px;
+  letter-spacing:.14em;text-transform:uppercase;font-weight:500;color:#2D3748;
+  background:rgba(255,255,255,.9);box-shadow:0 8px 22px rgba(42,14,34,.18),inset 0 0 0 1px rgba(255,209,102,.5);
+  transition:transform .15s ease}
+.contact-btn:active{transform:scale(.95)}
+.contact-pop{position:fixed;top:56px;right:14px;z-index:900;display:none;flex-direction:column;
+  gap:9px;align-items:center;text-align:center;padding:18px 20px;border-radius:18px;background:#fff;
+  box-shadow:0 18px 46px rgba(42,14,34,.3),inset 0 0 0 1px rgba(255,209,102,.45);
+  font-family:'Jost',sans-serif;font-size:13px;max-width:calc(100vw - 28px)}
+.contact-pop.open{display:flex;animation:toastRiseInline .25s ease both}
+.contact-pop img{width:36px;height:36px;border-radius:9px;display:block}
+.contact-pop .cp-brand{font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:600;font-size:18px;color:var(--charcoal)}
+.contact-pop a{color:var(--gold);text-decoration:none;letter-spacing:.04em}
+.contact-pop a:hover{text-decoration:underline}
+@keyframes toastRiseInline{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+/* ── Charte d'utilisation & droit à l'image (porté de la soirée) ── */
+.charte-modal{max-width:480px;width:100%;text-align:left}
+.charte-text{text-align:left;font-size:12.5px;line-height:1.62;color:var(--dark);max-height:56vh;overflow-y:auto;margin:8px 0 16px;-webkit-overflow-scrolling:touch}
+.charte-text h4{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:15px;margin:13px 0 3px;color:var(--charcoal)}
+.charte-text p{margin:0 0 7px}
+.charte-text a{color:var(--gold)}
+.brand-logo-foot{width:20px;height:20px;border-radius:5px;vertical-align:-5px;margin-right:6px}
+</style>
 </head>
 <body>
 <!-- 🩷💍 -->
@@ -1158,7 +1186,7 @@ if ('serviceWorker' in navigator) {
   </div>
 </div>
 
-<footer><p>Propulsé par <a href="#">Mementos</a> &nbsp;·&nbsp; vos souvenirs, centralisés</p></footer>
+<footer><p>Propulsé par <a href="#">Mementos</a> &nbsp;·&nbsp; vos souvenirs, centralisés &nbsp;·&nbsp; <a href="#" onclick="event.preventDefault();openCharte();return false;">Charte &amp; droit à l'image</a></p></footer>
 
 <script>
 
@@ -3063,6 +3091,53 @@ window.addEventListener('beforeunload', () => {
   _releaseAllCameraHardware();
 });
 
+</script>
+
+<!-- Contact memento.memorie (porté de la soirée) -->
+<button class="contact-btn" id="contactBtn" aria-haspopup="dialog" aria-expanded="false" onclick="toggleContact(event)">✉️ Contact</button>
+<div class="contact-pop" id="contactPop" role="dialog" aria-label="Coordonnées de contact">
+  <img src="/logo-memento.svg" alt="">
+  <div class="cp-brand">memento.memorie</div>
+  <a href="mailto:mementos.memorie@gmail.com">📧&nbsp;mementos.memorie@gmail.com</a>
+  <a href="tel:+33634044117">📞&nbsp;06&nbsp;34&nbsp;04&nbsp;41&nbsp;17</a>
+</div>
+
+<!-- Charte d'utilisation & droit à l'image (porté de la soirée) -->
+<div class="modal-bg" id="charteModal" onclick="dismissCharte()">
+  <div class="modal charte-modal" onclick="event.stopPropagation()">
+    <div class="modal-title">Charte d'utilisation &amp; droit à l'image</div>
+    <div class="charte-text">
+      <h4>1. Objet</h4>
+      <p>Ce site permet aux participants de l'événement de partager leurs photos et vidéos entre eux, en souvenir.</p>
+      <h4>2. Droit à l'image</h4>
+      <p>En publiant un contenu, vous certifiez avoir obtenu l'accord des personnes identifiables qui y figurent. Toute personne peut, à tout moment, demander le retrait d'un contenu sur lequel elle apparaît.</p>
+      <h4>3. Bon usage</h4>
+      <p>Seuls les contenus respectueux sont autorisés. Sont notamment interdits les contenus offensants, discriminatoires, à caractère sexuel, violents, diffamatoires, ou portant atteinte à la dignité, à la vie privée ou à la réputation d'autrui. Tout comportement de harcèlement est proscrit.</p>
+      <h4>4. Données personnelles (RGPD)</h4>
+      <p><strong>Responsable :</strong> l'organisateur de l'événement.<br>
+      <strong>Finalité :</strong> permettre le partage de souvenirs entre les participants.<br>
+      <strong>Base légale :</strong> votre consentement.<br>
+      <strong>Destinataires :</strong> les participants ayant accès au site.<br>
+      <strong>Conservation :</strong> les contenus sont conservés le temps de l'événement, puis supprimés à sa clôture.<br>
+      <strong>Vos droits</strong> (accès, rectification, effacement, opposition) et tout signalement : <a href="mailto:mementos.memorie@gmail.com">mementos.memorie@gmail.com</a>.</p>
+      <h4>5. Usage réservé</h4>
+      <p>Les photos et vidéos sont destinées au cadre privé de l'événement. Toute rediffusion publique ou usage commercial est interdit sans accord.</p>
+      <h4>6. Acceptation</h4>
+      <p>L'utilisation de ce site et l'envoi de tout contenu valent acceptation de la présente charte.</p>
+    </div>
+    <div class="modal-btns"><button class="modal-confirm" onclick="dismissCharte()">Fermer</button></div>
+  </div>
+</div>
+
+<script>
+/* Contact + Charte — portés de la soirée */
+function toggleContact(e){ if(e) e.stopPropagation(); const pop=document.getElementById('contactPop'); const btn=document.getElementById('contactBtn'); if(!pop) return; const open=!pop.classList.contains('open'); pop.classList.toggle('open',open); if(btn) btn.setAttribute('aria-expanded',open?'true':'false'); }
+function closeContact(){ const pop=document.getElementById('contactPop'); const btn=document.getElementById('contactBtn'); if(pop) pop.classList.remove('open'); if(btn) btn.setAttribute('aria-expanded','false'); }
+document.addEventListener('click', function(ev){ const pop=document.getElementById('contactPop'); if(!pop||!pop.classList.contains('open')) return; if(pop.contains(ev.target)||(ev.target.closest&&ev.target.closest('#contactBtn'))) return; closeContact(); });
+let _charteGate=false;
+function openCharte(asGate){ _charteGate=!!asGate; const m=document.getElementById('charteModal'); if(m) m.classList.add('open'); }
+function dismissCharte(){ if(_charteGate) return; const m=document.getElementById('charteModal'); if(m) m.classList.remove('open'); }
+document.addEventListener('keydown', function(e){ if(e.key!=='Escape') return; const pop=document.getElementById('contactPop'); if(pop&&pop.classList.contains('open')){ closeContact(); return; } const ch=document.getElementById('charteModal'); if(ch&&ch.classList.contains('open')){ dismissCharte(); } });
 </script>
 
 </body>
